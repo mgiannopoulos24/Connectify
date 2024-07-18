@@ -5,6 +5,8 @@ import {faUsers, faBriefcase} from "@fortawesome/free-solid-svg-icons";
 import {faUserPlus, faSignInAlt} from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { Container, Row, Col, Navbar, Nav, Form, Button } from 'react-bootstrap';
+import './styles/styles.css';
+import img1 from '../assets/working.jpg';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -48,10 +50,12 @@ const LoginPage = () => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <Container className="py-5">
-        <Row className="align-items-center">
-          <Col md={6}>
-            <h1 className="mb-3" style={{ fontSize: "48px", fontWeight: "bold" }}>Connect and Grow Your Network</h1>
+      <Container fluid className="p-5">
+        <Row className="align-items-center g-5 m-0">
+          <Col md={6} className="p-4">
+            <h1 className="mb-3" style={{ fontSize: "48px", fontWeight: "bold" }}>
+              Connect and Grow Your Network
+            </h1>
             <p className="mb-4 text-secondary">
               Connectify is the premier professional networking platform for building meaningful connections and advancing your career.
             </p>
@@ -61,35 +65,43 @@ const LoginPage = () => {
                   <FontAwesomeIcon icon={faUsers} style={{ fontSize: "2rem", marginRight: "0.5rem" }} />
                   <h6 className="ms-2">Networking</h6>
                 </div>
-                <p className="text-secondary">Expand your professional network and connect with like-minded individuals.</p>
+                <p className="text-secondary">
+                  Expand your professional network and connect with like-minded individuals.
+                </p>
               </Col>
               <Col xs={6}>
                 <div className="d-flex align-items-center mb-2">
                   <FontAwesomeIcon icon={faBriefcase} style={{ fontSize: "2rem", marginRight: "0.5rem" }} />
                   <h6 className="ms-2">Job Opportunities</h6>
                 </div>
-                <p className="text-secondary">Discover new job opportunities and connect with potential employers.</p>
+                <p className="text-secondary">
+                  Discover new job opportunities and connect with potential employers.
+                </p>
               </Col>
               <Col xs={6}>
                 <div className="d-flex align-items-center mb-2">
                   <FontAwesomeIcon icon={faLightbulb} style={{ fontSize: "2rem", marginRight: "0.5rem" }} />
                   <h6 className="ms-2">Professional Growth</h6>
                 </div>
-                <p className="text-secondary">Access resources and tools to develop your skills and advance your career.</p>
+                <p className="text-secondary">
+                  Access resources and tools to develop your skills and advance your career.
+                </p>
               </Col>
               <Col xs={6}>
                 <div className="d-flex align-items-center mb-2">
                   <FontAwesomeIcon icon={faBookmark} style={{ fontSize: "2rem", marginRight: "0.5rem" }} />
                   <h6 className="ms-2">Personalized Feed</h6>
                 </div>
-                <p className="text-secondary">Stay up-to-date with the latest industry news and discussions.</p>
+                <p className="text-secondary">
+                  Stay up-to-date with the latest industry news and discussions.
+                </p>
               </Col>
             </Row>
             <Row className="mb-4">
               <Col xs={6}>
-              <Button variant="dark" className="w-100">
-                Join Now
-              </Button>
+                <Button variant="dark" className="w-100">
+                  Join Now
+                </Button>
               </Col>
               <Col xs={6}>
                 <Button variant="outline-dark" className="w-100">
@@ -97,6 +109,14 @@ const LoginPage = () => {
                 </Button>
               </Col>
             </Row>
+          </Col>
+          <Col md={6}>
+            <img src={img1} alt="Network" className="img-fluid"/>
+          </Col>
+        </Row>
+        <Row className="align-items-center g-5 m-0">
+          <Col md={6}>
+            <img src={img1} alt="Career Growth" className="img-fluid" />
           </Col>
           <Col md={6}>
             <div className="p-4 border rounded-2">
@@ -132,7 +152,6 @@ const LoginPage = () => {
                     </div>
                   </div>
                 </div>
-
                 <Row className="mb-3">
                   <Col sm={4}>
                     <Button variant="outline-dark" className="w-100">
