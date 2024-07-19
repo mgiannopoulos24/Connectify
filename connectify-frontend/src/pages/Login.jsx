@@ -1,12 +1,20 @@
+import { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faGithub, faFacebook, faConnectdevelop, faGoogle } from "@fortawesome/free-brands-svg-icons";
 import {faLightbulb, faBookmark} from "@fortawesome/free-regular-svg-icons";
 import {faUsers, faBriefcase} from "@fortawesome/free-solid-svg-icons";
 import {faUserPlus, faSignInAlt} from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
 import { Container, Row, Col, Navbar, Nav, Form, Button } from 'react-bootstrap';
-import './styles/styles.css';
 import img1 from '../assets/working.jpg';
+import konami from '../assets/Konami.png';
+import sony from '../assets/Sony.png';
+import nintendo from '../assets/nintendo.png';
+import ghost from '../assets/ghostbusters.jpg';
+import nord from '../assets/nord.jpg';
+import sklavos from '../assets/sklavos.png';
+import forall from '../assets/forallsecure.png';
+import fsociety from '../assets/fsociety.png';
+import allsafe from '../assets/allsafe.jpg';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -25,6 +33,12 @@ const LoginPage = () => {
     // Handle form submission logic here
   };
 
+  const formRef = useRef(null);
+
+  const scrollToForm = () => {
+    formRef.current.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div>
       <Navbar bg="light" expand="lg" variant="light" className="fluid">
@@ -40,10 +54,10 @@ const LoginPage = () => {
               <Nav.Link href="#">Contact</Nav.Link>
             </Nav>
             <Nav className="ms-auto">
-              <Button variant="contained" color="primary" className="me-2">
+              <Button variant="contained" color="primary" className="me-2" onClick={scrollToForm}>
                 <FontAwesomeIcon icon={faUserPlus} className="me-1" /> Sign Up
               </Button>
-              <Button variant="outline-primary">
+              <Button variant="outline-primary" onClick={scrollToForm}>
                 <FontAwesomeIcon icon={faSignInAlt} className="me-1" /> Sign In
               </Button>
             </Nav>
@@ -97,12 +111,7 @@ const LoginPage = () => {
                 </p>
               </Col>
             </Row>
-            <Row className="mb-4">
-              <Col xs={6}>
-                <Button variant="dark" className="w-100">
-                  Join Now
-                </Button>
-              </Col>
+            <Row className="mb-4 justify-content-center">
               <Col xs={6}>
                 <Button variant="outline-dark" className="w-100">
                   Learn More
@@ -114,7 +123,7 @@ const LoginPage = () => {
             <img src={img1} alt="Network" className="img-fluid"/>
           </Col>
         </Row>
-        <Row className="align-items-center g-5 m-0">
+        <Row className="align-items-center g-5 m-0" ref={formRef}>
           <Col md={6}>
             <img src={img1} alt="Career Growth" className="img-fluid" />
           </Col>
@@ -184,7 +193,99 @@ const LoginPage = () => {
           </Col>
         </Row>
       </Container>
-
+      <Row className="align-items-center justify-content-center g-5 m-0" style={{fontSize: "2.5rem", fontWeight:"bold"}}>
+          Our Customers
+        <Row>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={konami}
+              width={140}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={sony}
+              width={140}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={nintendo}
+              width={250}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.7"}}
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={ghost}
+              width={300}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.7"}}
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={nord}
+              width={400}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.7"}}
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={sklavos}
+              width={500}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.7"}}
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={forall}
+              width={500}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.4"}}
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={fsociety}
+              width={500}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.5"}}
+            />
+          </Col>
+          <Col xs={4} className="d-flex justify-content-center mb-4">
+            <img
+              src={allsafe}
+              width={250}
+              height={70}
+              alt="Customer Logo"
+              className="img-fluid rounded-lg"
+              style={{scale: "0.7"}}
+            />
+          </Col>
+        </Row>
+      </Row>
       <footer className="py-5 bg-light">
         <Container fluid>
           <Row className="justify-content-around">
