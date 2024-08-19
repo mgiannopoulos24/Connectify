@@ -3,4 +3,17 @@
     width: 100%; 
   }
   
+.nav-link-content {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center;
+  opacity: 0.6; 
+  transition: opacity 0.3s ease, font-weight 0.3s ease; 
+  font-weight: normal; 
+}
+  
+.nav-link-content:hover {
+  opacity: 1; 
 
+}
+  

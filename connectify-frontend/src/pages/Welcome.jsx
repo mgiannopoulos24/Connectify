@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faGithub, faFacebook, faConnectdevelop, faGoogle } from "@fortawesome/free-brands-svg-icons";
-import {faLightbulb, faBookmark} from "@fortawesome/free-regular-svg-icons";
+import {faConnectdevelop} from "@fortawesome/free-brands-svg-icons";
+import {faLightbulb, faBookmark, faNewspaper} from "@fortawesome/free-regular-svg-icons";
 import {faUsers, faBriefcase} from "@fortawesome/free-solid-svg-icons";
 import {faUserPlus, faSignInAlt} from "@fortawesome/free-solid-svg-icons";
-import { Container, Row, Col, Navbar, Nav, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Navbar, Nav, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import img1 from '../assets/working.jpg';
 import konami from '../assets/Konami.png';
 import sony from '../assets/Sony.png';
@@ -17,47 +18,51 @@ import fsociety from '../assets/fsociety.png';
 import allsafe from '../assets/allsafe.jpg';
 
 const WelcomePage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission logic here
-  };
 
   const formRef = useRef(null);
 
-  const scrollToForm = () => {
-    formRef.current.scrollIntoView({ behavior: "smooth" });
-  };
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    navigate('/login');
+  }
+
+  const handleSignUp = () => {
+    navigate('/register');
+  }
 
   return (
     <div>
       <Navbar bg="light" expand="lg" variant="light" className="fluid">
         <Container fluid>
-          <Navbar.Brand href="#" className="ms-4">
-            <span><FontAwesomeIcon icon={faConnectdevelop} /></span> Connectify
+          <Navbar.Brand href="#" className="ms-4 fw-bolder fs-3">
+            <span><FontAwesomeIcon icon={faConnectdevelop}/></span> Connectify
           </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Toggle aria-controls="basic-navbar-nav"/>
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto ms-4">
-              <Nav.Link href="#">Home</Nav.Link>
-              <Nav.Link href="#">Features</Nav.Link>
-              <Nav.Link href="#">Contact</Nav.Link>
-            </Nav>
             <Nav className="ms-auto">
-              <Button variant="contained" color="primary" className="me-2" onClick={scrollToForm}>
+              <Nav.Link href="#" className="me-3">
+                <div className="nav-link-content">
+                  <FontAwesomeIcon icon={faNewspaper}/>
+                  <span>Articles</span>
+                </div>
+              </Nav.Link>
+              <Nav.Link href="#" className="me-3">
+                <div className="nav-link-content">
+                  <FontAwesomeIcon icon={faUsers}/>
+                  <span>People</span>
+                </div>
+              </Nav.Link>
+              <Nav.Link href="#" className="me-3">
+                <div className="nav-link-content">
+                  <FontAwesomeIcon icon={faBriefcase}/>
+                  <span>Jobs</span>
+                </div>               
+              </Nav.Link>
+              <Button variant="contained" color="primary" className="me-2 rounded-pill" onClick={handleSignUp}>
                 <FontAwesomeIcon icon={faUserPlus} className="me-1" /> Sign Up
               </Button>
-              <Button variant="outline-primary" onClick={scrollToForm}>
+              <Button variant="outline-primary" className="rounded-pill" onClick={handleSignIn}>
                 <FontAwesomeIcon icon={faSignInAlt} className="me-1" /> Sign In
               </Button>
             </Nav>
@@ -126,70 +131,6 @@ const WelcomePage = () => {
         <Row className="align-items-center g-5 m-0" ref={formRef}>
           <Col md={6}>
             <img src={img1} alt="Career Growth" className="img-fluid" />
-          </Col>
-          <Col md={6}>
-            <div className="p-4 border rounded-2">
-              <h4 className="mb-3 fw-bold fs-3">Sign In</h4>
-              <p className="mb-4 text-secondary">
-                Enter your email and password to access your account, or sign in with a social account.
-              </p>
-              <Form onSubmit={handleSubmit}>
-                <Form.Control
-                  id="email"
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  className="mb-3"
-                />
-                <Form.Control
-                  id="password"
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  className="mb-3"
-                />
-                <div className="text-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <div className="flex-grow-1">
-                      <hr className="mx-3" />
-                    </div>
-                    <div className="px-2 fw-bold text-uppercase">or</div>
-                    <div className="flex-grow-1">
-                      <hr className="mx-3" />
-                    </div>
-                  </div>
-                </div>
-                <Row className="mb-3">
-                  <Col sm={4}>
-                    <Button variant="outline-dark" className="w-100">
-                      <FontAwesomeIcon icon={faGithub} className="me-1" />
-                      GitHub
-                    </Button>
-                  </Col>
-                  <Col sm={4}>
-                    <Button variant="outline-dark" className="w-100">
-                      <FontAwesomeIcon icon={faFacebook} className="me-1" />
-                      Facebook
-                    </Button>
-                  </Col>
-                  <Col sm={4}>
-                    <Button variant="outline-dark" className="w-100">
-                      <FontAwesomeIcon icon={faGoogle} className="me-1" />
-                      Google
-                    </Button>
-                  </Col>
-                </Row>
-                <Button variant="dark" type="submit" className="w-100">
-                  Sign In
-                </Button>
-              </Form>
-              <div className="d-flex justify-content-between mt-2">
-                <Nav.Link href="#" className="dark">Forgot password?</Nav.Link>
-                <Nav.Link href="#" className="dark">Create an account</Nav.Link>
-              </div>
-            </div>
           </Col>
         </Row>
       </Container>

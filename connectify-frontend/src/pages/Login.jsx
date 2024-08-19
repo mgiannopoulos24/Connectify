@@ -1,5 +1,7 @@
 import { React, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faConnectdevelop} from "@fortawesome/free-brands-svg-icons";
 import { Button, Container, Navbar } from 'react-bootstrap';
 import axios from 'axios';
 import './styles/styles.css';
@@ -31,11 +33,17 @@ const LoginPage = () => {
     }
   };
 
+  const backToWelcome = () => {
+    navigate('/');
+  };
+
   return (
     <>
       <Navbar bg="transparent" expand="lg">
         <Container fluid>
-          <Navbar.Brand href="#home" className="ms-4">Connectify</Navbar.Brand>
+          <Navbar.Brand href="#" className="ms-4 fw-bolder fs-3" onClick={backToWelcome}>
+            <span><FontAwesomeIcon icon={faConnectdevelop}/></span> Connectify
+          </Navbar.Brand>
         </Container>
       </Navbar>
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
