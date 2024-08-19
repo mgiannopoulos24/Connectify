@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const authRoute = require('./routes/auth');
-const userRoute = require('./routes/users');
+const userRoute = require('./models/users');
 
 dotenv.config();
 
