@@ -1,15 +1,34 @@
 import { React, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Container, Navbar } from 'react-bootstrap';
+import axios from 'axios';
 import './styles/styles.css';
 
 const LoginPage = () => {
-  // State to manage password visibility
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('/api/auth/login', { email, password });
+      // Save the JWT token in local storage or context
+      localStorage.setItem('token', res.data.token);
+      // Redirect to homepage or another page
+      navigate('/homepage');
+    } catch (err) {
+      setErrorMessage('Invalid email or password');
+      console.error(err);
+    }
   };
 
   return (
@@ -35,15 +54,25 @@ const LoginPage = () => {
             <span className='mx-3 text-muted'>OR</span>
             <div className='flex-grow-1 border-top'></div>
           </div>
-          <form>
+          {errorMessage && <div className="alert alert-danger" role="alert">{errorMessage}</div>}
+          <form onSubmit={handleSubmit}>
             <div className="form-group mb-3">
-              <input type="email" className="form-control" placeholder="Email" required />
+              <input 
+                type="email" 
+                className="form-control" 
+                placeholder="Email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
             </div>
             <div className="form-group mb-3 position-relative">
               <input
                 type={passwordVisible ? "text" : "password"}
                 className="form-control pe-5" 
                 placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <Button
