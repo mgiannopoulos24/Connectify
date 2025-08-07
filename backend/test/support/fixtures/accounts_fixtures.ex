@@ -7,7 +7,7 @@ defmodule Backend.AccountsFixtures do
   @doc """
   Generate a unique user email.
   """
-  def unique_user_email, do: "some email#{System.unique_integer([:positive])}"
+  def unique_user_email, do: "some_email#{System.unique_integer([:positive])}@example.com"
 
   @doc """
   Generate a user.
@@ -18,10 +18,10 @@ defmodule Backend.AccountsFixtures do
       |> Enum.into(%{
         email: unique_user_email(),
         name: "some name",
-        password_hash: "some password_hash",
+        surname: "some surname",
         phone_number: "some phone_number",
         photo_url: "some photo_url",
-        surname: "some surname"
+        password: "password1234"
       })
       |> Backend.Accounts.create_user()
 

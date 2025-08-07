@@ -95,3 +95,5 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :backend, :jwt_secret_key, System.get_env("JWT_SECRET_KEY") || "a-dev-secret-that-is-long-enough-but-not-for-prod"

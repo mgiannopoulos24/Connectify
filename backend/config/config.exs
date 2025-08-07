@@ -7,6 +7,24 @@
 # General application configuration
 import Config
 
+config :dotenv,
+  path: ".env"
+  # You might need to add {:dotenv, "~> 3.0"} to your mix.exs deps
+  # and run `mix deps.get` if you don't have a .env loader.
+  # For simplicity, we can also just load it manually for now.
+  # A simple way without a new dependency:
+if File.exists?(".env") do
+  ".env"
+  |> File.read!()
+  |> String.split("\n", trim: true)
+  |> Enum.each(fn line ->
+    case String.split(line, "=", parts: 2) do
+      [key, value] -> System.put_env(key, value)
+      _ -> nil
+    end
+  end)
+end
+
 config :backend,
   ecto_repos: [Backend.Repo],
   generators: [timestamp_type: :utc_datetime]

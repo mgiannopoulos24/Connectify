@@ -3,6 +3,8 @@ defmodule BackendWeb.UserController do
 
   alias Backend.Accounts
   alias Backend.Accounts.User
+  alias BackendWeb.Auth
+  alias BackendWeb.UserJSON
 
   def index(conn, _params) do
     users = Accounts.list_users()
@@ -15,11 +17,31 @@ defmodule BackendWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    with {:ok, %User{} = user} <- Accounts.create_user(user_params) do
+    user_params = Map.drop(user_params, ["password_hash"])
+
+    with {:ok, %User{} = user} <- Accounts.create_user(user_params),
+         {:ok, token, _claims} <- Auth.sign_token(user) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/users/#{user}")
-      |> render(:show, user: user)
+      |> put_resp_cookie("auth_token", token,
+        http_only: true,
+        secure: true,
+        same_site: "Lax",
+        max_age: Auth.token_lifespan()
+      )
+      |> render(UserJSON, :show, user: user)
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(BackendWeb.ChangesetJSON, "error", changeset: changeset)
+
+      {:error, reason} ->
+        # Handle token signing error
+        conn
+        |> put_status(:internal_server_error)
+        |> render(BackendWeb.ErrorJSON, :"500", %{detail: "Could not sign token: #{reason}"})
     end
   end
 
@@ -35,17 +57,27 @@ defmodule BackendWeb.UserController do
   end
 
   def update(conn, %{"id" => id, "user" => user_params}) do
-    user = Accounts.get_user!(id)
+    # We must ensure the current user is authorized to update this specific user.
+    # For a simple API, we'll just check if the ID matches the current user.
+    if conn.assigns[:current_user] && conn.assigns[:current_user].id == id do
+      user = Accounts.get_user!(id)
 
-    case Accounts.update_user(user, user_params) do
-      {:ok, user} ->
-        # Render the updated user
-        render(conn, :show, user: user)
+      # The user_params should not include password here, unless specifically
+      # intended for a password change.
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> render(:error, changeset: changeset)
+      case Accounts.update_user(user, user_params) do
+        {:ok, user} ->
+          render(conn, :show, user: user)
+
+        {:error, %Ecto.Changeset{} = changeset} ->
+          conn
+          |> put_status(:unprocessable_entity)
+          |> render(BackendWeb.ChangesetJSON, "error", changeset: changeset)
+      end
+    else
+      conn
+      |> put_status(:unauthorized)
+      |> render(BackendWeb.ErrorJSON, :"401")
     end
   end
 

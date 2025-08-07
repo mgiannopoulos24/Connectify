@@ -20,29 +20,40 @@ defmodule Backend.AccountsTest do
 
     test "list_users/0 returns all users" do
       user = user_fixture()
-      assert Accounts.list_users() == [user]
+
+      # The `user_fixture` returns a struct with the virtual password field populated.
+      # When we fetch the user from the DB, that virtual field will be nil.
+      # To make the comparison work, we must create a struct that matches what the DB returns.
+      user_for_comparison = %{user | password: nil}
+
+      assert Accounts.list_users() == [user_for_comparison]
     end
 
     test "get_user!/1 returns the user with given id" do
       user = user_fixture()
-      assert Accounts.get_user!(user.id) == user
+
+      # On the right side of the comparison, we use the `user` variable
+      # but overwrite the virtual password field to be nil, making it
+      # identical to what get_user! will return from the database.
+      assert Accounts.get_user!(user.id) == %{user | password: nil}
     end
 
     test "create_user/1 with valid data creates a user" do
+
       valid_attrs = %{
         name: "some name",
-        email: "some email",
+        email: "some@email.com",
         surname: "some surname",
-        password_hash: "some password_hash",
+        password: "password123",
         phone_number: "some phone_number",
         photo_url: "some photo_url"
       }
 
       assert {:ok, %User{} = user} = Accounts.create_user(valid_attrs)
       assert user.name == "some name"
-      assert user.email == "some email"
+      assert user.email == "some@email.com"
       assert user.surname == "some surname"
-      assert user.password_hash == "some password_hash"
+      assert user.password_hash != nil
       assert user.phone_number == "some phone_number"
       assert user.photo_url == "some photo_url"
     end
@@ -56,18 +67,16 @@ defmodule Backend.AccountsTest do
 
       update_attrs = %{
         name: "some updated name",
-        email: "some updated email",
+        email: "some.updated@email.com",
         surname: "some updated surname",
-        password_hash: "some updated password_hash",
         phone_number: "some updated phone_number",
         photo_url: "some updated photo_url"
       }
 
       assert {:ok, %User{} = user} = Accounts.update_user(user, update_attrs)
       assert user.name == "some updated name"
-      assert user.email == "some updated email"
+      assert user.email == "some.updated@email.com"
       assert user.surname == "some updated surname"
-      assert user.password_hash == "some updated password_hash"
       assert user.phone_number == "some updated phone_number"
       assert user.photo_url == "some updated photo_url"
     end
@@ -75,7 +84,17 @@ defmodule Backend.AccountsTest do
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @invalid_attrs)
-      assert user == Accounts.get_user!(user.id)
+
+      # Create a struct for comparison that matches what the DB will return
+      # by setting the virtual password field to nil.
+      user_from_db = Accounts.get_user!(user.id)
+      user_from_fixture_with_nil_password = %{user | password: nil}
+
+      # Now this assertion should pass, but it's better to be more explicit.
+      # Let's compare the reloaded user from the DB with the original one
+      # after we've nulled out the virtual password.
+      reloaded_user = Accounts.get_user!(user.id)
+      assert %{user | password: nil} == reloaded_user
     end
 
     test "delete_user/1 deletes the user" do

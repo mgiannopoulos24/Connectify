@@ -101,4 +101,31 @@ defmodule Backend.Accounts do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
+
+  @doc """
+  Authenticates a user by email and password.
+
+  ## Examples
+
+      iex> authenticate_user("foo@example.com", "valid_password")
+      {:ok, %User{}}
+
+      iex> authenticate_user("foo@example.com", "invalid_password")
+      :error
+  """
+  def authenticate_user(email, password) do
+    with %User{} = user <- get_user_by_email(email),
+         true <- Argon2.verify_pass(password, user.password_hash) do
+      {:ok, user}
+    else
+      _ -> :error
+    end
+  end
+
+  @doc """
+  Gets a single user by email.
+  """
+  def get_user_by_email(email) do
+    Repo.get_by(User, email: email)
+  end
 end

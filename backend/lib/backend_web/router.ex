@@ -12,6 +12,7 @@ defmodule BackendWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug BackendWeb.Plugs.AuthPlug
   end
 
   scope "/api", BackendWeb do
@@ -21,8 +22,14 @@ defmodule BackendWeb.Router do
 
     get "/health", HealthController, :index
 
-    resources "/users", UserController, except: [:new, :edit]
+    # Authenticated user routes (requires token)
+    resources "/users", UserController, except: [:new, :edit, :create]
+
+    # Registration (public route)
     post "/register", UserController, :create
+
+    # Login route
+    post "/login", SessionController, :create
   end
 
   # Other scopes may use custom stacks.
