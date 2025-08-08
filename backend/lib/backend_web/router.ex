@@ -34,6 +34,9 @@ defmodule BackendWeb.Router do
 
     # Login route
     post "/login", SessionController, :create
+
+    # Logout route
+    delete "/logout", SessionController, :delete
   end
 
   scope "/api/admin", BackendWeb do

@@ -29,4 +29,10 @@ defmodule BackendWeb.SessionController do
         |> json(%{errors: %{detail: "Invalid credentials"}})
     end
   end
+
+  def delete(conn, _params) do
+    conn
+    |> delete_resp_cookie("auth_token")
+    |> send_resp(:no_content, "")
+  end
 end

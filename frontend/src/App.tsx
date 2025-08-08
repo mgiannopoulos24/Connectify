@@ -1,21 +1,31 @@
-import Homepage from "./pages/Homepage"
-import { Register } from "./pages/Register"
-import { Login } from "./pages/Login"
-import { AdminPage } from "./pages/admin/AdminPage"
-import { Route, Routes } from 'react-router-dom';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
+import routes from './routes/routes';
+import React from 'react';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-function App() {
-
+const App: React.FC = () => {
   return (
-    <>
-    <Routes>
-      <Route path="/" element={<Homepage />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/admin" element={<AdminPage />} />
-    </Routes>
-    </>
-  )
-}
+    <Router>
+      <AuthProvider>
+        <Routes>
+          {routes.map((route, index) => (
+            <Route
+              key={index}
+              path={route.path}
+              element={
+                route.protected ? (
+                  <ProtectedRoute allowedRoles={route.roles!}>{route.element}</ProtectedRoute>
+                ) : (
+                  route.element
+                )
+              }
+            />
+          ))}
+        </Routes>
+      </AuthProvider>
+    </Router>
+  );
+};
 
-export default App
+export default App;

@@ -6,6 +6,17 @@ defmodule BackendWeb.UserController do
   alias Backend.Auth
   alias BackendWeb.UserJSON
 
+  def me(conn, _params) do
+    case conn.assigns[:current_user] do
+      nil ->
+        conn
+        |> put_status(:unauthorized)
+        |> render(BackendWeb.ErrorJSON, :"401")
+      user ->
+        render(conn, UserJSON, :show, user: user)
+    end
+  end
+  
   def index(conn, _params) do
     users = Accounts.list_users()
     render(conn, :index, users: users)

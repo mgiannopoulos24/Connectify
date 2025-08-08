@@ -6,6 +6,8 @@ defmodule BackendWeb.AdminController do
 
   def index(conn, _params) do
     users = Accounts.list_users()
-    render(conn, UserJSON, :index, users: users)
+    # FIX: Replace the render call with a direct json response.
+    # This is more robust for APIs and avoids potential view rendering issues.
+    json(conn, UserJSON.index(%{users: users}))
   end
 end
