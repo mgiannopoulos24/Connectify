@@ -15,6 +15,10 @@ defmodule BackendWeb.Router do
     plug BackendWeb.Plugs.AuthPlug
   end
 
+  pipeline :ensure_admin do
+    plug BackendWeb.Plugs.EnsureAdminPlug
+  end
+
   scope "/api", BackendWeb do
     pipe_through :api
 
@@ -30,6 +34,14 @@ defmodule BackendWeb.Router do
 
     # Login route
     post "/login", SessionController, :create
+  end
+
+  scope "/api/admin", BackendWeb do
+    # Apply both pipelines in order. First, authenticate the user (:api),
+    # then check if they are an admin (:ensure_admin).
+    pipe_through [:api, :ensure_admin]
+
+    get "/users", AdminController, :index
   end
 
   # Other scopes may use custom stacks.

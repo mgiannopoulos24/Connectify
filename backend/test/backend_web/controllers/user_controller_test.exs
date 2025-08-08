@@ -2,6 +2,7 @@ defmodule BackendWeb.UserControllerTest do
   use BackendWeb.ConnCase, async: true
 
   import Backend.AccountsFixtures
+  alias Backend.Accounts
   alias Backend.Accounts.User
   alias Backend.Auth
 
@@ -39,7 +40,7 @@ defmodule BackendWeb.UserControllerTest do
       # Assert status code is Created
       assert conn.status == 201
 
-      # Assert the JSON response body has the correct user data
+      # Assert the JSON response body has the correct user data. [4]
       json_body = json_response(conn, 201)
       assert %{"data" => %{"id" => id, "email" => "create@example.com", "name" => "some name"}} =
                json_body
@@ -73,7 +74,7 @@ defmodule BackendWeb.UserControllerTest do
     end
   end
 
-  # Setup block for tests that require an authenticated user
+  # Setup block for tests that require an authenticated user. [1, 6]
   describe "authenticated user actions" do
     setup [:create_and_log_in_user]
 

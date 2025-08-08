@@ -3,7 +3,7 @@ defmodule BackendWeb.UserController do
 
   alias Backend.Accounts
   alias Backend.Accounts.User
-  alias BackendWeb.Auth
+  alias Backend.Auth
   alias BackendWeb.UserJSON
 
   def index(conn, _params) do
@@ -35,13 +35,15 @@ defmodule BackendWeb.UserController do
       {:error, %Ecto.Changeset{} = changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> render(BackendWeb.ChangesetJSON, "error", changeset: changeset)
+        # FIX: Changed "error" to :error
+        |> render(BackendWeb.ChangesetJSON, :error, changeset: changeset)
 
       {:error, reason} ->
         # Handle token signing error
         conn
         |> put_status(:internal_server_error)
-        |> render(BackendWeb.ErrorJSON, :"500", %{detail: "Could not sign token: #{reason}"})
+        # FIX: Switched to the json/2 helper for a cleaner error response
+        |> json(%{errors: %{detail: "Could not sign token: #{inspect(reason)}"}})
     end
   end
 
@@ -72,7 +74,7 @@ defmodule BackendWeb.UserController do
         {:error, %Ecto.Changeset{} = changeset} ->
           conn
           |> put_status(:unprocessable_entity)
-          |> render(BackendWeb.ChangesetJSON, "error", changeset: changeset)
+          |> render(BackendWeb.ChangesetJSON, :error, changeset: changeset)
       end
     else
       conn

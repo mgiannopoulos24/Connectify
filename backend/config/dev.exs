@@ -21,7 +21,7 @@ config :backend, BackendWeb.Endpoint,
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   # http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
   https: [
-    port: 4001,
+    port: 4000,
     # It's good practice to add the IP here too
     ip: {127, 0, 0, 1},
     cipher_suite: :strong,
@@ -51,7 +51,7 @@ config :backend, BackendWeb.Endpoint,
 # The `http:` config above can be replaced with:
 #
 #     https: [
-#       port: 4001,
+#       port: 4000,
 #       cipher_suite: :strong,
 #       keyfile: "priv/cert/selfsigned_key.pem",
 #       certfile: "priv/cert/selfsigned.pem"

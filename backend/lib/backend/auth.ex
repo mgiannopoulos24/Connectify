@@ -20,7 +20,7 @@ defmodule Backend.Auth do
     # Create the claims, including the standard "exp" (expiration time) claim.
     claims = %{
       "sub" => user.id,
-      "exp" => Joken.Utils.epoch_time() + token_lifespan()
+      "exp" => Joken.current_time() + token_lifespan()
     }
 
     # Generate and sign the token using the runtime signer.
@@ -31,9 +31,14 @@ defmodule Backend.Auth do
   Verifies a JWT and extracts the user ID.
   """
   def verify_token(token) do
-    # Joken.verify_and_validate also checks the "exp" claim for us.
-    case Joken.verify_and_validate(token, get_signer()) do
-      # The success tuple for verify_and_validate contains three elements.
+    # Joken v2.6+ expects a Joken.Config struct for validation.
+    # We will create a config on-the-fly and add our runtime signer to it.
+    config =
+      Joken.Config.new() # FIX: Use new() to create a default config struct.
+      |> Joken.Config.add_signer(get_signer())
+
+    # Now, we pass the token and the newly created config to verify_and_validate.
+    case Joken.verify_and_validate(token, config) do
       {:ok, %{"sub" => user_id}, _claims} ->
         {:ok, user_id}
 

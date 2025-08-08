@@ -103,7 +103,7 @@ defmodule Backend.Accounts do
   end
 
   @doc """
-  Authenticates a user by email and password.
+  Authenticates a user by identifier (currently email) and password.
 
   ## Examples
 
@@ -113,8 +113,8 @@ defmodule Backend.Accounts do
       iex> authenticate_user("foo@example.com", "invalid_password")
       :error
   """
-  def authenticate_user(email, password) do
-    with %User{} = user <- get_user_by_email(email),
+  def authenticate_user(identifier, password) do
+    with %User{} = user <- get_user_by_email(identifier),
          true <- Argon2.verify_pass(password, user.password_hash) do
       {:ok, user}
     else

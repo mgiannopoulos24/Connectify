@@ -16,6 +16,10 @@ defmodule BackendWeb.ErrorJSON do
   # the template name. For example, "404.json" becomes
   # "Not Found".
 
+  def render("403.json", %{detail: detail}) do
+    %{errors: %{detail: detail || "Forbidden"}}
+  end
+  
   def render("401.json", _assigns) do
     %{errors: %{detail: "Unauthorized"}}
   end

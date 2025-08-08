@@ -3,10 +3,9 @@ defmodule BackendWeb.SessionController do
 
   alias Backend.Accounts
   alias Backend.Auth
-  alias BackendWeb.ErrorJSON
 
-  def create(conn, %{"email" => email, "password" => password}) do
-    case Accounts.authenticate_user(email, password) do
+  def create(conn, %{"identifier" => identifier, "password" => password}) do
+    case Accounts.authenticate_user(identifier, password) do
       {:ok, user} ->
         with {:ok, token, _claims} <- Auth.sign_token(user) do
           conn
@@ -21,13 +20,13 @@ defmodule BackendWeb.SessionController do
           {:error, reason} ->
             conn
             |> put_status(:internal_server_error)
-            |> render(ErrorJSON, :"500", %{detail: "Could not sign token: #{reason}"})
+            |> json(%{errors: %{detail: "Could not sign token: #{reason}"}})
         end
 
       :error ->
         conn
         |> put_status(:unauthorized)
-        |> render(ErrorJSON, :"401")
+        |> json(%{errors: %{detail: "Invalid credentials"}})
     end
   end
 end
