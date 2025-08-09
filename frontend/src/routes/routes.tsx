@@ -1,5 +1,5 @@
 import React from 'react';
-import { Login } from '@/pages/Login'
+import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { AdminPage } from '@/pages/admin/AdminPage';
 import NotFound from '@/pages/misc/NotFound';
@@ -16,7 +16,7 @@ type RouteConfig = {
   path: string;
   element: React.ReactNode;
   protected?: boolean;
-  roles?: Array<'professional'| 'admin'>;
+  roles?: Array<'professional' | 'admin'>;
 };
 
 const routes: RouteConfig[] = [
@@ -89,7 +89,7 @@ const routes: RouteConfig[] = [
   // Fallback 404
   {
     path: '*',
-    element: <NotFound />
+    element: <NotFound />,
   },
 ];
 

@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Network, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -51,9 +45,7 @@ export function Login() {
             <span className="text-3xl font-bold">Connectify</span>
           </div>
           <CardTitle className="text-2xl">Sign In</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>

@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Network, Eye, EyeOff } from 'lucide-react';
@@ -75,9 +69,7 @@ export function Register() {
             <span className="text-3xl font-bold">Connectify</span>
           </div>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
-          <CardDescription>
-            Enter your information to create an account
-          </CardDescription>
+          <CardDescription>Enter your information to create an account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -85,11 +77,25 @@ export function Register() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" name="name" placeholder="Max" value={formData.name} onChange={handleChange} required />
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Max"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="surname">Surname</Label>
-                  <Input id="surname" name="surname" placeholder="Robinson" value={formData.surname} onChange={handleChange} required />
+                  <Input
+                    id="surname"
+                    name="surname"
+                    placeholder="Robinson"
+                    value={formData.surname}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
@@ -106,7 +112,13 @@ export function Register() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone_number">Phone Number</Label>
-                <Input id="phone_number" name="phone_number" placeholder="123-456-7890" value={formData.phone_number} onChange={handleChange} />
+                <Input
+                  id="phone_number"
+                  name="phone_number"
+                  placeholder="123-456-7890"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                />
               </div>
               <div className="grid gap-2 relative">
                 <Label htmlFor="password">Password</Label>
@@ -128,7 +140,13 @@ export function Register() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button type="submit" className="w-full">

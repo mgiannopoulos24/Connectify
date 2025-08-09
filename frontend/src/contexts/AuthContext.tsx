@@ -43,7 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } catch (error) {
         setUser(null);
-        console.error("Not authenticated", error);
+        console.error('Not authenticated', error);
       } finally {
         setIsLoading(false);
       }
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
   };
-  
+
   const register = async (userData: any) => {
     await axios.post('/api/register', { user: userData });
     navigate('/login');
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       navigate('/');
     } catch (error) {
-      console.error("Logout failed", error);
+      console.error('Logout failed', error);
     }
   };
 

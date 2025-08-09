@@ -21,13 +21,19 @@ const ProfilePage: React.FC = () => {
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
             {user.photo_url ? (
-              <img src={user.photo_url} alt="User" className="h-full w-full rounded-full object-cover" />
+              <img
+                src={user.photo_url}
+                alt="User"
+                className="h-full w-full rounded-full object-cover"
+              />
             ) : (
               <UserCircle className="h-16 w-16 text-gray-500" />
             )}
           </div>
           <CardTitle className="text-3xl font-bold">{`${user.name} ${user.surname}`}</CardTitle>
-          <CardDescription className="text-lg capitalize text-blue-600">{user.role}</CardDescription>
+          <CardDescription className="text-lg capitalize text-blue-600">
+            {user.role}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -36,7 +42,7 @@ const ProfilePage: React.FC = () => {
               <span className="text-gray-700">{user.email}</span>
             </div>
             {user.phone_number && (
-               <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <Phone className="h-5 w-5 text-gray-500" />
                 <span className="text-gray-700">{user.phone_number}</span>
               </div>
