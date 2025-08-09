@@ -4,7 +4,8 @@ defmodule Backend.Auth do
   """
   require Logger
 
-  @token_lifespan 7 * 24 * 60 * 60 # 7 days in seconds
+  # 7 days in seconds
+  @token_lifespan 7 * 24 * 60 * 60
 
   # This private helper function will be called at RUNTIME.
   # This resolves the warning and is the correct way to handle secrets.

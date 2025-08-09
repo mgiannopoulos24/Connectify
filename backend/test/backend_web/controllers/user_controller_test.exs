@@ -42,6 +42,7 @@ defmodule BackendWeb.UserControllerTest do
 
       # Assert the JSON response body has the correct user data. [4]
       json_body = json_response(conn, 201)
+
       assert %{"data" => %{"id" => id, "email" => "create@example.com", "name" => "some name"}} =
                json_body
 
@@ -65,12 +66,15 @@ defmodule BackendWeb.UserControllerTest do
 
       # Assert the JSON response body contains the validation errors
       json_body = json_response(conn, 422)
-      assert %{"errors" => %{
-        "email" => ["must have the @ sign and no spaces"],
-        "name" => ["can't be blank"],
-        "surname" => ["can't be blank"],
-        "password" => ["should be at least 8 character(s)"]
-      }} = json_body
+
+      assert %{
+               "errors" => %{
+                 "email" => ["must have the @ sign and no spaces"],
+                 "name" => ["can't be blank"],
+                 "surname" => ["can't be blank"],
+                 "password" => ["should be at least 8 character(s)"]
+               }
+             } = json_body
     end
   end
 
@@ -104,7 +108,7 @@ defmodule BackendWeb.UserControllerTest do
       assert json_response(conn, 422)
       assert conn.status == 422
     end
-    
+
     test "update returns 401 Unauthorized for a different user", %{conn: conn} do
       another_user = user_fixture()
       conn = put(conn, ~p"/api/users/#{another_user}", %{"user" => @update_attrs})
@@ -119,7 +123,7 @@ defmodule BackendWeb.UserControllerTest do
       # Verify the user is actually deleted
       assert_raise Ecto.NoResultsError, fn -> Accounts.get_user!(user.id) end
     end
-    
+
     test "delete returns 401 Unauthorized for a different user", %{conn: conn} do
       another_user = user_fixture()
       conn = delete(conn, ~p"/api/users/#{another_user}")

@@ -12,6 +12,7 @@ defmodule Backend.Accounts.User do
     field :phone_number, :string
     field :photo_url, :string
     field :role, :string, default: "professional"
+
     field :password, :string,
       virtual: true,
       redact: true

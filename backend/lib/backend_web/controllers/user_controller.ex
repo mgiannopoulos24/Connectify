@@ -12,11 +12,12 @@ defmodule BackendWeb.UserController do
         conn
         |> put_status(:unauthorized)
         |> render(BackendWeb.ErrorJSON, :"401")
+
       user ->
         render(conn, UserJSON, :show, user: user)
     end
   end
-  
+
   def index(conn, _params) do
     users = Accounts.list_users()
     render(conn, :index, users: users)

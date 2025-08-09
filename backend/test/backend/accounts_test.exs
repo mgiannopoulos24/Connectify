@@ -39,7 +39,6 @@ defmodule Backend.AccountsTest do
     end
 
     test "create_user/1 with valid data creates a user" do
-
       valid_attrs = %{
         name: "some name",
         email: "some@email.com",

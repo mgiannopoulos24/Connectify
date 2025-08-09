@@ -11,7 +11,7 @@ defmodule BackendWeb.Plugs.AuthPlug do
   def call(conn, _opts) do
     # 1. Fetch cookies and get the JWT from the cookie
     conn = fetch_cookies(conn)
-    
+
     case Map.get(conn.req_cookies, "auth_token") do
       nil ->
         # No token, continue
@@ -35,7 +35,7 @@ defmodule BackendWeb.Plugs.AuthPlug do
             # Invalid or expired token
             conn
         end
-        
+
       _ ->
         conn
     end

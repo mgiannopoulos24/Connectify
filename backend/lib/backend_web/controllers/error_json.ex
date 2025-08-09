@@ -19,7 +19,7 @@ defmodule BackendWeb.ErrorJSON do
   def render("403.json", %{detail: detail}) do
     %{errors: %{detail: detail || "Forbidden"}}
   end
-  
+
   def render("401.json", _assigns) do
     %{errors: %{detail: "Unauthorized"}}
   end
@@ -27,6 +27,4 @@ defmodule BackendWeb.ErrorJSON do
   def render(template, _assigns) do
     %{errors: %{detail: Phoenix.Controller.status_message_from_template(template)}}
   end
-
-
 end

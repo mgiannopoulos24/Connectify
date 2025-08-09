@@ -9,10 +9,11 @@ import Config
 
 config :dotenv,
   path: ".env"
-  # You might need to add {:dotenv, "~> 3.0"} to your mix.exs deps
-  # and run `mix deps.get` if you don't have a .env loader.
-  # For simplicity, we can also just load it manually for now.
-  # A simple way without a new dependency:
+
+# You might need to add {:dotenv, "~> 3.0"} to your mix.exs deps
+# and run `mix deps.get` if you don't have a .env loader.
+# For simplicity, we can also just load it manually for now.
+# A simple way without a new dependency:
 if File.exists?(".env") do
   ".env"
   |> File.read!()
