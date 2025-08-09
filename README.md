@@ -1,23 +1,95 @@
 # Connectify
 
 ## Description
-This is the full project for Connectify, a LinkedIn clone application, which includes both the frontend (React) and the backend (Flask/Django). The backend provides RESTful API endpoints for managing users, articles, job postings, and messages, while the frontend is used for data presentation and user interaction.
+Connectify is a full-stack, LinkedIn-inspired professional networking application. It was developed as a final project for the "Internet Application Technologies" course at the Department of Informatics & Telecommunications. The platform allows users to create professional profiles, build a network of connections, share articles, post and apply for jobs, and communicate through private messages.
+
+The project is composed of a backend REST API built with the **Elixir/Phoenix** framework and a modern frontend client built with **React and TypeScript**.
+
+## Key Features
+### For Professionals:
+User Authentication: Secure user registration and login system using JWT (JSON Web Tokens) stored in secure, HTTP-only cookies.
+Profile Management: Users can create and manage their professional profile, including details about their education, work experience, and skills.
+Professional Networking: Search for other professionals, send/accept/reject connection requests, and view your network.
+Content Feed: A central timeline where users can:
+Post articles with text, images, and videos.
+View posts from their connections in a chronological feed.
+Interact with posts by liking and commenting.
+Job Board:
+Post new job opportunities.
+View and search for job listings.
+Apply for jobs.
+[Bonus] Receive personalized job recommendations based on skills and network data, powered by a Matrix Factorization algorithm.
+Private Messaging: Engage in one-on-one private conversations with connections.
+Notifications: Receive alerts for new connection requests, likes, and comments.
+### For Administrators:
+User Management: A dedicated admin panel to view and manage all registered users on the platform.
+Data Export: Ability to export user data (biographical info, posts, experience, network) in XML and JSON formats.
+### Advanced Features:
+Recommendation System: [Bonus] The feed is enhanced with a recommendation algorithm (Matrix Factorization implemented from scratch) to suggest relevant articles and content, even from users outside one's immediate network.
 
 ## Technologies
-### Backend
-- Elixir (Phoenix Framework)
-- PostgreSQL (for database)
+### Backend:
+- **Framework**: Phoenix Framework
+- **Language**: Elixir
+- **Database**: PostgreSQL
+- **Authentication**: Joken for JWT authentication
+- **Hashing**: Argon2
 
-### Frontend
-- React
-- Axios (for HTTP requests)
-- React Router (for navigation)
+### Frontend:
+- **Framework**: React
+- **Language**: TypeScript
+- **Routing**: React Router
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn UI
 
-## Installation
+## Project Setup
+### Prerequisites
+- Elixir & Mix
+- Node.js and npm
+- PostgreSQL
+- Docker
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Create a .env file and add your database and JWT secret key. You can copy the structure from .env.example if it exists, or create it with the following content:
+```
+# Example for local development
+JWT_SECRET_KEY=your_super_secret_key_generated_with_mix_phx.gen.secret_64
+```
+3. Install dependencies:
+   ```bash
+   mix deps.get
+   ```
+4. Create and migrate the database:
+    ```bash
+    mix ecto.setup
+    ```
+5. Generate a self-signed SSL certificate for local development:
+   ```bash
+   mix phx.gen.cert 
+   ```
 
+6. Start the Phoenix server:
+```bash
+mix phx.server
+```
 
-To run the backend:
-1. Navigate to the backend directory.
-2. Install dependencies using `mix deps.get`.
-3. Set up the database with `mix ecto.setup`.
-4. Start the server with `mix phx.server`.
+The backend will be available at `https://localhost:4000`.
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+    ```bash
+    cd frontend
+    ```
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
+3. Start the development server:
+    ```bash
+    npm run dev
+    ```
+
+The frontend application will be running at https://localhost:5173 (or another available port). It is pre-configured to proxy API requests to the backend.
