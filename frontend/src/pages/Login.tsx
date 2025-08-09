@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,39 +10,35 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Network, Eye, EyeOff } from 'lucide-react';
+import { Network, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 
 export function Login() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setIsLoggingIn(true);
 
     try {
-      const response = await axios.post('/api/login', {
-        identifier: email,
-        password: password,
-      });
-
-      if (response.status === 200) {
-        // The backend sets an httpOnly cookie, so no token handling is needed here.
-        // Navigate to a protected page.
-        navigate('/homepage');
-      }
+      await login(email, password);
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
-        // Use the specific error message from the backend
         setError(err.response.data.errors?.detail || 'Login failed. Please try again.');
       } else {
         setError('An unexpected error occurred.');
       }
       console.error(err);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -71,6 +67,7 @@ export function Login() {
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoggingIn}
                   required
                 />
               </div>
@@ -87,22 +84,25 @@ export function Login() {
                   type={passwordVisible ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoggingIn}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setPasswordVisible(!passwordVisible)}
                   className="absolute right-3 top-8 text-gray-500"
+                  disabled={isLoggingIn}
                 >
                   {passwordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
 
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                {isLoggingIn ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isLoggingIn ? 'Signing In...' : 'Sign In'}
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" disabled={isLoggingIn}>
                 Sign in with Google
               </Button>
             </div>

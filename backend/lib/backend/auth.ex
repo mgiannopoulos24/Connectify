@@ -31,15 +31,11 @@ defmodule Backend.Auth do
   Verifies a JWT and extracts the user ID.
   """
   def verify_token(token) do
-    # Joken v2.6+ expects a Joken.Config struct for validation.
-    # We will create a config on-the-fly and add our runtime signer to it.
-    config =
-      Joken.Config.new() # FIX: Use new() to create a default config struct.
-      |> Joken.Config.add_signer(get_signer())
-
-    # Now, we pass the token and the newly created config to verify_and_validate.
-    case Joken.verify_and_validate(token, config) do
-      {:ok, %{"sub" => user_id}, _claims} ->
+    # FIX: Use Joken.verify/2, which is the correct function for Joken v2.6.
+    # It directly takes the token and the signer.
+    case Joken.verify(token, get_signer()) do
+      # FIX: The return tuple is {:ok, claims}. We pattern match on the claims map.
+      {:ok, %{"sub" => user_id}} ->
         {:ok, user_id}
 
       {:error, reason} ->
