@@ -23,7 +23,10 @@ defmodule BackendWeb.UserJSON do
       email: user.email,
       phone_number: user.phone_number,
       photo_url: user.photo_url,
-      role: user.role
+      role: user.role,
+      location: user.location,
+      onboarding_completed: user.onboarding_completed,
+      email_confirmed_at: user.email_confirmed_at
     }
   end
 end

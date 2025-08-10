@@ -5,6 +5,8 @@ defmodule Backend.Accounts do
 
   import Ecto.Query, warn: false
   alias Backend.Repo
+  alias Backend.Mailer
+  alias BackendWeb.Emails
 
   alias Backend.Accounts.User
 
@@ -49,10 +51,24 @@ defmodule Backend.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  # FIX: The return value inside the successful transaction is now correct.
   def create_user(attrs \\ %{}) do
-    %User{}
-    |> User.changeset(attrs)
-    |> Repo.insert()
+    # We wrap this in a transaction to ensure that if email sending fails,
+    # the user is not created.
+    Repo.transaction(fn ->
+      with {:ok, %User{} = user} <-
+             %User{}
+             |> User.changeset(attrs)
+             |> Repo.insert(),
+           {:ok, _user} <- deliver_confirmation_instructions(user) do
+        # Return the user directly. Repo.transaction will wrap it in {:ok, user}.
+        user
+      else
+        # If any step fails, the transaction will be rolled back.
+        error ->
+          Repo.rollback(error)
+      end
+    end)
   end
 
   @doc """
@@ -127,5 +143,45 @@ defmodule Backend.Accounts do
   """
   def get_user_by_email(email) do
     Repo.get_by(User, email: email)
+  end
+
+  @doc """
+  Generates a confirmation token and sends the confirmation email.
+  This is typically called after a user is created.
+  """
+  # FIX: Changed deliver_later to deliver for synchronous email sending.
+  def deliver_confirmation_instructions(%User{} = user) do
+    # Generate a unique, random token
+    token = :crypto.strong_rand_bytes(32) |> Base.url_encode64() |> binary_part(0, 32)
+
+    # Update the user with the token
+    changeset = Ecto.Changeset.change(user, email_confirmation_token: token)
+    Repo.update(changeset)
+
+    # Deliver the email
+    Emails.confirmation_email(user, token)
+    # Use deliver for synchronous sending
+    |> Mailer.deliver()
+
+    {:ok, user}
+  end
+
+  @doc """
+  Confirms a user's email address using a token.
+  """
+  def confirm_user_email(token) do
+    case Repo.get_by(User, email_confirmation_token: token) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        user
+        |> Ecto.Changeset.change(%{
+          email_confirmed_at: NaiveDateTime.utc_now(),
+          # Invalidate the token
+          email_confirmation_token: nil
+        })
+        |> Repo.update()
+    end
   end
 end

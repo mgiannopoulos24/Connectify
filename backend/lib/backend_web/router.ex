@@ -37,6 +37,11 @@ defmodule BackendWeb.Router do
 
     # Logout route
     delete "/logout", SessionController, :delete
+
+    resources "/job_experiences", JobExperienceController, only: [:create], as: :job_experience
+    resources "/interests", InterestController, only: [:create], as: :interest
+
+    post "/email/confirm", EmailConfirmationController, :create
   end
 
   scope "/api/admin", BackendWeb do

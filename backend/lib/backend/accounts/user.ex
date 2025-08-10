@@ -12,6 +12,10 @@ defmodule Backend.Accounts.User do
     field :phone_number, :string
     field :photo_url, :string
     field :role, :string, default: "professional"
+    field :location, :string
+    field :onboarding_completed, :boolean, default: false
+    field :email_confirmation_token, :string
+    field :email_confirmed_at, :naive_datetime
 
     field :password, :string,
       virtual: true,
@@ -23,7 +27,19 @@ defmodule Backend.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :surname, :email, :password, :phone_number, :photo_url, :role])
+    |> cast(attrs, [
+      :name,
+      :surname,
+      :email,
+      :password,
+      :phone_number,
+      :photo_url,
+      :role,
+      :location,
+      :onboarding_completed,
+      :email_confirmation_token,
+      :email_confirmed_at
+    ])
     |> validate_required([:name, :surname, :email])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:password, min: 8)
