@@ -6,11 +6,9 @@ import NotFound from '@/pages/misc/NotFound';
 import Welcome from '@/pages/Welcome';
 import Homepage from '@/pages/Homepage';
 import ProfilePage from '@/pages/Profile';
-// import NetworkPage from '@/pages/NetworkPage';
-// import JobListingsPage from '@/pages/JobListings';
-// import MessagingPage from '@/pages/Messaging';
-// import NotificationsPage from '@/pages/Notifications';
-// import SettingsPage from '@/pages/Settings';
+import Games from '@/pages/Games';
+import Zip from '@/pages/games/Zip';
+import MemoryMatch from '@/pages/games/MemoryMatch';
 
 type RouteConfig = {
   path: string;
@@ -33,6 +31,20 @@ const routes: RouteConfig[] = [
     path: '/register',
     element: <Register />,
   },
+  {
+    path: '/games',
+    element: <Games />,
+  },
+
+  // Game routes
+  {
+    path: '/games/zip',
+    element: <Zip />,
+  },
+  // {
+  //   path: '/games/memory-match',
+  //   element: <MemoryMatch />,
+  // },
 
   // Protected Routes for Professionals & Admins
   {
@@ -47,36 +59,6 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['professional', 'admin'],
   },
-  // {
-  //   path: '/network',
-  //   element: <NetworkPage />,
-  //   protected: true,
-  //   roles: ['professional', 'admin'],
-  // },
-  // {
-  //   path: '/jobs',
-  //   element: <JobListingsPage />,
-  //   protected: true,
-  //   roles: ['professional', 'admin'],
-  // },
-  // {
-  //   path: '/messaging',
-  //   element: <MessagingPage />,
-  //   protected: true,
-  //   roles: ['professional', 'admin'],
-  // },
-  //  {
-  //   path: '/notifications',
-  //   element: <NotificationsPage />,
-  //   protected: true,
-  //   roles: ['professional', 'admin'],
-  // },
-  // {
-  //   path: '/settings',
-  //   element: <SettingsPage />,
-  //   protected: true,
-  //   roles: ['professional', 'admin'],
-  // },
 
   // Admin-only routes
   {
