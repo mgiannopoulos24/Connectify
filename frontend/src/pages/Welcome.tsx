@@ -1,18 +1,8 @@
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Network,
-  Newspaper,
-  Users,
-  Briefcase,
-  UserPlus,
-  LogIn,
-  Lightbulb,
-  Bookmark,
-  Menu,
-  X,
-} from 'lucide-react';
+import { useRef } from 'react';
+import { Users, Briefcase, Lightbulb, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 // Placeholder for image assets
 const placeholderImg = 'https://via.placeholder.com/600x400';
@@ -20,22 +10,6 @@ const placeholderLogo = 'https://via.placeholder.com/200x80';
 
 const Welcome: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const handleSignIn = () => {
-    navigate('/login');
-  };
-
-  const handleSignUp = () => {
-    navigate('/register');
-  };
-
-  const navLinks = [
-    { icon: Newspaper, text: 'Articles', href: '#' },
-    { icon: Users, text: 'People', href: '#' },
-    { icon: Briefcase, text: 'Jobs', href: '#' },
-  ];
 
   const features = [
     {
@@ -74,75 +48,7 @@ const Welcome: React.FC = () => {
 
   return (
     <div className="bg-white text-gray-800">
-      {/* Header */}
-      <header className="bg-gray-50 border-b border-gray-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <a href="#" className="flex items-center gap-2 text-2xl font-bold">
-              <Network className="text-blue-600" />
-              <span>Connectify</span>
-            </a>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.text}
-                  href={link.href}
-                  className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600"
-                >
-                  <link.icon className="w-5 h-5" />
-                  <span>{link.text}</span>
-                </a>
-              ))}
-              <div className="flex items-center gap-2 pl-4">
-                <Button variant="default" className="rounded-full" onClick={handleSignUp}>
-                  <UserPlus className="mr-2 h-4 w-4" /> Sign Up
-                </Button>
-                <Button variant="outline" className="rounded-full" onClick={handleSignIn}>
-                  <LogIn className="mr-2 h-4 w-4" /> Sign In
-                </Button>
-              </div>
-            </nav>
-
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-md hover:bg-gray-200"
-              >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="lg:hidden bg-gray-50 border-t border-gray-200">
-            <nav className="flex flex-col p-4 gap-3">
-              {navLinks.map((link) => (
-                <a
-                  key={link.text}
-                  href={link.href}
-                  className="flex items-center gap-3 p-2 text-gray-600 rounded-md hover:bg-gray-100"
-                >
-                  <link.icon className="w-5 h-5" />
-                  <span>{link.text}</span>
-                </a>
-              ))}
-              <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-3">
-                <Button variant="default" className="w-full" onClick={handleSignUp}>
-                  <UserPlus className="mr-2 h-4 w-4" /> Sign Up
-                </Button>
-                <Button variant="outline" className="w-full" onClick={handleSignIn}>
-                  <LogIn className="mr-2 h-4 w-4" /> Sign In
-                </Button>
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main>
@@ -202,80 +108,7 @@ const Welcome: React.FC = () => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t">
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
-            <div className="col-span-2 md:col-span-1">
-              <h6 className="font-bold mb-3">Company</h6>
-              <nav className="flex flex-col gap-2">
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  About Us
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Careers
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  News
-                </a>
-              </nav>
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <h6 className="font-bold mb-3">Products</h6>
-              <nav className="flex flex-col gap-2">
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Networking
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Job Search
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Talent Solutions
-                </a>
-              </nav>
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <h6 className="font-bold mb-3">Resources</h6>
-              <nav className="flex flex-col gap-2">
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Blog
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Help Center
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Webinars
-                </a>
-              </nav>
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <h6 className="font-bold mb-3">Legal</h6>
-              <nav className="flex flex-col gap-2">
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Privacy Policy
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Terms of Service
-                </a>
-              </nav>
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <h6 className="font-bold mb-3">Contact</h6>
-              <nav className="flex flex-col gap-2">
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Support
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600">
-                  Partnerships
-                </a>
-              </nav>
-            </div>
-          </div>
-          <div className="text-center text-gray-400 border-t mt-8 pt-6">
-            <p>© {new Date().getFullYear()} Connectify. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
