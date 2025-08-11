@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Network, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Register() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     surname: '',
@@ -34,21 +36,17 @@ export function Register() {
     }
 
     try {
-      // Στο backend περιμένουμε password_hash, αλλά εδώ στέλνουμε το καθαρό password
-      // Η κρυπτογράφηση πρέπει να γίνεται στο backend.
-      // Για λόγους απλότητας, εδώ το στέλνουμε ως έχει και το αποθηκεύουμε ως password_hash.
-      // Σε μια πραγματική εφαρμογή, θα κάνατε hash το password στο backend πριν την αποθήκευση.
       const response = await axios.post('/api/register', {
         user: { ...formData, password_hash: formData.password },
       });
 
       if (response.status === 201) {
-        navigate('/login');
+        await login(formData.email, formData.password);
+        navigate('/onboarding');
       }
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
         const errorData = err.response.data.errors;
-        // Μετατροπή των errors σε ένα string
         const errorMessages = Object.entries(errorData)
           .map(([field, messages]) => `${field} ${(messages as string[]).join(', ')}`)
           .join('; ');

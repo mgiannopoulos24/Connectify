@@ -28,6 +28,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
+  if (!user.onboarding_completed && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" state={{ from: location }} replace />;
+  }
+
   if (!user.role || !allowedRoles.includes(user.role as 'professional' | 'admin')) {
     return <NotAuthorized />;
   }

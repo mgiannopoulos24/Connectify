@@ -8,7 +8,7 @@ import Homepage from '@/pages/Homepage';
 import ProfilePage from '@/pages/Profile';
 import Games from '@/pages/Games';
 import Zip from '@/pages/games/Zip';
-import MemoryMatch from '@/pages/games/MemoryMatch';
+import Onboarding from '@/pages/Onboarding';
 
 type RouteConfig = {
   path: string;
@@ -58,6 +58,12 @@ const routes: RouteConfig[] = [
     element: <ProfilePage />,
     protected: true,
     roles: ['professional', 'admin'],
+  },
+  {
+    path: '/onboarding',
+    element: <Onboarding />,
+    protected: true,
+    roles: ['professional'],
   },
 
   // Admin-only routes

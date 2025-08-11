@@ -10,6 +10,8 @@ interface User {
   role: string;
   phone_number: string;
   photo_url: string;
+  location: string | null;
+  onboarding_completed: boolean;
 }
 
 interface AuthContextType {
@@ -19,6 +21,7 @@ interface AuthContextType {
   login: (identifier: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
   logout: () => void;
+  setUser: React.Dispatch<React.SetStateAction<User | null>> | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,13 +61,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const loggedInUser = response.data.data;
       setUser(loggedInUser);
 
-      // Role-based redirection logic
-      if (loggedInUser.role === 'admin') {
+      if (!loggedInUser.onboarding_completed) {
+        navigate('/onboarding');
+      } else if (loggedInUser.role === 'admin') {
         navigate('/admin');
       } else if (loggedInUser.role === 'professional') {
         navigate('/homepage');
       } else {
-        navigate('/login'); // Fallback
+        navigate('/login');
       }
     }
   };
@@ -91,6 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
+    setUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

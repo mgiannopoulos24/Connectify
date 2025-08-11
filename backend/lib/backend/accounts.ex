@@ -151,8 +151,8 @@ defmodule Backend.Accounts do
   """
   # FIX: Changed deliver_later to deliver for synchronous email sending.
   def deliver_confirmation_instructions(%User{} = user) do
-    # Generate a unique, random token
-    token = :crypto.strong_rand_bytes(32) |> Base.url_encode64() |> binary_part(0, 32)
+    # Generate a unique, 6-digit code
+    token = Integer.to_string(:rand.uniform(899_999) + 100_000)
 
     # Update the user with the token
     changeset = Ecto.Changeset.change(user, email_confirmation_token: token)
