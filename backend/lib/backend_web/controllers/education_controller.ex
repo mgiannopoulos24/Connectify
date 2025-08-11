@@ -10,9 +10,7 @@ defmodule BackendWeb.EducationController do
     current_user = conn.assigns.current_user
 
     with {:ok, %Education{} = education} <-
-           Careers.create_education(
-             Map.put(education_params, "user_id", current_user.id)
-           ) do
+           Careers.create_education(Map.put(education_params, "user_id", current_user.id)) do
       conn
       |> put_status(:created)
       |> render(:show, education: education)
