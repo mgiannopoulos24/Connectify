@@ -9,6 +9,8 @@ config :backend, BackendWeb.Endpoint, cache_static_manifest: "priv/static/cache_
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req
+# Use Hackney as the HTTP client for Swoosh for prod
+# config :swoosh, api_client: Swoosh.ApiClient.Hackney
 
 # Disable Swoosh Local Memory Storage
 config :swoosh, local: false
