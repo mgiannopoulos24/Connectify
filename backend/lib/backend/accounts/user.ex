@@ -2,6 +2,10 @@ defmodule Backend.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Backend.Careers.Education
+  alias Backend.Careers.JobExperience
+  alias Backend.Skills.Skill
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "users" do
@@ -20,6 +24,10 @@ defmodule Backend.Accounts.User do
     field :password, :string,
       virtual: true,
       redact: true
+
+    has_many :job_experiences, JobExperience
+    has_many :educations, Education
+    has_many :skills, Skill
 
     timestamps(type: :utc_datetime)
   end

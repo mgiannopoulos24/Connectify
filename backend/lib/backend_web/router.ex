@@ -39,6 +39,8 @@ defmodule BackendWeb.Router do
     delete "/logout", SessionController, :delete
 
     resources "/job_experiences", JobExperienceController, only: [:create], as: :job_experience
+    resources "/educations", EducationController, only: [:create], as: :education
+    resources "/skills", SkillController, only: [:create], as: :skill
     resources "/interests", InterestController, only: [:create], as: :interest
 
     post "/email/confirm", EmailConfirmationController, :create

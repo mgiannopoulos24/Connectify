@@ -10,6 +10,16 @@ defmodule Backend.Accounts do
 
   alias Backend.Accounts.User
 
+  # FIX: This function now correctly operates on a user struct (or nil)
+  # and uses Repo.preload to fetch the associations.
+  defp preload_profile(user) do
+    if user do
+      Repo.preload(user, [:job_experiences, :educations, :skills])
+    else
+      nil
+    end
+  end
+
   @doc """
   Returns the list of users.
 
@@ -37,7 +47,11 @@ defmodule Backend.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    User
+    |> Repo.get!(id)
+    |> preload_profile()
+  end
 
   @doc """
   Creates a user.
@@ -51,20 +65,16 @@ defmodule Backend.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  # FIX: The return value inside the successful transaction is now correct.
   def create_user(attrs \\ %{}) do
-    # We wrap this in a transaction to ensure that if email sending fails,
-    # the user is not created.
     Repo.transaction(fn ->
       with {:ok, %User{} = user} <-
              %User{}
              |> User.changeset(attrs)
              |> Repo.insert(),
            {:ok, _user} <- deliver_confirmation_instructions(user) do
-        # Return the user directly. Repo.transaction will wrap it in {:ok, user}.
-        user
+        # This now correctly calls the fixed preload_profile function
+        preload_profile(user)
       else
-        # If any step fails, the transaction will be rolled back.
         error ->
           Repo.rollback(error)
       end
@@ -142,25 +152,22 @@ defmodule Backend.Accounts do
   Gets a single user by email.
   """
   def get_user_by_email(email) do
-    Repo.get_by(User, email: email)
+    User
+    |> Repo.get_by(email: email)
+    |> preload_profile()
   end
 
   @doc """
   Generates a confirmation token and sends the confirmation email.
   This is typically called after a user is created.
   """
-  # FIX: Changed deliver_later to deliver for synchronous email sending.
   def deliver_confirmation_instructions(%User{} = user) do
-    # Generate a unique, 6-digit code
     token = Integer.to_string(:rand.uniform(899_999) + 100_000)
 
-    # Update the user with the token
     changeset = Ecto.Changeset.change(user, email_confirmation_token: token)
     Repo.update(changeset)
 
-    # Deliver the email
     Emails.confirmation_email(user, token)
-    # Use deliver for synchronous sending
     |> Mailer.deliver()
 
     {:ok, user}
@@ -177,8 +184,7 @@ defmodule Backend.Accounts do
       user ->
         user
         |> Ecto.Changeset.change(%{
-          email_confirmed_at: NaiveDateTime.utc_now(),
-          # Invalidate the token
+          email_confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
           email_confirmation_token: nil
         })
         |> Repo.update()
