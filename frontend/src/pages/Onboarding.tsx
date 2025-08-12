@@ -83,14 +83,14 @@ const Onboarding = () => {
     setIsLoading(true);
 
     try {
-      // --- Step 1: Location ---
+      // Step 1: Location
       if (step === 1) {
         if (!location) throw new Error('Location is required.');
         const response = await axios.put(`/api/users/${user?.id}`, { user: { location } });
         if (setUser) setUser(response.data.data);
       }
 
-      // --- Step 2: Job Experience ---
+      // Step 2: Job Experience
       if (step === 2) {
         if (!jobTitle || !employmentType || !companyName)
           throw new Error('All job fields are required.');
@@ -106,17 +106,15 @@ const Onboarding = () => {
         ]);
       }
 
-      // --- Step 3: Email Confirmation ---
+      // Step 3: Email Confirmation
       if (step === 3) {
         if (!verificationCode || verificationCode.length !== 6) {
           throw new Error('Please enter a valid 6-digit verification code.');
         }
-        // Send the code to the backend for verification
         await axios.post('/api/email/confirm', { token: verificationCode });
-        // On success, we will proceed to the next step.
       }
 
-      // --- Step 4: Looking for a job ---
+      // Step 4: Looking for a job
       if (step === 4) {
         if (isLookingForJob === null) throw new Error('Please select an option.');
         const response = await axios.put(`/api/users/${user?.id}`, {
@@ -125,17 +123,17 @@ const Onboarding = () => {
         if (setUser) setUser(response.data.data);
       }
 
-      // --- Step 5: Photo Upload ---
+      // Step 5: Photo Upload
       if (step === 5 && photoFile) {
         const formData = new FormData();
         formData.append('photo', photoFile);
         const response = await axios.post(`/api/users/upload_photo`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        if (setUser) setUser(response.data.data); // Assuming endpoint returns the updated user
+        if (setUser) setUser(response.data.data);
       }
 
-      // --- Step 6: Follow Companies ---
+      // Step 6: Follow Companies
       if (step === 6) {
         const followPromises = Array.from(followedCompanies).map((company) =>
           axios.post('/api/interests', { interest: { name: company, type: 'company' } }),
@@ -143,26 +141,21 @@ const Onboarding = () => {
         await Promise.all(followPromises);
       }
 
-      // --- Final Step: Complete Onboarding ---
+      // Final Step: Complete Onboarding
       if (step === 7) {
         await axios.put(`/api/users/${user?.id}`, { user: { onboarding_completed: true } });
-        navigate('/homepage');
-        return; // Exit function to avoid setting state on unmounted component
+        navigate('/profile');
+        return;
       }
 
       setStep(step + 1);
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
-        console.error('API Error:', err.response.data);
-        if (step === 3) {
-          setError('Invalid or expired code. Please try again.');
-        } else {
-          const errorData = err.response.data.errors;
-          const errorMessages = Object.entries(errorData)
-            .map(([field, messages]) => `${field} ${(messages as string[]).join(', ')}`)
-            .join('; ');
-          setError(errorMessages || 'An error occurred.');
-        }
+        const errorData = err.response.data.errors;
+        const errorMessages = Object.entries(errorData)
+          .map(([field, messages]) => `${field} ${(messages as string[]).join(', ')}`)
+          .join('; ');
+        setError(errorMessages || 'An error occurred.');
       } else {
         setError(err.message || 'An unexpected error occurred.');
       }

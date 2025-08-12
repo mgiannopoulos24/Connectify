@@ -9,6 +9,9 @@ import ProfilePage from '@/pages/Profile';
 import Games from '@/pages/Games';
 import Zip from '@/pages/games/Zip';
 import Onboarding from '@/pages/Onboarding';
+import SettingsPage from '@/pages/Settings';
+import AppLayout from '@/components/layout/AppLayout';
+import NetworkPage from '@/pages/Network'; // Import the new page
 
 type RouteConfig = {
   path: string;
@@ -49,7 +52,21 @@ const routes: RouteConfig[] = [
   // Protected Routes for Professionals & Admins
   {
     path: '/homepage',
-    element: <Homepage />,
+    element: (
+      <AppLayout>
+        <Homepage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
+    path: '/network', // Add the new network route
+    element: (
+      <AppLayout>
+        <NetworkPage />
+      </AppLayout>
+    ),
     protected: true,
     roles: ['professional', 'admin'],
   },
@@ -64,6 +81,16 @@ const routes: RouteConfig[] = [
     element: <Onboarding />,
     protected: true,
     roles: ['professional'],
+  },
+  {
+    path: '/settings',
+    element: (
+      <AppLayout>
+        <SettingsPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
   },
 
   // Admin-only routes

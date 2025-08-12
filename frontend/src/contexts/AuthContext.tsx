@@ -2,7 +2,41 @@ import { createContext, useState, useEffect, useContext, ReactNode } from 'react
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-interface User {
+// --- Type Definitions ---
+interface JobExperience {
+  id: string;
+  job_title: string;
+  employment_type: string;
+  company_name: string;
+}
+
+interface Education {
+  id: string;
+  school_name: string;
+  degree: string;
+  field_of_study: string;
+}
+
+interface Skill {
+  id:string;
+  name: string;
+}
+
+interface Interest {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface ConnectionInfo {
+  id: string;
+  status: 'pending' | 'accepted';
+  user_id: string;
+  connected_user_id: string;
+}
+
+// --- Updated User Interface ---
+export interface User {
   id: string;
   name: string;
   surname: string;
@@ -12,6 +46,12 @@ interface User {
   photo_url: string;
   location: string | null;
   onboarding_completed: boolean;
+  job_experiences: JobExperience[];
+  educations: Education[];
+  skills: Skill[];
+  interests: Interest[];
+  sent_connections: ConnectionInfo[];
+  received_connections: ConnectionInfo[];
 }
 
 interface AuthContextType {
