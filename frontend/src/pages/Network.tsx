@@ -1,0 +1,257 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  UserCircle,
+  Check,
+  X,
+  Users,
+  UserPlus,
+  Loader2,
+  Send,
+  UserCheck,
+  Eye,
+} from 'lucide-react';
+import {
+  getConnections,
+  getPendingRequests,
+  getAllUsers,
+  acceptConnectionRequest,
+  declineConnectionRequest,
+  sendConnectionRequest,
+} from '@/services/connectionService';
+import { Connection, PendingRequest, UserSummary } from '@/types/connections';
+import { User, useAuth } from '@/contexts/AuthContext';
+import { formatDistanceToNow } from 'date-fns';
+
+// --- Reusable User Card Component ---
+const UserCard = ({
+  user,
+  date,
+  children,
+}: {
+  user: UserSummary;
+  date?: string;
+  children?: React.ReactNode;
+}) => (
+  <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+    <div className="flex items-center gap-4">
+      {user.photo_url ? (
+        <img src={user.photo_url} alt="User" className="h-14 w-14 rounded-full object-cover" />
+      ) : (
+        <UserCircle className="h-14 w-14 text-gray-400" />
+      )}
+      <div>
+        <p className="font-semibold text-lg">
+          {user.name} {user.surname}
+        </p>
+        <p className="text-sm text-gray-600">{user.job_title || 'Professional'}</p>
+        {date && <p className="text-xs text-gray-400 mt-1">{date}</p>}
+      </div>
+    </div>
+    <div className="flex gap-2">{children}</div>
+  </div>
+);
+
+// --- Network Statistics Component ---
+const NetworkStats = ({
+  connections,
+  sent,
+  following,
+}: {
+  connections: number;
+  sent: number;
+  following: number;
+}) => (
+  <Card className="mb-8">
+    <CardHeader>
+      <CardTitle>Network Preview</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="grid grid-cols-3 gap-4 text-center">
+        <div>
+          <p className="text-2xl font-bold">{connections}</p>
+          <p className="text-sm text-gray-500">Connections</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold">{sent}</p>
+          <p className="text-sm text-gray-500">Invitations Sent</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold">{following}</p>
+          <p className="text-sm text-gray-500">Following</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// --- Main Network Page Component ---
+const NetworkPage: React.FC = () => {
+  const { user } = useAuth();
+  const [requests, setRequests] = useState<PendingRequest[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [suggestions, setSuggestions] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sentRequestIds, setSentRequestIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [pendingData, connectionsData, usersData] = await Promise.all([
+          getPendingRequests(),
+          getConnections(),
+          getAllUsers(),
+        ]);
+        setRequests(pendingData);
+        setConnections(connectionsData);
+        setSuggestions(usersData);
+      } catch (error) {
+        console.error('Failed to fetch network data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleAccept = async (id: string) => {
+    await acceptConnectionRequest(id);
+    const newRequests = requests.filter((req) => req.id !== id);
+    const acceptedReq = requests.find((req) => req.id === id);
+    if (acceptedReq) {
+      setConnections([
+        ...connections,
+        {
+          id,
+          status: 'accepted',
+          connected_user: acceptedReq.requester,
+        },
+      ]);
+    }
+    setRequests(newRequests);
+  };
+
+  const handleDecline = async (id: string) => {
+    await declineConnectionRequest(id);
+    setRequests(requests.filter((req) => req.id !== id));
+  };
+
+  const handleSendRequest = async (recipientId: string) => {
+    await sendConnectionRequest(recipientId);
+    setSentRequestIds((prev) => new Set(prev).add(recipientId));
+  };
+
+  const peopleYouMayKnow = useMemo(() => {
+    if (!user || suggestions.length === 0) return [];
+
+    const existingConnectionIds = new Set(connections.map((c) => c.connected_user.id));
+    const pendingRequestIds = new Set(requests.map((r) => r.requester.id));
+    const sentRequestUserIds = new Set(
+      user.sent_connections?.filter((c) => c.status === 'pending').map((c) => c.connected_user_id),
+    );
+
+    return suggestions.filter(
+      (p) =>
+        p.id !== user.id &&
+        p.location === user.location &&
+        !existingConnectionIds.has(p.id) &&
+        !pendingRequestIds.has(p.id) &&
+        !sentRequestUserIds.has(p.id),
+    );
+  }, [user, suggestions, connections, requests]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  const numSent = user.sent_connections?.filter((c) => c.status === 'pending').length || 0;
+  const numFollowing = user.interests?.length || 0;
+
+  return (
+    <div className="space-y-8">
+      <NetworkStats connections={connections.length} sent={numSent} following={numFollowing} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Received Invitations</CardTitle>
+          <CardDescription>People who want to connect with you.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {requests.length > 0 ? (
+              requests.map((req) => (
+                <UserCard
+                  key={req.id}
+                  user={req.requester}
+                  date={`Sent ${formatDistanceToNow(new Date(req.inserted_at), { addSuffix: true })}`}
+                >
+                  <Button variant="outline" size="icon" onClick={() => handleDecline(req.id)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" onClick={() => handleAccept(req.id)}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </UserCard>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">No pending invitations.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>People You May Know in {user.location}</CardTitle>
+          <CardDescription>Suggestions based on your profile and location.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {peopleYouMayKnow.length > 0 ? (
+              peopleYouMayKnow.map((p) => (
+                <UserCard
+                  key={p.id}
+                  user={{
+                    ...p,
+                    job_title: p.job_experiences?.[0]?.job_title,
+                  }}
+                >
+                  <Button
+                    onClick={() => handleSendRequest(p.id)}
+                    disabled={sentRequestIds.has(p.id)}
+                  >
+                    {sentRequestIds.has(p.id) ? (
+                      <>
+                        <Send className="w-4 h-4 mr-2" /> Pending
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" /> Connect
+                      </>
+                    )}
+                  </Button>
+                </UserCard>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">No new suggestions right now.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default NetworkPage;
