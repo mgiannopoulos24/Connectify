@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  LogOut,
   Mail,
   Phone,
   UserCircle,
@@ -30,7 +29,6 @@ import { Label } from '@/components/ui/label';
 import axios from 'axios';
 
 // --- Type Definitions ---
-// Assuming these types are defined in AuthContext, but redeclaring for clarity
 interface JobExperience {
   id: string;
   job_title: string;
@@ -50,7 +48,7 @@ interface Skill {
 // --- End Type Definitions ---
 
 const ProfilePage: React.FC = () => {
-  const { user, logout, setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [editingItem, setEditingItem] = useState<JobExperience | Education | Skill | null>(null);
   const [itemType, setItemType] = useState<'experience' | 'education' | 'skill' | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,196 +122,190 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="container mx-auto max-w-3xl space-y-8 px-4">
-        {/* --- Main Profile Card --- */}
-        <Card className="w-full shadow-lg">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
-              {user.photo_url ? (
-                <img
-                  src={user.photo_url}
-                  alt="User"
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                <UserCircle className="h-16 w-16 text-gray-500" />
-              )}
+    <div className="container mx-auto max-w-3xl space-y-8 px-4">
+      {/* --- Main Profile Card --- */}
+      <Card className="w-full shadow-lg">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
+            {user.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt="User"
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              <UserCircle className="h-16 w-16 text-gray-500" />
+            )}
+          </div>
+          <CardTitle className="text-3xl font-bold">{`${user.name} ${user.surname}`}</CardTitle>
+          <CardDescription className="text-lg capitalize text-blue-600">
+            {user.job_experiences?.[0]?.job_title || user.role}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mx-auto max-w-sm space-y-4 text-center">
+            <div className="flex items-center justify-center gap-4">
+              <Mail className="h-5 w-5 text-gray-500" />
+              <span className="text-gray-700">{user.email}</span>
             </div>
-            <CardTitle className="text-3xl font-bold">{`${user.name} ${user.surname}`}</CardTitle>
-            <CardDescription className="text-lg capitalize text-blue-600">
-              {user.job_experiences?.[0]?.job_title || user.role}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mx-auto max-w-sm space-y-4 text-center">
+            {user.phone_number && (
               <div className="flex items-center justify-center gap-4">
-                <Mail className="h-5 w-5 text-gray-500" />
-                <span className="text-gray-700">{user.email}</span>
+                <Phone className="h-5 w-5 text-gray-500" />
+                <span className="text-gray-700">{user.phone_number}</span>
               </div>
-              {user.phone_number && (
-                <div className="flex items-center justify-center gap-4">
-                  <Phone className="h-5 w-5 text-gray-500" />
-                  <span className="text-gray-700">{user.phone_number}</span>
-                </div>
-              )}
-              {user.location && (
-                <div className="flex items-center justify-center gap-4">
-                  <MapPin className="h-5 w-5 text-gray-500" />
-                  <span className="text-gray-700">{user.location}</span>
-                </div>
-              )}
-            </div>
-            <Button onClick={logout} className="mt-8 w-full" variant="destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
+            )}
+            {user.location && (
+              <div className="flex items-center justify-center gap-4">
+                <MapPin className="h-5 w-5 text-gray-500" />
+                <span className="text-gray-700">{user.location}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* --- Experience Card --- */}
+      <Card className="w-full shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-3">
+              <Briefcase className="text-blue-600" />
+              Experience
+            </span>
+            <Button size="sm" variant="outline" onClick={() => handleOpenModal('experience')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add New
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* --- Experience Card --- */}
-        <Card className="w-full shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-3">
-                <Briefcase className="text-blue-600" />
-                Experience
-              </span>
-              <Button size="sm" variant="outline" onClick={() => handleOpenModal('experience')}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {user.job_experiences?.length > 0 ? (
-                user.job_experiences.map((exp) => (
-                  <li key={exp.id} className="flex items-start justify-between gap-4">
-                    <div className="flex gap-4">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
-                        <Briefcase className="h-5 w-5 text-gray-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold">{exp.job_title}</h3>
-                        <p className="text-sm text-gray-700">{exp.company_name}</p>
-                        <p className="text-xs text-gray-500">{exp.employment_type}</p>
-                      </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-4">
+            {user.job_experiences?.length > 0 ? (
+              user.job_experiences.map((exp) => (
+                <li key={exp.id} className="flex items-start justify-between gap-4">
+                  <div className="flex gap-4">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
+                      <Briefcase className="h-5 w-5 text-gray-600" />
                     </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleOpenModal('experience', exp)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete('experience', exp.id)}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div>
+                      <h3 className="font-bold">{exp.job_title}</h3>
+                      <p className="text-sm text-gray-700">{exp.company_name}</p>
+                      <p className="text-xs text-gray-500">{exp.employment_type}</p>
                     </div>
-                  </li>
-                ))
-              ) : (
-                <p className="text-gray-500">No experience added yet.</p>
-              )}
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* --- Education Card --- */}
-        <Card className="w-full shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-3">
-                <GraduationCap className="text-blue-600" />
-                Education
-              </span>
-              <Button size="sm" variant="outline" onClick={() => handleOpenModal('education')}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {user.educations?.length > 0 ? (
-                user.educations.map((edu) => (
-                  <li key={edu.id} className="flex items-start justify-between gap-4">
-                    <div className="flex gap-4">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
-                        <GraduationCap className="h-5 w-5 text-gray-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold">{edu.school_name}</h3>
-                        <p className="text-sm text-gray-700">
-                          {edu.degree}, {edu.field_of_study}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleOpenModal('education', edu)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete('education', edu.id)}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <p className="text-gray-500">No education added yet.</p>
-              )}
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* --- Skills Card --- */}
-        <Card className="w-full shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-3">
-                <Sparkles className="text-blue-600" />
-                Skills
-              </span>
-              <Button size="sm" variant="outline" onClick={() => handleOpenModal('skill')}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {user.skills?.length > 0 ? (
-                user.skills.map((skill) => (
-                  <div key={skill.id} className="flex items-center gap-1">
-                    <Badge variant="secondary">{skill.name}</Badge>
-                    <button
-                      onClick={() => handleDelete('skill', skill.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No skills added yet.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="flex gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleOpenModal('experience', exp)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDelete('experience', exp.id)}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500">No experience added yet.</p>
+            )}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* --- Education Card --- */}
+      <Card className="w-full shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-3">
+              <GraduationCap className="text-blue-600" />
+              Education
+            </span>
+            <Button size="sm" variant="outline" onClick={() => handleOpenModal('education')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add New
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-4">
+            {user.educations?.length > 0 ? (
+              user.educations.map((edu) => (
+                <li key={edu.id} className="flex items-start justify-between gap-4">
+                  <div className="flex gap-4">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
+                      <GraduationCap className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold">{edu.school_name}</h3>
+                      <p className="text-sm text-gray-700">
+                        {edu.degree}, {edu.field_of_study}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleOpenModal('education', edu)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDelete('education', edu.id)}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500">No education added yet.</p>
+            )}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* --- Skills Card --- */}
+      <Card className="w-full shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-3">
+              <Sparkles className="text-blue-600" />
+              Skills
+            </span>
+            <Button size="sm" variant="outline" onClick={() => handleOpenModal('skill')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add New
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {user.skills?.length > 0 ? (
+              user.skills.map((skill) => (
+                <div key={skill.id} className="flex items-center gap-1">
+                  <Badge variant="secondary">{skill.name}</Badge>
+                  <button
+                    onClick={() => handleDelete('skill', skill.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No skills added yet.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* --- CUD Modal --- */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

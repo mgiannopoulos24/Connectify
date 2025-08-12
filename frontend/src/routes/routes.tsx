@@ -6,6 +6,8 @@ import NotFound from '@/pages/misc/NotFound';
 import Welcome from '@/pages/Welcome';
 import Homepage from '@/pages/Homepage';
 import ProfilePage from '@/pages/Profile';
+import UserProfilePage from '@/pages/UserProfile';
+import PeoplePage from '@/pages/People';
 import Games from '@/pages/Games';
 import Zip from '@/pages/games/Zip';
 import Onboarding from '@/pages/Onboarding';
@@ -13,7 +15,7 @@ import SettingsPage from '@/pages/Settings';
 import AppLayout from '@/components/layout/AppLayout';
 import NetworkPage from '@/pages/Network';
 import MessagingPage from '@/pages/Messaging';
-import Maintenance from '@/pages/misc/Maintenance'; // Import Maintenance page
+import Maintenance from '@/pages/misc/Maintenance';
 
 type RouteConfig = {
   path: string;
@@ -69,6 +71,16 @@ const routes: RouteConfig[] = [
     roles: ['professional', 'admin'],
   },
   {
+    path: '/people',
+    element: (
+      <AppLayout>
+        <PeoplePage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
     path: '/messaging',
     element: (
       <AppLayout>
@@ -90,7 +102,21 @@ const routes: RouteConfig[] = [
   },
   {
     path: '/profile',
-    element: <ProfilePage />,
+    element: (
+      <AppLayout>
+        <ProfilePage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
+    path: '/profile/:userId',
+    element: (
+      <AppLayout>
+        <UserProfilePage />
+      </AppLayout>
+    ),
     protected: true,
     roles: ['professional', 'admin'],
   },

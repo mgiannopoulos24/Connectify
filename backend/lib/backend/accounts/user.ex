@@ -5,6 +5,7 @@ defmodule Backend.Accounts.User do
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
   alias Backend.Skills.Skill
+  alias Backend.Interests.Interest
   alias Backend.Connections.Connection
   alias Backend.Chat.ChatRoom
 
@@ -30,6 +31,7 @@ defmodule Backend.Accounts.User do
     has_many :job_experiences, JobExperience
     has_many :educations, Education
     has_many :skills, Skill
+    has_many :interests, Interest
 
     has_many :sent_connections, Connection, foreign_key: :user_id
     has_many :received_connections, Connection, foreign_key: :connected_user_id

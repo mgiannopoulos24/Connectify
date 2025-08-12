@@ -7,14 +7,20 @@ defmodule Backend.Accounts do
   alias Backend.Repo
   alias Backend.Mailer
   alias BackendWeb.Emails
+  require Logger
 
   alias Backend.Accounts.User
 
-  # FIX: This function now correctly operates on a user struct (or nil)
-  # and uses Repo.preload to fetch the associations.
   defp preload_profile(user) do
     if user do
-      Repo.preload(user, [:job_experiences, :educations, :skills, :sent_connections, :received_connections])
+      Repo.preload(user, [
+        :job_experiences,
+        :educations,
+        :skills,
+        :interests,
+        :sent_connections,
+        :received_connections
+      ])
     else
       nil
     end
@@ -30,7 +36,9 @@ defmodule Backend.Accounts do
 
   """
   def list_users do
-    Repo.all(User)
+    User
+    |> Repo.all()
+    |> preload_profile()
   end
 
   @doc """
@@ -72,7 +80,6 @@ defmodule Backend.Accounts do
              |> User.changeset(attrs)
              |> Repo.insert(),
            {:ok, _user} <- deliver_confirmation_instructions(user) do
-        # This now correctly calls the fixed preload_profile function
         preload_profile(user)
       else
         error ->
@@ -97,6 +104,10 @@ defmodule Backend.Accounts do
     user
     |> User.changeset(attrs)
     |> Repo.update()
+    |> case do
+      {:ok, updated_user} -> {:ok, preload_profile(updated_user)}
+      error -> error
+    end
   end
 
   @doc """
@@ -142,7 +153,7 @@ defmodule Backend.Accounts do
   def authenticate_user(identifier, password) do
     with %User{} = user <- get_user_by_email(identifier),
          true <- Argon2.verify_pass(password, user.password_hash) do
-      {:ok, user}
+      {:ok, preload_profile(user)}
     else
       _ -> :error
     end
@@ -163,14 +174,22 @@ defmodule Backend.Accounts do
   """
   def deliver_confirmation_instructions(%User{} = user) do
     token = Integer.to_string(:rand.uniform(899_999) + 100_000)
-
     changeset = Ecto.Changeset.change(user, email_confirmation_token: token)
-    Repo.update(changeset)
 
-    Emails.confirmation_email(user, token)
-    |> Mailer.deliver()
-
-    {:ok, user}
+    with {:ok, updated_user} <- Repo.update(changeset) do
+      case Mailer.deliver(Emails.confirmation_email(updated_user, token)) do
+        :ok ->
+          {:ok, updated_user}
+        {:ok, _email_data} ->
+          {:ok, updated_user}
+        {:error, reason} ->
+          Logger.error("Failed to deliver confirmation email: #{inspect(reason)}")
+          {:error, :email_delivery_failed}
+      end
+    else
+      {:error, _changeset} = error ->
+        error
+    end
   end
 
   @doc """
@@ -180,7 +199,6 @@ defmodule Backend.Accounts do
     case Repo.get_by(User, email_confirmation_token: token) do
       nil ->
         {:error, :not_found}
-
       user ->
         user
         |> Ecto.Changeset.change(%{

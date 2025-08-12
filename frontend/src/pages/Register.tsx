@@ -30,10 +30,16 @@ export function Register() {
     e.preventDefault();
     setError(null);
 
-    if (formData.password !== confirmPassword) {
-      setError('Passwords do not match');
+    // --- Client-side validation ---
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long.');
       return;
     }
+    if (formData.password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    // --- End validation ---
 
     try {
       const response = await axios.post('/api/register', {
@@ -45,14 +51,28 @@ export function Register() {
         navigate('/onboarding');
       }
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        const errorData = err.response.data.errors;
-        const errorMessages = Object.entries(errorData)
-          .map(([field, messages]) => `${field} ${(messages as string[]).join(', ')}`)
-          .join('; ');
-        setError(errorMessages || 'Registration failed. Please try again.');
+      if (axios.isAxiosError(err) && err.response && err.response.data) {
+        const errors = err.response.data.errors;
+
+        if (typeof errors === 'object' && errors !== null) {
+          if (errors.detail) {
+            setError(errors.detail);
+          } else {
+            const errorMessages = Object.entries(errors)
+              .map(([field, messages]) => {
+                if (Array.isArray(messages)) {
+                  return `${field} ${messages.join(', ')}`;
+                }
+                return `${field} ${messages}`;
+              })
+              .join('; ');
+            setError(errorMessages || 'Registration failed. Please try again.');
+          }
+        } else {
+          setError('An unexpected error occurred during registration.');
+        }
       } else {
-        setError('An unexpected error occurred.');
+        setError('An unexpected network error occurred.');
       }
       console.error(err);
     }
@@ -135,6 +155,9 @@ export function Register() {
                 >
                   {passwordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
+                <p className="text-xs text-gray-500 px-1">
+                  Password must be at least 8 characters long.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
@@ -146,7 +169,7 @@ export function Register() {
                   required
                 />
               </div>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
               <Button type="submit" className="w-full">
                 Create an account
               </Button>

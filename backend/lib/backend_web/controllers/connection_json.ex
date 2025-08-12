@@ -10,8 +10,8 @@ defmodule BackendWeb.ConnectionJSON do
     %{data: Enum.map(pending_requests, &pending_request_data/1)}
   end
 
-  def show(%{connection: connection}) do
-    %{data: connection_data(connection, connection.user)}
+  def show(%{connection: connection, current_user: current_user}) do
+    %{data: connection_data(connection, current_user)}
   end
 
   defp connection_data(%Connection{} = connection, %User{} = current_user) do
@@ -31,7 +31,9 @@ defmodule BackendWeb.ConnectionJSON do
           id: other_user.id,
           name: other_user.name,
           surname: other_user.surname,
-          photo_url: other_user.photo_url
+          photo_url: other_user.photo_url,
+          job_title:
+            (other_user.job_experiences |> List.first() |> Map.get(:job_title, "Professional"))
         },
         inserted_at: connection.inserted_at,
         updated_at: connection.updated_at
@@ -55,7 +57,8 @@ defmodule BackendWeb.ConnectionJSON do
         id: connection.user.id,
         name: connection.user.name,
         surname: connection.user.surname,
-        photo_url: connection.user.photo_url
+        photo_url: connection.user.photo_url,
+        job_title: (connection.user.job_experiences |> List.first() |> Map.get(:job_title, "Professional"))
       },
       inserted_at: connection.inserted_at
     }

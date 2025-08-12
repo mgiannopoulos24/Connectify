@@ -13,7 +13,7 @@ import {
 import { Connection, PendingRequest, UserSummary } from '@/types/connections';
 import { User, useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- Reusable User Card Component ---
 const UserCard = ({
@@ -172,6 +172,23 @@ const NetworkPage: React.FC = () => {
       />
 
       <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg">Grow your network</h3>
+              <p className="text-sm text-gray-500">Find and connect with new people.</p>
+            </div>
+            <Link to="/people">
+              <Button>
+                <Users className="w-4 h-4 mr-2" />
+                Find People
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle>My Connections ({connections.length})</CardTitle>
           <CardDescription>People you are connected with.</CardDescription>
@@ -209,11 +226,19 @@ const NetworkPage: React.FC = () => {
                   user={req.requester}
                   date={`Sent ${formatDistanceToNow(new Date(req.inserted_at), { addSuffix: true })}`}
                 >
-                  <Button variant="outline" size="icon" onClick={() => handleDecline(req.id)}>
-                    <X className="h-4 w-4" />
+                  <Button
+                    size="icon"
+                    onClick={() => handleDecline(req.id)}
+                    className="rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
                   </Button>
-                  <Button size="icon" onClick={() => handleAccept(req.id)}>
-                    <Check className="h-4 w-4" />
+                  <Button
+                    size="icon"
+                    onClick={() => handleAccept(req.id)}
+                    className="rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                  >
+                    <Check className="h-5 w-5" />
                   </Button>
                 </UserCard>
               ))

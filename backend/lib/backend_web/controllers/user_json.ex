@@ -3,6 +3,8 @@ defmodule BackendWeb.UserJSON do
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
   alias Backend.Skills.Skill
+  alias Backend.Interests.Interest
+  alias Backend.Connections.Connection
 
   @doc """
   Renders a list of users.
@@ -32,7 +34,10 @@ defmodule BackendWeb.UserJSON do
       email_confirmed_at: user.email_confirmed_at,
       job_experiences: Enum.map(user.job_experiences, &job_experience_data/1),
       educations: Enum.map(user.educations, &education_data/1),
-      skills: Enum.map(user.skills, &skill_data/1)
+      skills: Enum.map(user.skills, &skill_data/1),
+      interests: Enum.map(user.interests, &interest_data/1),
+      sent_connections: Enum.map(user.sent_connections, &connection_info_data/1),
+      received_connections: Enum.map(user.received_connections, &connection_info_data/1)
     }
   end
 
@@ -60,6 +65,23 @@ defmodule BackendWeb.UserJSON do
     %{
       id: skill.id,
       name: skill.name
+    }
+  end
+
+  defp interest_data(%Interest{} = interest) do
+    %{
+      id: interest.id,
+      name: interest.name,
+      type: interest.type
+    }
+  end
+
+  defp connection_info_data(%Connection{} = connection) do
+    %{
+      id: connection.id,
+      status: connection.status,
+      user_id: connection.user_id,
+      connected_user_id: connection.connected_user_id
     }
   end
 end
