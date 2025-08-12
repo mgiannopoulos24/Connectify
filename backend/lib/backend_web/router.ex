@@ -43,6 +43,13 @@ defmodule BackendWeb.Router do
     resources "/skills", SkillController, except: [:new, :edit]
     resources "/interests", InterestController, only: [:create], as: :interest
 
+    # Connections routes
+    get "/connections", ConnectionController, :index
+    get "/connections/pending", ConnectionController, :pending
+    post "/connections", ConnectionController, :create
+    put "/connections/:id/accept", ConnectionController, :accept
+    put "/connections/:id/decline", ConnectionController, :decline
+    
     post "/email/confirm", EmailConfirmationController, :create
   end
 

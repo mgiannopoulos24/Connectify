@@ -14,7 +14,7 @@ defmodule Backend.Accounts do
   # and uses Repo.preload to fetch the associations.
   defp preload_profile(user) do
     if user do
-      Repo.preload(user, [:job_experiences, :educations, :skills])
+      Repo.preload(user, [:job_experiences, :educations, :skills, :sent_connections, :received_connections])
     else
       nil
     end
