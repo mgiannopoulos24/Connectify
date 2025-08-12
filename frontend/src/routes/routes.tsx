@@ -11,7 +11,9 @@ import Zip from '@/pages/games/Zip';
 import Onboarding from '@/pages/Onboarding';
 import SettingsPage from '@/pages/Settings';
 import AppLayout from '@/components/layout/AppLayout';
-import NetworkPage from '@/pages/Network'; // Import the new page
+import NetworkPage from '@/pages/Network';
+import MessagingPage from '@/pages/Messaging';
+import Maintenance from '@/pages/misc/Maintenance'; // Import Maintenance page
 
 type RouteConfig = {
   path: string;
@@ -44,10 +46,6 @@ const routes: RouteConfig[] = [
     path: '/games/zip',
     element: <Zip />,
   },
-  // {
-  //   path: '/games/memory-match',
-  //   element: <MemoryMatch />,
-  // },
 
   // Protected Routes for Professionals & Admins
   {
@@ -61,10 +59,30 @@ const routes: RouteConfig[] = [
     roles: ['professional', 'admin'],
   },
   {
-    path: '/network', // Add the new network route
+    path: '/network',
     element: (
       <AppLayout>
         <NetworkPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
+    path: '/messaging',
+    element: (
+      <AppLayout>
+        <MessagingPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
+    path: '/messaging/:userId',
+    element: (
+      <AppLayout>
+        <MessagingPage />
       </AppLayout>
     ),
     protected: true,
@@ -99,6 +117,12 @@ const routes: RouteConfig[] = [
     element: <AdminPage />,
     protected: true,
     roles: ['admin'],
+  },
+
+  // Misc routes
+  {
+    path: '/maintenance',
+    element: <Maintenance />,
   },
 
   // Fallback 404

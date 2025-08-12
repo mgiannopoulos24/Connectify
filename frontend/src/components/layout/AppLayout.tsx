@@ -10,13 +10,11 @@ import {
   Network as NetworkIcon,
   User,
   Settings,
-  UserCircle,
-  Users, // Import the Users icon
+  Users,
 } from 'lucide-react';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -92,44 +90,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </header>
 
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <aside className="md:col-span-1">
-            <div className="bg-white p-4 rounded-lg shadow">
-              {user && (
-                <>
-                  <div className="text-center">
-                    <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
-                      {user.photo_url ? (
-                        <img
-                          src={user.photo_url}
-                          alt="User"
-                          className="h-full w-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <UserCircle className="h-16 w-16 text-gray-500" />
-                      )}
-                    </div>
-                    <h3 className="mt-2 text-lg font-semibold">
-                      {user.name} {user.surname}
-                    </h3>
-                    <p className="text-sm text-gray-500 capitalize">{user.role}</p>
-                  </div>
-                  <div className="mt-4">
-                    <Button
-                      className="w-full"
-                      variant="outline"
-                      onClick={() => navigate('/profile')}
-                    >
-                      View Profile
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          </aside>
-
-          <div className="md:col-span-3">{children}</div>
-        </div>
+        {/* <div className="md:col-span-3"></div> */}
+        {children}
       </main>
     </div>
   );

@@ -18,7 +18,7 @@ interface Education {
 }
 
 interface Skill {
-  id:string;
+  id: string;
   name: string;
 }
 
@@ -57,6 +57,7 @@ export interface User {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   login: (identifier: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
@@ -72,65 +73,83 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('auth_token'));
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      try {
-        const response = await axios.get<{ data: User }>('/api/users/me');
-        if (response.data && response.data.data) {
-          setUser(response.data.data);
-        } else {
-          setUser(null);
+      // If we have a token, we can try to fetch the user
+      if (token) {
+        try {
+          const response = await axios.get<{ data: User }>('/api/users/me');
+          if (response.data && response.data.data) {
+            setUser(response.data.data);
+          } else {
+            // Token is invalid, clear it
+            logout();
+          }
+        } catch (error) {
+          console.error('Authentication check failed', error);
+          logout();
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        setUser(null);
-        console.error('Not authenticated', error);
-      } finally {
+      } else {
         setIsLoading(false);
       }
     };
 
     checkAuthStatus();
-  }, []);
+  }, [token]);
 
   const login = async (identifier: string, password: string) => {
-    const response = await axios.post('/api/login', { identifier, password });
+    // NOTE: This assumes the backend login response is modified to include the token.
+    const response = await axios.post<{ data: User; token: string }>('/api/login', {
+      identifier,
+      password,
+    });
     if (response.data && response.data.data) {
-      const loggedInUser = response.data.data;
+      const { data: loggedInUser, token: authToken } = response.data;
       setUser(loggedInUser);
+      setToken(authToken);
+      sessionStorage.setItem('auth_token', authToken); // Persist token in session storage
 
       if (!loggedInUser.onboarding_completed) {
         navigate('/onboarding');
       } else if (loggedInUser.role === 'admin') {
         navigate('/admin');
-      } else if (loggedInUser.role === 'professional') {
-        navigate('/homepage');
       } else {
-        navigate('/login');
+        navigate('/homepage');
       }
     }
   };
 
   const register = async (userData: any) => {
-    await axios.post('/api/register', { user: userData });
-    navigate('/login');
+    // NOTE: This assumes the backend register response is modified to include the token.
+    const response = await axios.post('/api/register', { user: userData });
+    if (response.data && response.data.data) {
+      await login(userData.email, userData.password);
+    }
   };
 
   const logout = async () => {
     try {
       await axios.delete('/api/logout');
-      setUser(null);
-      navigate('/');
     } catch (error) {
-      console.error('Logout failed', error);
+      console.error('Logout request failed', error);
+    } finally {
+      setUser(null);
+      setToken(null);
+      sessionStorage.removeItem('auth_token');
+      navigate('/');
     }
   };
 
   const value = {
     isAuthenticated: !!user,
     user,
+    token,
     isLoading,
     login,
     register,

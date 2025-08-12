@@ -1,23 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  UserCircle,
-  Check,
-  X,
-  Users,
-  UserPlus,
-  Loader2,
-  Send,
-  UserCheck,
-  Eye,
-} from 'lucide-react';
+import { UserCircle, Check, X, Users, UserPlus, Loader2, Send, MessageSquare } from 'lucide-react';
 import {
   getConnections,
   getPendingRequests,
@@ -29,6 +13,7 @@ import {
 import { Connection, PendingRequest, UserSummary } from '@/types/connections';
 import { User, useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 // --- Reusable User Card Component ---
 const UserCard = ({
@@ -95,6 +80,7 @@ const NetworkStats = ({
 // --- Main Network Page Component ---
 const NetworkPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<PendingRequest[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [suggestions, setSuggestions] = useState<User[]>([]);
@@ -124,7 +110,6 @@ const NetworkPage: React.FC = () => {
 
   const handleAccept = async (id: string) => {
     await acceptConnectionRequest(id);
-    const newRequests = requests.filter((req) => req.id !== id);
     const acceptedReq = requests.find((req) => req.id === id);
     if (acceptedReq) {
       setConnections([
@@ -136,7 +121,7 @@ const NetworkPage: React.FC = () => {
         },
       ]);
     }
-    setRequests(newRequests);
+    setRequests(requests.filter((req) => req.id !== id));
   };
 
   const handleDecline = async (id: string) => {
@@ -149,9 +134,12 @@ const NetworkPage: React.FC = () => {
     setSentRequestIds((prev) => new Set(prev).add(recipientId));
   };
 
+  const handleMessage = (userId: string) => {
+    navigate(`/messaging/${userId}`);
+  };
+
   const peopleYouMayKnow = useMemo(() => {
     if (!user || suggestions.length === 0) return [];
-
     const existingConnectionIds = new Set(connections.map((c) => c.connected_user.id));
     const pendingRequestIds = new Set(requests.map((r) => r.requester.id));
     const sentRequestUserIds = new Set(
@@ -161,7 +149,6 @@ const NetworkPage: React.FC = () => {
     return suggestions.filter(
       (p) =>
         p.id !== user.id &&
-        p.location === user.location &&
         !existingConnectionIds.has(p.id) &&
         !pendingRequestIds.has(p.id) &&
         !sentRequestUserIds.has(p.id),
@@ -176,16 +163,41 @@ const NetworkPage: React.FC = () => {
     );
   }
 
-  const numSent = user.sent_connections?.filter((c) => c.status === 'pending').length || 0;
-  const numFollowing = user.interests?.length || 0;
-
   return (
     <div className="space-y-8">
-      <NetworkStats connections={connections.length} sent={numSent} following={numFollowing} />
+      <NetworkStats
+        connections={connections.length}
+        sent={user.sent_connections?.filter((c) => c.status === 'pending').length || 0}
+        following={user.interests?.length || 0}
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle>Received Invitations</CardTitle>
+          <CardTitle>My Connections ({connections.length})</CardTitle>
+          <CardDescription>People you are connected with.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {connections.length > 0 ? (
+              connections.map((conn) => (
+                <UserCard key={conn.id} user={conn.connected_user}>
+                  <Button variant="outline" onClick={() => handleMessage(conn.connected_user.id)}>
+                    <MessageSquare className="w-4 h-4 mr-2" /> Message
+                  </Button>
+                </UserCard>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">
+                You haven't made any connections yet.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Received Invitations ({requests.length})</CardTitle>
           <CardDescription>People who want to connect with you.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -214,8 +226,8 @@ const NetworkPage: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>People You May Know in {user.location}</CardTitle>
-          <CardDescription>Suggestions based on your profile and location.</CardDescription>
+          <CardTitle>People You May Know</CardTitle>
+          <CardDescription>Suggestions based on your profile and activity.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

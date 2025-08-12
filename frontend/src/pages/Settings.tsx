@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import packageJson from '../../package.json'; // Import the package.json file
 
 const settingsOptions = [
   {
@@ -31,9 +32,24 @@ const settingsOptions = [
         description: 'Change your password and secure your account.',
         to: '#',
       },
-      { icon: Eye, title: 'Visibility', description: 'Control who sees your profile and activity.', to: '#' },
-      { icon: FileText, title: 'Privacy', description: 'Manage your data and privacy settings.', to: '#' },
-      { icon: Megaphone, title: 'Ads data', description: 'Control your advertising preferences.', to: '#' },
+      {
+        icon: Eye,
+        title: 'Visibility',
+        description: 'Control who sees your profile and activity.',
+        to: '#',
+      },
+      {
+        icon: FileText,
+        title: 'Privacy',
+        description: 'Manage your data and privacy settings.',
+        to: '#',
+      },
+      {
+        icon: Megaphone,
+        title: 'Ads data',
+        description: 'Control your advertising preferences.',
+        to: '#',
+      },
     ],
   },
   {
@@ -53,12 +69,19 @@ const settingsOptions = [
     items: [
       { icon: HelpCircle, title: 'Help center', description: 'Find help and support.', to: '#' },
       { icon: FileText, title: 'Privacy policy', description: 'Read our privacy policy.', to: '#' },
-      { icon: Accessibility, title: 'Accessibility', description: 'Manage your accessibility settings.', to: '#' },
+      {
+        icon: Accessibility,
+        title: 'Accessibility',
+        description: 'Manage your accessibility settings.',
+        to: '#',
+      },
     ],
   },
 ];
 
 const SettingsPage: React.FC = () => {
+  const appVersion = packageJson.version; // Get the version from the imported file
+
   return (
     <div className="w-full">
       <h1 className="text-3xl font-bold mb-6 flex items-center">
@@ -90,6 +113,11 @@ const SettingsPage: React.FC = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* App Version Display */}
+      <div className="mt-12 text-center">
+        <p className="text-sm text-gray-500">Connectify Version: {appVersion}</p>
       </div>
     </div>
   );
