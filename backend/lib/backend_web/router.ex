@@ -50,6 +50,10 @@ defmodule BackendWeb.Router do
     put "/connections/:id/accept", ConnectionController, :accept
     put "/connections/:id/decline", ConnectionController, :decline
     
+    # Chat routes
+    post "/chat", ChatController, :create
+    get "/chat/:chat_room_id/messages", ChatController, :index
+
     post "/email/confirm", EmailConfirmationController, :create
   end
 
