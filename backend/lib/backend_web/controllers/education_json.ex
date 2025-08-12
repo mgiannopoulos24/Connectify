@@ -1,6 +1,9 @@
 defmodule BackendWeb.EducationJSON do
   alias Backend.Careers.Education
 
+  @doc """
+  Renders a single education entry.
+  """
   def show(%{education: education}) do
     %{data: data(education)}
   end

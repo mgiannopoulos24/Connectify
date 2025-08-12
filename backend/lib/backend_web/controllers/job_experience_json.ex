@@ -1,6 +1,9 @@
 defmodule BackendWeb.JobExperienceJSON do
   alias Backend.Careers.JobExperience
 
+  @doc """
+  Renders a single job experience.
+  """
   def show(%{job_experience: job_experience}) do
     %{data: data(job_experience)}
   end
