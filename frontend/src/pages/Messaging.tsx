@@ -87,7 +87,7 @@ const MessagingPage: React.FC = () => {
               onSelectConversation={handleSelectConversation}
             />
           </div>
-          <div className="md:col-span-2 h-full hidden md:block">
+          <div className="md:col-span-2 h-full hidden md:block overflow-hidden">
             {activeChatRoomId && activeUser ? (
               <ChatWindow
                 chatRoomId={activeChatRoomId}

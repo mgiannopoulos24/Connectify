@@ -146,7 +146,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
         </h2>
       </header>
 
-      <div className="flex-grow p-4 overflow-y-auto">
+      <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar">
         {messages.map((msg) => (
           <div
             key={msg.id}
