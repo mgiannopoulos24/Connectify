@@ -68,7 +68,9 @@ defmodule Backend.MixProject do
       {:argon2_elixir, "~> 3.0"},
       {:joken, "~> 2.6"},
       {:dotenv, "~> 3.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
 
