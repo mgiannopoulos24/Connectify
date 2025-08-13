@@ -55,7 +55,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
       if (payload.user_id !== user?.id) {
         setIsTyping(true);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        // Hide indicator after a 2-second timeout.
+        // Hide indicator after a 4-second timeout.
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 4000);
       }
     });
