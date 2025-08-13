@@ -36,25 +36,24 @@ defmodule BackendWeb.UserController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/users/#{user}")
+      # Set the secure cookie
       |> put_resp_cookie("auth_token", token,
         http_only: true,
         secure: true,
         same_site: "Lax",
         max_age: Auth.token_lifespan()
       )
-      |> render(UserJSON, :show, user: user)
+      # FIX: Also return user and token in the body
+      |> render(UserJSON, :show, user: user, token: token)
     else
       {:error, %Ecto.Changeset{} = changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        # FIX: Changed "error" to :error
         |> render(BackendWeb.ChangesetJSON, :error, changeset: changeset)
 
       {:error, reason} ->
-        # Handle token signing error
         conn
         |> put_status(:internal_server_error)
-        # FIX: Switched to the json/2 helper for a cleaner error response
         |> json(%{errors: %{detail: "Could not sign token: #{inspect(reason)}"}})
     end
   end

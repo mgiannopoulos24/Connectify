@@ -25,60 +25,101 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Reset state and show loader when chatRoomId changes
     setIsLoading(true);
-    if (!chatRoomId || !token) return;
+    setMessages([]);
 
-    // Fetch message history
-    getMessageHistory(chatRoomId).then((history) => {
-      setMessages(history);
+    if (!chatRoomId || !token) {
       setIsLoading(false);
-      scrollToBottom();
-    });
+      return;
+    }
 
-    // Setup socket and channel
+    // --- WebSocket and Channel Setup ---
+    // 1. Create a single, new socket instance for this chat window instance.
     const socket = new Socket('/socket', { params: { token } });
     socket.connect();
 
+    // 2. Create the channel on that socket.
     const ch = socket.channel(`chat:${chatRoomId}`, {});
-    ch.join()
-      .receive('ok', () => console.log('Joined channel successfully'))
-      .receive('error', (resp) => console.error('Unable to join', resp));
 
-    // Listen for new messages
+    // 3. Set up listeners before joining.
+    // Listens for new messages broadcast from the server.
     ch.on('new_msg', (payload) => {
       setMessages((prev) => [...prev, payload.message]);
-      setIsTyping(false); // Stop showing typing indicator when message arrives
-      scrollToBottom();
+      setIsTyping(false); // Stop typing indicator when a message arrives
     });
 
-    // Listen for typing events
+    // Listens for typing events from the other user.
     ch.on('typing', (payload) => {
+      // Make sure we don't show the typing indicator for our own typing.
       if (payload.user_id !== user?.id) {
         setIsTyping(true);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 2000);
+        // Hide indicator after a 2-second timeout.
+        typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 4000);
       }
     });
 
+    // 4. Join the channel.
+    ch.join()
+      .receive('ok', () => {
+        console.log(`Joined channel chat:${chatRoomId} successfully`);
+        // Fetch message history only after successfully joining the channel.
+        getMessageHistory(chatRoomId)
+          .then((history) => {
+            setMessages(history);
+          })
+          .catch((err) => console.error('Failed to get message history', err))
+          .finally(() => setIsLoading(false));
+      })
+      .receive('error', (resp) => {
+        console.error('Unable to join channel', resp);
+        setIsLoading(false);
+      });
+
     setChannel(ch);
 
+    // 5. Cleanup function: This is crucial to prevent connection errors.
     return () => {
+      console.log(`Leaving channel chat:${chatRoomId}`);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       ch.leave();
       socket.disconnect();
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
-  }, [chatRoomId, token, user?.id]);
+  }, [chatRoomId, token, user?.id]); // Effect re-runs if the user or chat room changes
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Scroll to bottom whenever messages array is updated
   useEffect(scrollToBottom, [messages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !channel) return;
+    if (newMessage.trim() === '' || !channel || !user) return;
+
+    // --- Optimistic UI Update ---
+    // Create a temporary message object to display in the UI immediately.
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`, // A temporary, unique key for React
+      content: newMessage,
+      inserted_at: new Date().toISOString(),
+      user: {
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        photo_url: user.photo_url,
+      },
+    };
+
+    // Add the optimistic message to our local state right away.
+    setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
+
+    // Push the actual message to the server.
     channel.push('new_msg', { body: newMessage });
+
+    // Clear the input field.
     setNewMessage('');
   };
 
@@ -91,7 +132,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
 
   if (isLoading) {
     return (
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow flex items-center justify-center h-full">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
       </div>
     );
@@ -130,7 +171,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
             >
               <p className="text-sm">{msg.content}</p>
               <p
-                className={`text-xs mt-1 ${
+                className={`text-xs mt-1 text-right ${
                   msg.user.id === user?.id ? 'text-blue-200' : 'text-gray-500'
                 }`}
               >
@@ -148,7 +189,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <footer className="p-4 border-t">
+      <footer className="p-4 border-t bg-white">
         <form onSubmit={handleSendMessage} className="flex items-center gap-3">
           <Input
             type="text"

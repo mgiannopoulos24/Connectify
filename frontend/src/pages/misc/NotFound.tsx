@@ -27,8 +27,8 @@ function NotFound() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 mb-8">
-              Sorry, we couldn't find the page you're looking for. Please check the URL or return
-              to the homepage.
+              Sorry, we couldn't find the page you're looking for. Please check the URL or return to
+              the homepage.
             </p>
             <Button onClick={handleGoHome} className="w-full text-lg py-6">
               <Home className="mr-2 h-5 w-5" />

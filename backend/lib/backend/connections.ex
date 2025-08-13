@@ -38,7 +38,8 @@ defmodule Backend.Connections do
     # and the status is 'accepted'
     query =
       from c in Connection,
-        where: (c.user_id == ^user_id or c.connected_user_id == ^user_id) and c.status == "accepted",
+        where:
+          (c.user_id == ^user_id or c.connected_user_id == ^user_id) and c.status == "accepted",
         # Preload the nested data for both users in the connection
         preload: [user: [:job_experiences], connected_user: [:job_experiences]]
 

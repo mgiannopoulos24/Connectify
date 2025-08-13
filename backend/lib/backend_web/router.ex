@@ -49,7 +49,7 @@ defmodule BackendWeb.Router do
     post "/connections", ConnectionController, :create
     put "/connections/:id/accept", ConnectionController, :accept
     put "/connections/:id/decline", ConnectionController, :decline
-    
+
     # Chat routes
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index

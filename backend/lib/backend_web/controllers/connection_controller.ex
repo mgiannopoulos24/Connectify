@@ -26,7 +26,8 @@ defmodule BackendWeb.ConnectionController do
     with {:ok, %Connection{} = connection} <-
            Connections.send_connection_request(current_user.id, recipient_id) do
       # Preload the associations needed for the JSON response
-      preloaded_connection = Repo.preload(connection, [user: [:job_experiences], connected_user: [:job_experiences]])
+      preloaded_connection =
+        Repo.preload(connection, user: [:job_experiences], connected_user: [:job_experiences])
 
       conn
       |> put_status(:created)
@@ -40,6 +41,7 @@ defmodule BackendWeb.ConnectionController do
 
   def accept(conn, %{"id" => id}) do
     current_user = conn.assigns.current_user
+
     # We don't need to preload here because the context function will return an unloaded struct anyway.
     connection = Connections.get_connection!(id)
 
@@ -48,7 +50,10 @@ defmodule BackendWeb.ConnectionController do
              Connections.accept_connection_request(connection) do
         # PRELOAD THE DATA HERE, after the update is complete.
         preloaded_connection =
-          Repo.preload(updated_connection, [user: [:job_experiences], connected_user: [:job_experiences]])
+          Repo.preload(updated_connection,
+            user: [:job_experiences],
+            connected_user: [:job_experiences]
+          )
 
         render(conn, ConnectionJSON, :show,
           connection: preloaded_connection,

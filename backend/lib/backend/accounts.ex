@@ -180,8 +180,10 @@ defmodule Backend.Accounts do
       case Mailer.deliver(Emails.confirmation_email(updated_user, token)) do
         :ok ->
           {:ok, updated_user}
+
         {:ok, _email_data} ->
           {:ok, updated_user}
+
         {:error, reason} ->
           Logger.error("Failed to deliver confirmation email: #{inspect(reason)}")
           {:error, :email_delivery_failed}
@@ -199,6 +201,7 @@ defmodule Backend.Accounts do
     case Repo.get_by(User, email_confirmation_token: token) do
       nil ->
         {:error, :not_found}
+
       user ->
         user
         |> Ecto.Changeset.change(%{

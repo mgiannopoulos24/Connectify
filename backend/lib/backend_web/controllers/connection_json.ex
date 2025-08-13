@@ -33,7 +33,7 @@ defmodule BackendWeb.ConnectionJSON do
           surname: other_user.surname,
           photo_url: other_user.photo_url,
           job_title:
-            (other_user.job_experiences |> List.first() |> Map.get(:job_title, "Professional"))
+            other_user.job_experiences |> List.first() |> Map.get(:job_title, "Professional")
         },
         inserted_at: connection.inserted_at,
         updated_at: connection.updated_at
@@ -58,7 +58,8 @@ defmodule BackendWeb.ConnectionJSON do
         name: connection.user.name,
         surname: connection.user.surname,
         photo_url: connection.user.photo_url,
-        job_title: (connection.user.job_experiences |> List.first() |> Map.get(:job_title, "Professional"))
+        job_title:
+          connection.user.job_experiences |> List.first() |> Map.get(:job_title, "Professional")
       },
       inserted_at: connection.inserted_at
     }

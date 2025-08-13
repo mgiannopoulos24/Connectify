@@ -13,6 +13,9 @@ defmodule Backend.Repo.Migrations.CreateConnections do
 
     create index(:connections, [:user_id])
     create index(:connections, [:connected_user_id])
-    create unique_index(:connections, [:user_id, :connected_user_id], name: :user_connection_unique_index)
+
+    create unique_index(:connections, [:user_id, :connected_user_id],
+             name: :user_connection_unique_index
+           )
   end
 end

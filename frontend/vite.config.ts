@@ -18,6 +18,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/socket": {
+        target: "wss://localhost:4000",
+        ws: true, // Enable WebSocket proxying
+        secure: false,
+      },
     },
   },
 });
