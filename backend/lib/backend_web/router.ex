@@ -23,61 +23,35 @@ defmodule BackendWeb.Router do
     pipe_through :api
 
     get "/users/me", UserController, :me
-
     get "/health", HealthController, :index
-
-    # Authenticated user routes (requires token)
     resources "/users", UserController, except: [:new, :edit, :create]
-
-    # Registration (public route)
     post "/register", UserController, :create
-
-    # Login route
     post "/login", SessionController, :create
-
-    # Logout route
     delete "/logout", SessionController, :delete
-
     resources "/job_experiences", JobExperienceController, except: [:new, :edit]
     resources "/educations", EducationController, except: [:new, :edit]
     resources "/skills", SkillController, except: [:new, :edit]
     resources "/interests", InterestController, only: [:create], as: :interest
-
-    # Connections routes
     get "/connections", ConnectionController, :index
     get "/connections/pending", ConnectionController, :pending
     post "/connections", ConnectionController, :create
     put "/connections/:id/accept", ConnectionController, :accept
     put "/connections/:id/decline", ConnectionController, :decline
-
-    # Chat routes
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index
     post "/chat/upload_image", ChatController, :upload_image
-
     post "/email/confirm", EmailConfirmationController, :create
+
+    scope "/admin", Admin, as: :admin do
+      pipe_through :ensure_admin
+
+      get "/users", UserController, :index
+      put "/users/:id/role", UserController, :update_role
+      get "/statistics", DashboardController, :index
+    end
   end
 
-  scope "/api/admin", BackendWeb do
-    # Apply both pipelines in order. First, authenticate the user (:api),
-    # then check if they are an admin (:ensure_admin).
-    pipe_through [:api, :ensure_admin]
-
-    get "/users", AdminController, :index
-  end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", BackendWeb do
-  #   pipe_through :api
-  # end
-
-  # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:backend, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface JobExperience {
   id: string;
@@ -29,7 +29,7 @@ interface Interest {
 
 interface ConnectionInfo {
   id: string;
-  status: 'pending' | 'accepted';
+  status: 'pending' | 'accepted' | 'declined';
   user_id: string;
   connected_user_id: string;
 }
@@ -39,7 +39,7 @@ export interface User {
   name: string;
   surname: string;
   email: string;
-  role: string;
+  role: 'professional' | 'admin';
   phone_number: string;
   photo_url: string;
   location: string | null;
@@ -75,90 +75,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // This effect runs once when the app loads to check for an existing session.
-    const checkAuthStatus = async () => {
-      const storedToken = sessionStorage.getItem('auth_token');
-
-      if (storedToken) {
-        setToken(storedToken);
-        // Set the Authorization header for all subsequent axios requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-
-        try {
-          // Fetch the user's data using the stored token
-          const response = await axios.get<{ data: User }>('/api/users/me');
-          setUser(response.data.data);
-        } catch (error) {
-          console.error('Session token is invalid. Logging out.', error);
-          // If the token is invalid (e.g., expired), clear the session.
-          logout();
-        }
-      }
-      setIsLoading(false);
-    };
-
-    checkAuthStatus();
-  }, []); // The empty dependency array ensures this runs only once on mount.
-
-  const login = async (identifier: string, password: string) => {
-    // The backend now responds with `{ data: User, token: string }`
-    const response = await axios.post<{ data: User; token: string }>('/api/login', {
-      identifier,
-      password,
-    });
-
-    if (response.data && response.data.data && response.data.token) {
-      const loggedInUser = response.data.data;
-      const authToken = response.data.token;
-
-      // Update state and session storage
-      setUser(loggedInUser);
-      setToken(authToken);
-      sessionStorage.setItem('auth_token', authToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-
-      // Navigate user to the correct page
-      if (!loggedInUser.onboarding_completed) {
-        navigate('/onboarding');
-      } else if (loggedInUser.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/homepage');
-      }
-    }
-  };
-
-  const register = async (userData: any) => {
-    // The backend registration endpoint also returns the new user and a token
-    const response = await axios.post<{ data: User; token: string }>('/api/register', {
-      user: userData,
-    });
-
-    if (response.data && response.data.data && response.data.token) {
-      const newUser = response.data.data;
-      const authToken = response.data.token;
-
-      // Update state and session storage
-      setUser(newUser);
-      setToken(authToken);
-      sessionStorage.setItem('auth_token', authToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-
-      // A new user should always be sent to onboarding
-      navigate('/onboarding');
-    }
-  };
+  const location = useLocation();
 
   const logout = async () => {
     try {
-      // Tell the backend to invalidate the cookie (best effort)
       await axios.delete('/api/logout');
     } catch (error) {
       console.error('Logout request failed. Clearing session locally.', error);
     } finally {
-      // Clear all local session data regardless of API call success
       setUser(null);
       setToken(null);
       sessionStorage.removeItem('auth_token');
@@ -167,7 +91,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // The value provided to consuming components
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const storedToken = sessionStorage.getItem('auth_token');
+
+      if (storedToken) {
+        setToken(storedToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
+        try {
+          const response = await axios.get<{ data: User }>('/api/users/me');
+          setUser(response.data.data);
+        } catch (error) {
+          console.error('Session token is invalid. Logging out.', error);
+          await logout();
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  const login = async (identifier: string, password: string) => {
+    const response = await axios.post<{ data: User; token: string }>('/api/login', {
+      identifier,
+      password,
+    });
+
+    if (response.data?.data && response.data.token) {
+      const { data: loggedInUser, token: authToken } = response.data;
+      setUser(loggedInUser);
+      setToken(authToken);
+      sessionStorage.setItem('auth_token', authToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+
+      const from = location.state?.from?.pathname || null;
+
+      if (loggedInUser.role === 'admin') {
+        navigate(from && from.startsWith('/admin') ? from : '/admin/dashboard');
+      } else if (!loggedInUser.onboarding_completed) {
+        navigate('/onboarding');
+      } else {
+        navigate(from || '/homepage');
+      }
+    }
+  };
+
+  const register = async (userData: any) => {
+    const response = await axios.post<{ data: User; token: string }>('/api/register', {
+      user: userData,
+    });
+
+    if (response.data?.data && response.data.token) {
+      const { data: newUser, token: authToken } = response.data;
+      setUser(newUser);
+      setToken(authToken);
+      sessionStorage.setItem('auth_token', authToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      navigate('/onboarding');
+    }
+  };
+
   const value = {
     isAuthenticated: !isLoading && !!user,
     user,
@@ -182,7 +167,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return <AuthContext.Provider value={value}>{!isLoading && children}</AuthContext.Provider>;
 }
 
-// Custom hook to easily use the auth context in other components.
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

@@ -140,6 +140,19 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Updates a user's role. Intended for admin use.
+  """
+  def update_user_role(%User{} = user, new_role) do
+    user
+    |> User.role_changeset(%{"role" => new_role})
+    |> Repo.update()
+    |> case do
+      {:ok, updated_user} -> {:ok, preload_profile(updated_user)}
+      error -> error
+    end
+  end
+
+  @doc """
   Authenticates a user by identifier (currently email) and password.
 
   ## Examples

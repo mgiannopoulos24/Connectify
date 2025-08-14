@@ -143,10 +143,13 @@ const Onboarding = () => {
       if (step === 7) {
         await axios.put(`/api/users/${user?.id}`, { user: { onboarding_completed: true } });
         navigate('/profile');
-        return;
+        return; // This return should prevent further execution
       }
 
-      setStep(step + 1);
+      // Only increment step if we're not on the final step
+      if (step < 7) {
+        setStep(step + 1);
+      }
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
         const errorData = err.response.data.errors;

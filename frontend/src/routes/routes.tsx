@@ -1,7 +1,9 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom'; // Import Navigate
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
-import { AdminPage } from '@/pages/admin/AdminPage';
+import AdminDashboardPage from '@/pages/admin/Dashboard'; // Updated
+import AdminUsersPage from '@/pages/admin/UsersPage'; // Updated
 import NotFound from '@/pages/misc/NotFound';
 import Welcome from '@/pages/Welcome';
 import Homepage from '@/pages/Homepage';
@@ -13,9 +15,11 @@ import Zip from '@/pages/games/Zip';
 import Onboarding from '@/pages/Onboarding';
 import SettingsPage from '@/pages/Settings';
 import AppLayout from '@/components/layout/AppLayout';
+import AdminLayout from '@/components/layout/AdminLayout'; // Import AdminLayout
 import NetworkPage from '@/pages/Network';
 import MessagingPage from '@/pages/Messaging';
 import Maintenance from '@/pages/misc/Maintenance';
+import MemoryMatch from '@/pages/games/MemoryMatch';
 
 type RouteConfig = {
   path: string;
@@ -48,6 +52,10 @@ const routes: RouteConfig[] = [
     path: '/games/zip',
     element: <Zip />,
   },
+  // {
+  //   path: '/games/memory-match',
+  //   element: <MemoryMatch />,
+  // },
 
   // Protected Routes for Professionals & Admins
   {
@@ -124,7 +132,7 @@ const routes: RouteConfig[] = [
     path: '/onboarding',
     element: <Onboarding />,
     protected: true,
-    roles: ['professional'],
+    roles: ['professional']
   },
   {
     path: '/settings',
@@ -140,7 +148,27 @@ const routes: RouteConfig[] = [
   // Admin-only routes
   {
     path: '/admin',
-    element: <AdminPage />,
+    element: <Navigate to="/admin/dashboard" replace />, // Redirect from /admin to dashboard
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/dashboard',
+    element: (
+      <AdminLayout>
+        <AdminDashboardPage />
+      </AdminLayout>
+    ),
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/users',
+    element: (
+      <AdminLayout>
+        <AdminUsersPage />
+      </AdminLayout>
+    ),
     protected: true,
     roles: ['admin'],
   },

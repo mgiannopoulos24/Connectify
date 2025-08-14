@@ -11,10 +11,11 @@ import {
   User,
   Settings,
   Users,
+  LayoutDashboard, // Added
 } from 'lucide-react';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth(); // Get user from useAuth
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -72,6 +73,16 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <User className="w-6 h-6" />
                 <span className="text-xs">Me</span>
               </Link>
+              {/* Admin Dashboard Link */}
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin/dashboard"
+                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                >
+                  <LayoutDashboard className="w-6 h-6" />
+                  <span className="text-xs">Admin</span>
+                </Link>
+              )}
               <Link
                 to="/settings"
                 className="flex flex-col items-center text-gray-600 hover:text-blue-600"
@@ -88,11 +99,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 flex-grow">
-        {/* <div className="md:col-span-3"></div> */}
-        {/* I may need to add a sidebar later */}
-        {children}
-      </main>
+      <main className="container mx-auto px-4 py-8 flex-grow">{children}</main>
     </div>
   );
 };

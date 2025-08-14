@@ -11,6 +11,8 @@ defmodule Backend.Accounts.User do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
+  @roles ["professional", "admin"] # Defines allowed roles
+
   schema "users" do
     field :email, :string
     field :name, :string
@@ -63,6 +65,13 @@ defmodule Backend.Accounts.User do
     |> validate_length(:password, min: 8)
     |> unique_constraint(:email)
     |> put_password_hash()
+  end
+
+  def role_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:role])
+    |> validate_required([:role])
+    |> validate_inclusion(:role, @roles)
   end
 
   defp put_password_hash(changeset) do
