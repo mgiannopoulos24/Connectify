@@ -13,6 +13,7 @@ defmodule BackendWeb.MessageJSON do
     %{
       id: message.id,
       content: message.content,
+      image_url: message.image_url,
       inserted_at: message.inserted_at,
       user: %{
         id: message.user.id,

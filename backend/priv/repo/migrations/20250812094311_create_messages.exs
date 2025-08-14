@@ -4,9 +4,11 @@ defmodule Backend.Repo.Migrations.CreateMessages do
   def change do
     create table(:messages, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :content, :text, null: false
+      add :content, :text, null: true
       add :user_id, references(:users, on_delete: :delete_all, type: :binary_id)
       add :chat_room_id, references(:chat_rooms, on_delete: :delete_all, type: :binary_id)
+      add :image_url, :string
+
       timestamps(type: :utc_datetime)
     end
 

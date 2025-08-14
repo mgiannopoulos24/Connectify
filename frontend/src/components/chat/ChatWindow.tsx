@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Socket, Channel } from 'phoenix';
 import { useAuth } from '@/contexts/AuthContext';
-import { getMessageHistory } from '@/services/chatService';
+import { getMessageHistory, uploadChatImage } from '@/services/chatService';
 import { Message } from '@/types/chat';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, UserCircle, Loader2 } from 'lucide-react';
+import { Send, UserCircle, Loader2, Paperclip, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import TypingIndicator from './TypingIndicator';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface ChatWindowProps {
   chatRoomId: string;
@@ -21,54 +22,55 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Reset state and show loader when chatRoomId changes
     setIsLoading(true);
     setMessages([]);
+    removeImagePreview();
 
     if (!chatRoomId || !token) {
       setIsLoading(false);
       return;
     }
 
-    // --- WebSocket and Channel Setup ---
-    // 1. Create a single, new socket instance for this chat window instance.
     const socket = new Socket('/socket', { params: { token } });
     socket.connect();
-
-    // 2. Create the channel on that socket.
     const ch = socket.channel(`chat:${chatRoomId}`, {});
 
-    // 3. Set up listeners before joining.
-    // Listens for new messages broadcast from the server.
     ch.on('new_msg', (payload) => {
-      setMessages((prev) => [...prev, payload.message]);
-      setIsTyping(false); // Stop typing indicator when a message arrives
+      const realMessage = payload.message;
+      const tempId = payload.temp_id;
+
+      setMessages((prev) => {
+        // If a tempId was broadcasted (meaning it's our own message)
+        // find and replace the optimistic message with the real one.
+        if (tempId && prev.some((m) => m.id === tempId)) {
+          return prev.map((m) => (m.id === tempId ? realMessage : m));
+        }
+        // Otherwise (it's a message from the other user), just append it.
+        return [...prev, realMessage];
+      });
+      setIsTyping(false);
     });
 
-    // Listens for typing events from the other user.
     ch.on('typing', (payload) => {
-      // Make sure we don't show the typing indicator for our own typing.
       if (payload.user_id !== user?.id) {
         setIsTyping(true);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        // Hide indicator after a 4-second timeout.
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 4000);
       }
     });
 
-    // 4. Join the channel.
     ch.join()
       .receive('ok', () => {
-        console.log(`Joined channel chat:${chatRoomId} successfully`);
-        // Fetch message history only after successfully joining the channel.
         getMessageHistory(chatRoomId)
-          .then((history) => {
-            setMessages(history);
-          })
+          .then((history) => setMessages(history))
           .catch((err) => console.error('Failed to get message history', err))
           .finally(() => setIsLoading(false));
       })
@@ -79,55 +81,92 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
 
     setChannel(ch);
 
-    // 5. Cleanup function: This is crucial to prevent connection errors.
     return () => {
-      console.log(`Leaving channel chat:${chatRoomId}`);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       ch.leave();
       socket.disconnect();
     };
-  }, [chatRoomId, token, user?.id]); // Effect re-runs if the user or chat room changes
+  }, [chatRoomId, token, user?.id]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  // Scroll to bottom whenever messages array is updated
   useEffect(scrollToBottom, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleFileSelect = (file: File | null) => {
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileSelect(e.target.files?.[0] || null);
+    if (e.target) e.target.value = '';
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const file = e.clipboardData.files[0];
+    if (file && file.type.startsWith('image/')) {
+      e.preventDefault();
+      handleFileSelect(file);
+    }
+  };
+
+  const removeImagePreview = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !channel || !user) return;
+    if ((!newMessage.trim() && !imageFile) || !channel || !user) return;
 
-    // --- Optimistic UI Update ---
-    // Create a temporary message object to display in the UI immediately.
+    setIsUploading(true);
+    const textToSend = newMessage.trim();
+    const fileToSend = imageFile;
+    const tempId = `temp-${Date.now()}`;
+
     const optimisticMessage: Message = {
-      id: `temp-${Date.now()}`, // A temporary, unique key for React
-      content: newMessage,
+      id: tempId,
+      content: textToSend || null,
+      image_url: fileToSend ? URL.createObjectURL(fileToSend) : undefined,
       inserted_at: new Date().toISOString(),
-      user: {
-        id: user.id,
-        name: user.name,
-        surname: user.surname,
-        photo_url: user.photo_url,
-      },
+      user: { id: user.id, name: user.name, surname: user.surname, photo_url: user.photo_url },
     };
+    setMessages((prev) => [...prev, optimisticMessage]);
 
-    // Add the optimistic message to our local state right away.
-    setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
-
-    // Push the actual message to the server.
-    channel.push('new_msg', { body: newMessage });
-
-    // Clear the input field.
     setNewMessage('');
+    removeImagePreview();
+
+    try {
+      let finalImageUrl: string | undefined;
+      if (fileToSend) {
+        finalImageUrl = await uploadChatImage(fileToSend);
+      }
+
+      channel.push('new_msg', {
+        body: textToSend || null,
+        image_url: finalImageUrl,
+        temp_id: tempId,
+      });
+    } catch (error) {
+      console.error('Failed to upload image or send message:', error);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setNewMessage(textToSend);
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
-    if (channel) {
-      channel.push('typing', { user_id: user?.id });
-    }
+    if (channel) channel.push('typing', { user_id: user?.id });
   };
 
   if (isLoading) {
@@ -163,13 +202,36 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
                 <UserCircle className="w-8 h-8 text-gray-400" />
               ))}
             <div
-              className={`max-w-xs md:max-w-md p-3 rounded-2xl ${
+              className={`max-w-xs md:max-w-md p-2 rounded-2xl ${
                 msg.user.id === user?.id
                   ? 'bg-blue-600 text-white rounded-br-none'
                   : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
             >
-              <p className="text-sm">{msg.content}</p>
+              {msg.image_url && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <img
+                      src={msg.image_url}
+                      alt="Chat attachment"
+                      className="rounded-lg max-w-full h-auto cursor-pointer"
+                      onLoad={() => {
+                        if (msg.image_url?.startsWith('blob:')) {
+                          URL.revokeObjectURL(msg.image_url);
+                        }
+                      }}
+                    />
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl p-0 border-0 bg-transparent">
+                    <img
+                      src={msg.image_url}
+                      alt="Chat attachment"
+                      className="w-full h-auto rounded-lg"
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
+              {msg.content && <p className={`text-sm p-1 ${msg.image_url ? 'mt-1' : ''}`}>{msg.content}</p>}
               <p
                 className={`text-xs mt-1 text-right ${
                   msg.user.id === user?.id ? 'text-blue-200' : 'text-gray-500'
@@ -190,17 +252,55 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
       </div>
 
       <footer className="p-4 border-t bg-white">
+        {imagePreview && (
+          <div className="mb-2 relative w-24 h-24 p-1 border rounded-md">
+            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded" />
+            <Button
+              onClick={removeImagePreview}
+              variant="destructive"
+              size="icon"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+              aria-label="Remove image"
+            >
+              <XCircle className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
         <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*"
+          />
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            aria-label="Attach image"
+          >
+            <Paperclip className="w-5 h-5" />
+          </Button>
           <Input
             type="text"
-            placeholder="Type your message..."
+            placeholder="Type a message or paste an image..."
             value={newMessage}
             onChange={handleTyping}
+            onPaste={handlePaste}
             className="flex-grow"
             autoComplete="off"
+            disabled={isUploading}
           />
-          <Button type="submit" size="icon">
-            <Send className="w-5 h-5" />
+          <Button
+            type="submit"
+            size="icon"
+            disabled={isUploading || (!newMessage.trim() && !imageFile)}
+            aria-label="Send message"
+          >
+            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </Button>
         </form>
       </footer>

@@ -3,7 +3,8 @@
  */
 export interface Message {
   id: string;
-  content: string;
+  content: string | null; // Can be null if it's an image-only message
+  image_url?: string; // The optional URL for the message's image
   inserted_at: string;
   user: {
     id: string;

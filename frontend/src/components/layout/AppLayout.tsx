@@ -37,7 +37,6 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <NetworkIcon className="w-6 h-6" />
                 <span className="text-xs">Home</span>
               </Link>
-              {/* Add the new "My Network" link here */}
               <Link
                 to="/network"
                 className="flex flex-col items-center text-gray-600 hover:text-blue-600"
@@ -91,6 +90,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <main className="container mx-auto px-4 py-8 flex-grow">
         {/* <div className="md:col-span-3"></div> */}
+        {/* I may need to add a sidebar later */}
         {children}
       </main>
     </div>

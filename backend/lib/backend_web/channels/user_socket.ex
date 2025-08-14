@@ -15,7 +15,7 @@ defmodule BackendWeb.UserSocket do
         Logger.info("UserSocket: Token verified for user_id: #{user_id}. Connection successful.")
         {:ok, assign(socket, :current_user_id, user_id)}
 
-      # FIX: Handle the error case gracefully instead of crashing.
+      # Handle the error case gracefully instead of crashing.
       {:error, reason} ->
         Logger.error("UserSocket: Token verification failed. Reason: #{inspect(reason)}")
         :error

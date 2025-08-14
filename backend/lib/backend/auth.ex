@@ -32,10 +32,8 @@ defmodule Backend.Auth do
   Verifies a JWT and extracts the user ID.
   """
   def verify_token(token) do
-    # FIX: Use Joken.verify/2, which is the correct function for Joken v2.6.
     # It directly takes the token and the signer.
     case Joken.verify(token, get_signer()) do
-      # FIX: The return tuple is {:ok, claims}. We pattern match on the claims map.
       {:ok, %{"sub" => user_id}} ->
         {:ok, user_id}
 

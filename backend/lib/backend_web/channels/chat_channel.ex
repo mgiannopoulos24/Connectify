@@ -27,17 +27,27 @@ defmodule BackendWeb.ChatChannel do
     end
   end
 
-  def handle_in("new_msg", %{"body" => body}, socket) do
+  def handle_in("new_msg", payload, socket) do
     chat_room_id = String.trim_leading(socket.topic, "chat:")
     chat_room = Chat.get_chat_room!(chat_room_id)
     user = %{id: socket.assigns.current_user_id}
 
     Logger.info("ChatChannel: Received new_msg in room #{chat_room_id} from user #{user.id}.")
 
-    case Chat.create_message(chat_room, user, %{"content" => body}) do
+    # "body" from the client maps to the "content" field in the database.
+    # The payload can also contain an "image_url". Both are optional.
+    attrs = %{
+      "content" => payload["body"],
+      "image_url" => payload["image_url"]
+    }
+
+    case Chat.create_message(chat_room, user, attrs) do
       {:ok, message} ->
-        # BONUS IMPROVEMENT: Use `broadcast_from!` to avoid sending the message back to the sender.
-        broadcast_from!(socket, "new_msg", %{message: BackendWeb.MessageJSON.data(message)})
+        broadcast_from!(socket, "new_msg", %{
+          message: BackendWeb.MessageJSON.data(message),
+          temp_id: payload["temp_id"]
+        })
+
         {:reply, :ok, socket}
 
       {:error, changeset} ->
@@ -46,10 +56,7 @@ defmodule BackendWeb.ChatChannel do
     end
   end
 
-  # FIX: Add this new function to handle the "typing" event.
   def handle_in("typing", payload, socket) do
-    # This broadcasts the "typing" event to everyone in the channel
-    # EXCEPT for the user who sent it. This is exactly what we want.
     Logger.info(
       "ChatChannel: Broadcasting typing event from user #{socket.assigns.current_user_id}."
     )

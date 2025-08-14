@@ -3,7 +3,6 @@ defmodule BackendWeb.SessionController do
 
   alias Backend.Accounts
   alias Backend.Auth
-  # Add this alias
   alias BackendWeb.UserJSON
 
   def create(conn, %{"identifier" => identifier, "password" => password}) do
@@ -18,7 +17,7 @@ defmodule BackendWeb.SessionController do
             same_site: "Lax",
             max_age: Auth.token_lifespan()
           )
-          # FIX: Also return the user and the token in the JSON body
+          # Also return the user and the token in the JSON body
           |> render(UserJSON, :show, user: user, token: token)
         else
           {:error, reason} ->

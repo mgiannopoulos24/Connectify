@@ -5,7 +5,6 @@ defmodule BackendWeb.Plugs.EnsureAdminPlug do
   It assumes that `BackendWeb.Plugs.AuthPlug` has already run.
   """
   import Plug.Conn
-  # We only need the json/2 function from the controller helpers
   import Phoenix.Controller, only: [json: 2]
 
   def init(opts), do: opts
@@ -20,8 +19,6 @@ defmodule BackendWeb.Plugs.EnsureAdminPlug do
       _ ->
         conn
         |> put_status(:forbidden)
-        # FIX: Use the json/2 helper to directly send a JSON response.
-        # This is much cleaner and doesn't require rendering a view.
         |> json(%{errors: %{detail: "You are not authorized to access this resource."}})
         |> halt()
     end

@@ -53,6 +53,7 @@ defmodule BackendWeb.Router do
     # Chat routes
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index
+    post "/chat/upload_image", ChatController, :upload_image
 
     post "/email/confirm", EmailConfirmationController, :create
   end

@@ -18,6 +18,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/uploads": {
+        // Proxy for file uploads in order images to load in the chat
+        target: "https://localhost:4000",
+        changeOrigin: true,
+        secure: false,
+      },
       "/socket": {
         target: "wss://localhost:4000",
         ws: true, // Enable WebSocket proxying

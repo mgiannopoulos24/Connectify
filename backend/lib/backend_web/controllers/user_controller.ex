@@ -43,7 +43,7 @@ defmodule BackendWeb.UserController do
         same_site: "Lax",
         max_age: Auth.token_lifespan()
       )
-      # FIX: Also return user and token in the body
+      # Also return user and token in the body
       |> render(UserJSON, :show, user: user, token: token)
     else
       {:error, %Ecto.Changeset{} = changeset} ->

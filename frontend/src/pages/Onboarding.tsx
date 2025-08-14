@@ -17,7 +17,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Loader2, CheckCircle, Upload, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// --- Mock Data ---
 const employmentTypes = [
   'Full-time',
   'Part-time',
@@ -37,7 +36,6 @@ const topCompanies = [
   { id: 'apple', name: 'Apple', logo: 'https://logo.clearbit.com/apple.com' },
 ];
 
-// --- Component ---
 const Onboarding = () => {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();

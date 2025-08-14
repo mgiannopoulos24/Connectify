@@ -2,8 +2,6 @@ import { createContext, useState, useEffect, useContext, ReactNode } from 'react
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// --- Type Definitions ---
-// These interfaces describe the shape of your user and related data.
 interface JobExperience {
   id: string;
   job_title: string;
@@ -54,7 +52,6 @@ export interface User {
   received_connections: ConnectionInfo[];
 }
 
-// This interface defines the contract for our authentication context.
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
