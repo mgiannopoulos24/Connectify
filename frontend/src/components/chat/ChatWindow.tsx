@@ -231,7 +231,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
                   </DialogContent>
                 </Dialog>
               )}
-              {msg.content && <p className={`text-sm p-1 ${msg.image_url ? 'mt-1' : ''}`}>{msg.content}</p>}
+              {msg.content && (
+                <p className={`text-sm p-1 ${msg.image_url ? 'mt-1' : ''}`}>{msg.content}</p>
+              )}
               <p
                 className={`text-xs mt-1 text-right ${
                   msg.user.id === user?.id ? 'text-blue-200' : 'text-gray-500'
@@ -300,7 +302,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
             disabled={isUploading || (!newMessage.trim() && !imageFile)}
             aria-label="Send message"
           >
-            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            {isUploading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </Button>
         </form>
       </footer>

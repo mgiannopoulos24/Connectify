@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Post } from '@/types/post';
 
 interface JobExperience {
   id: string;
@@ -50,6 +51,7 @@ export interface User {
   interests: Interest[];
   sent_connections: ConnectionInfo[];
   received_connections: ConnectionInfo[];
+  posts?: Post[];
 }
 
 interface AuthContextType {

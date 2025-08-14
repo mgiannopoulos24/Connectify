@@ -44,15 +44,13 @@ const AdminUsersPage = () => {
 
   const handleRoleChange = async (userId: string, newRole: 'professional' | 'admin') => {
     if (currentUser?.id === userId) {
-      alert("You cannot change your own role.");
+      alert('You cannot change your own role.');
       return;
     }
     setUpdatingRoles((prev) => ({ ...prev, [userId]: true }));
     try {
       const updatedUser = await updateUserRole(userId, newRole);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) => (user.id === userId ? updatedUser : user)),
-      );
+      setUsers((prevUsers) => prevUsers.map((user) => (user.id === userId ? updatedUser : user)));
     } catch (error) {
       console.error('Failed to update role:', error);
       alert('Failed to update user role.');

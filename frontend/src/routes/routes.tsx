@@ -132,7 +132,7 @@ const routes: RouteConfig[] = [
     path: '/onboarding',
     element: <Onboarding />,
     protected: true,
-    roles: ['professional']
+    roles: ['professional'],
   },
   {
     path: '/settings',

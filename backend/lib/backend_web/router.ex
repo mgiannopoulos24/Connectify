@@ -25,23 +25,38 @@ defmodule BackendWeb.Router do
     get "/users/me", UserController, :me
     get "/health", HealthController, :index
     resources "/users", UserController, except: [:new, :edit, :create]
+
+    # Authentication routes
     post "/register", UserController, :create
     post "/login", SessionController, :create
     delete "/logout", SessionController, :delete
+
+    # Other resources
     resources "/job_experiences", JobExperienceController, except: [:new, :edit]
     resources "/educations", EducationController, except: [:new, :edit]
     resources "/skills", SkillController, except: [:new, :edit]
     resources "/interests", InterestController, only: [:create], as: :interest
+
+    # Posts
+    resources "/posts", PostController, except: [:new, :edit]
+    post "/posts/:id/react", PostController, :react
+    delete "/posts/:id/react", PostController, :remove_reaction
+    post "/posts/:id/comments", PostController, :create_comment
+
+    # Connections
     get "/connections", ConnectionController, :index
     get "/connections/pending", ConnectionController, :pending
     post "/connections", ConnectionController, :create
     put "/connections/:id/accept", ConnectionController, :accept
     put "/connections/:id/decline", ConnectionController, :decline
+
+    # Chat
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index
     post "/chat/upload_image", ChatController, :upload_image
     post "/email/confirm", EmailConfirmationController, :create
 
+    # Admin routes
     scope "/admin", Admin, as: :admin do
       pipe_through :ensure_admin
 

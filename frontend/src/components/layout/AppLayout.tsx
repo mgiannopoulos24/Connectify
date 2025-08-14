@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Bell,
   Briefcase,
@@ -11,14 +12,31 @@ import {
   User,
   Settings,
   Users,
-  LayoutDashboard, // Added
+  LayoutDashboard,
+  Building,
+  UserCircle,
 } from 'lucide-react';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout } = useAuth(); // Get user from useAuth
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Define paths where the left sidebar should not be displayed
+  const pagesWithoutSidebar = [
+    '/network',
+    '/settings',
+    '/people',
+    // Also hide for profile pages since they are the main focus
+  ];
+  const shouldHideSidebar =
+    pagesWithoutSidebar.includes(location.pathname) ||
+    location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/messaging');
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
+      {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
@@ -30,6 +48,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <span>Connectify</span>
             </Link>
 
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <Link
                 to="/homepage"
@@ -45,10 +64,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <Users className="w-6 h-6" />
                 <span className="text-xs">My Network</span>
               </Link>
-              <Link
-                to="/jobs"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
+              <Link to="#" className="flex flex-col items-center text-gray-600 hover:text-blue-600">
                 <Briefcase className="w-6 h-6" />
                 <span className="text-xs">Jobs</span>
               </Link>
@@ -59,10 +75,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <MessageSquare className="w-6 h-6" />
                 <span className="text-xs">Messaging</span>
               </Link>
-              <Link
-                to="/notifications"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
+              <Link to="#" className="flex flex-col items-center text-gray-600 hover:text-blue-600">
                 <Bell className="w-6 h-6" />
                 <span className="text-xs">Notifications</span>
               </Link>
@@ -73,7 +86,6 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <User className="w-6 h-6" />
                 <span className="text-xs">Me</span>
               </Link>
-              {/* Admin Dashboard Link */}
               {user?.role === 'admin' && (
                 <Link
                   to="/admin/dashboard"
@@ -99,7 +111,58 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 flex-grow">{children}</main>
+      {/* Main Content Area */}
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Conditional Left Sidebar */}
+          {!shouldHideSidebar && (
+            <aside className="lg:col-span-1">
+              <div className="sticky top-20">
+                {user && (
+                  <Card>
+                    <CardContent className="p-6 text-center">
+                      <div className="mx-auto mb-4 h-24 w-24 rounded-full overflow-hidden border-2 border-gray-200">
+                        {user.photo_url ? (
+                          <img
+                            src={user.photo_url}
+                            alt={`${user.name} ${user.surname}`}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <UserCircle className="h-full w-full text-gray-400" />
+                        )}
+                      </div>
+                      <h2 className="text-xl font-bold">{`${user.name} ${user.surname}`}</h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {user.job_experiences?.[0]?.job_title || 'Professional'}
+                      </p>
+                      {user.location && (
+                        <p className="text-sm text-gray-500 mt-1">{user.location}</p>
+                      )}
+                      {user.job_experiences?.[0]?.company_name && (
+                        <div className="flex items-center justify-center gap-2 mt-2 text-sm text-gray-500">
+                          <Building className="h-4 w-4" />
+                          <span>{user.job_experiences[0].company_name}</span>
+                        </div>
+                      )}
+                      <Button
+                        variant="outline"
+                        className="w-full mt-4"
+                        onClick={() => navigate('/profile')}
+                      >
+                        View Profile
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </aside>
+          )}
+
+          {/* Page Content */}
+          <div className={shouldHideSidebar ? 'lg:col-span-4' : 'lg:col-span-3'}>{children}</div>
+        </div>
+      </main>
     </div>
   );
 };

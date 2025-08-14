@@ -8,10 +8,12 @@ defmodule Backend.Accounts.User do
   alias Backend.Interests.Interest
   alias Backend.Connections.Connection
   alias Backend.Chat.ChatRoom
+  alias Backend.Posts.Post
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @roles ["professional", "admin"] # Defines allowed roles
+  # Defines allowed roles
+  @roles ["professional", "admin"]
 
   schema "users" do
     field :email, :string
@@ -30,10 +32,16 @@ defmodule Backend.Accounts.User do
       virtual: true,
       redact: true
 
-    has_many :job_experiences, JobExperience
-    has_many :educations, Education
-    has_many :skills, Skill
-    has_many :interests, Interest
+    # Modified
+    has_many :job_experiences, JobExperience, on_delete: :delete_all
+    # Modified
+    has_many :educations, Education, on_delete: :delete_all
+    # Modified
+    has_many :skills, Skill, on_delete: :delete_all
+    # Modified
+    has_many :interests, Interest, on_delete: :delete_all
+    # Added
+    has_many :posts, Post, on_delete: :delete_all
 
     has_many :sent_connections, Connection, foreign_key: :user_id
     has_many :received_connections, Connection, foreign_key: :connected_user_id

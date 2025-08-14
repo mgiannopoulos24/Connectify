@@ -43,7 +43,8 @@ const Welcome: React.FC = () => {
     {
       icon: TrendingUp,
       title: 'Grow Your Brand',
-      description: 'Share your expertise, build your professional brand, and become a thought leader.',
+      description:
+        'Share your expertise, build your professional brand, and become a thought leader.',
     },
   ];
 
@@ -56,7 +57,7 @@ const Welcome: React.FC = () => {
     },
     {
       quote:
-        "As a freelancer, building a network is everything. This platform made it effortless to find new clients and collaborators.",
+        'As a freelancer, building a network is everything. This platform made it effortless to find new clients and collaborators.',
       name: 'Michael B.',
       title: 'UX/UI Designer',
     },
@@ -133,10 +134,7 @@ const Welcome: React.FC = () => {
             {/* Responsive grid: 1 col on mobile, 2 on tablet, 4 on desktop */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="bg-gray-50 p-6 md:p-8 rounded-xl text-left"
-                >
+                <div key={feature.title} className="bg-gray-50 p-6 md:p-8 rounded-xl text-left">
                   <div className="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6" />
                   </div>
@@ -188,10 +186,7 @@ const Welcome: React.FC = () => {
             {/* Responsive grid: Stacks on mobile, 3 columns on large screens */}
             <div className="grid lg:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-6 md:p-8 rounded-xl border border-gray-200"
-                >
+                <div key={index} className="bg-white p-6 md:p-8 rounded-xl border border-gray-200">
                   <Quote className="w-8 h-8 text-blue-500 mb-4" />
                   <p className="text-gray-600 mb-6 flex-grow">{testimonial.quote}</p>
                   <div>
