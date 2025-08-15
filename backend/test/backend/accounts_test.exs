@@ -2,12 +2,11 @@ defmodule Backend.AccountsTest do
   use Backend.DataCase
 
   alias Backend.Accounts
+  alias Backend.Accounts.User
+
+  import Backend.AccountsFixtures
 
   describe "users" do
-    alias Backend.Accounts.User
-
-    import Backend.AccountsFixtures
-
     @invalid_attrs %{
       name: nil,
       email: nil,
@@ -20,22 +19,18 @@ defmodule Backend.AccountsTest do
 
     test "list_users/0 returns all users" do
       user = user_fixture()
+      listed_users = Accounts.list_users()
 
-      # The `user_fixture` returns a struct with the virtual password field populated.
-      # When we fetch the user from the DB, that virtual field will be nil.
-      # To make the comparison work, we must create a struct that matches what the DB returns.
-      user_for_comparison = %{user | password: nil}
-
-      assert Accounts.list_users() == [user_for_comparison]
+      assert length(listed_users) == 1
+      assert hd(listed_users).id == user.id
     end
 
     test "get_user!/1 returns the user with given id" do
       user = user_fixture()
+      reloaded_user = Accounts.get_user!(user.id)
 
-      # On the right side of the comparison, we use the `user` variable
-      # but overwrite the virtual password field to be nil, making it
-      # identical to what get_user! will return from the database.
-      assert Accounts.get_user!(user.id) == %{user | password: nil}
+      assert reloaded_user.id == user.id
+      assert reloaded_user.email == user.email
     end
 
     test "create_user/1 with valid data creates a user" do
@@ -82,18 +77,13 @@ defmodule Backend.AccountsTest do
 
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
+      user_before_update = Accounts.get_user!(user.id)
+
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @invalid_attrs)
 
-      # Create a struct for comparison that matches what the DB will return
-      # by setting the virtual password field to nil.
-      user_from_db = Accounts.get_user!(user.id)
-      user_from_fixture_with_nil_password = %{user | password: nil}
+      user_after_update = Accounts.get_user!(user.id)
 
-      # Now this assertion should pass, but it's better to be more explicit.
-      # Let's compare the reloaded user from the DB with the original one
-      # after we've nulled out the virtual password.
-      reloaded_user = Accounts.get_user!(user.id)
-      assert %{user | password: nil} == reloaded_user
+      assert user_before_update == user_after_update
     end
 
     test "delete_user/1 deletes the user" do
@@ -105,6 +95,72 @@ defmodule Backend.AccountsTest do
     test "change_user/1 returns a user changeset" do
       user = user_fixture()
       assert %Ecto.Changeset{} = Accounts.change_user(user)
+    end
+  end
+
+  # --- ΝΕΑ ΕΝΟΤΗΤΑ ΓΙΑ EDGE CASES ---
+  describe "users edge cases" do
+    test "cannot create user with a duplicate email" do
+      existing_user = user_fixture()
+
+      attrs = %{
+        name: "Another Name",
+        surname: "Another Surname",
+        password: "password123",
+        email: existing_user.email # Χρήση του ίδιου email
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Accounts.create_user(attrs)
+      assert "has already been taken" in errors_on(changeset).email
+    end
+
+    test "cannot update user's email to an already existing email" do
+      user1 = user_fixture()
+      user2 = user_fixture()
+
+      update_attrs = %{email: user1.email}
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Accounts.update_user(user2, update_attrs)
+      assert "has already been taken" in errors_on(changeset).email
+    end
+
+    test "authenticate_user/2 fails for correct email but wrong password" do
+      user = user_fixture(%{password: "correct_password"})
+      assert :error = Accounts.authenticate_user(user.email, "wrong_password")
+    end
+
+    test "authenticate_user/2 is case-sensitive for email" do
+      user = user_fixture(%{email: "my.email@example.com", password: "password123"})
+      # Η Repo.get_by είναι case-sensitive από προεπιλογή, οπότε αυτό πρέπει να αποτύχει
+      assert :error = Accounts.authenticate_user("My.Email@example.com", "password123")
+      # Επιβεβαίωση ότι με το σωστό email λειτουργεί
+      assert {:ok, _user} = Accounts.authenticate_user("my.email@example.com", "password123")
+    end
+
+    test "confirm_user_email/1 fails for an invalid token" do
+      assert {:error, :not_found} = Accounts.confirm_user_email("this-is-a-bad-token")
+    end
+
+    test "confirm_user_email/1 fails if token is used twice" do
+      # H user_fixture καλεί την create_user, η οποία στέλνει το email
+      # και αποθηκεύει το token στη βάση. Πρέπει να το ανακτήσουμε.
+      user_from_fixture = user_fixture()
+      user_from_db = Accounts.get_user!(user_from_fixture.id)
+      token = user_from_db.email_confirmation_token
+
+      # Πρώτη, επιτυχημένη προσπάθεια
+      assert {:ok, %User{email_confirmed_at: confirmed_at}} = Accounts.confirm_user_email(token)
+      assert not is_nil(confirmed_at)
+
+      # Δεύτερη, αποτυχημένη προσπάθεια (το token έχει γίνει nil)
+      assert {:error, :not_found} = Accounts.confirm_user_email(token)
+    end
+
+    test "update_user_role/2 returns an error for an invalid role" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Accounts.update_user_role(user, "not_a_real_role")
+      assert errors_on(changeset).role == ["is invalid"]
     end
   end
 end

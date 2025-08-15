@@ -116,12 +116,19 @@ defmodule Backend.Accounts do
            {:ok, _} <- deliver_confirmation_instructions(user) do
         user
       else
+        # If insert_user returns {:error, changeset}, we rollback with just the changeset
+        # to keep the error format consistent.
+        {:error, %Ecto.Changeset{} = changeset} ->
+          Repo.rollback(changeset)
+
+        # For any other error (e.g., from email delivery), rollback with the raw error
         error ->
           Repo.rollback(error)
       end
     end)
     |> case do
       {:ok, user} -> {:ok, preload_profile(user)}
+      # The reason will now be the changeset itself in case of validation failure
       {:error, reason} -> {:error, reason}
     end
   end
