@@ -134,10 +134,7 @@ const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, stat
               <Users className="w-4 h-4 text-gray-500" />
               <span>{totalConnections} Connections</span>
             </div>
-            <Badge
-              variant={getStatusBadgeVariant(status)}
-              className={getStatusBadgeClass(status)}
-            >
+            <Badge variant={getStatusBadgeVariant(status)} className={getStatusBadgeClass(status)}>
               Status: {status}
             </Badge>
             <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>

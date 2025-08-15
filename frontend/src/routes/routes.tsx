@@ -22,6 +22,7 @@ import Maintenance from '@/pages/misc/Maintenance';
 import MemoryMatch from '@/pages/games/MemoryMatch';
 import AdminCompaniesPage from '@/pages/admin/CompaniesPage';
 import AdminSkillsPage from '@/pages/admin/SkillsPage';
+import NotificationsPage from '@/pages/Notifications'; // Import the new page
 
 type RouteConfig = {
   path: string;
@@ -31,7 +32,7 @@ type RouteConfig = {
 };
 
 const routes: RouteConfig[] = [
-  // Public routes
+  // ... (all existing public routes)
   {
     path: '/',
     element: <Welcome />,
@@ -48,18 +49,12 @@ const routes: RouteConfig[] = [
     path: '/games',
     element: <Games />,
   },
-
-  // Game routes
   {
     path: '/games/zip',
     element: <Zip />,
   },
-  // {
-  //   path: '/games/memory-match',
-  //   element: <MemoryMatch />,
-  // },
 
-  // Protected Routes for Professionals & Admins
+  // ... (all existing protected routes)
   {
     path: '/homepage',
     element: (
@@ -110,6 +105,18 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['professional', 'admin'],
   },
+  // --- ADD NEW NOTIFICATIONS ROUTE ---
+  {
+    path: '/notifications',
+    element: (
+      <AppLayout>
+        <NotificationsPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  // ------------------------------------
   {
     path: '/profile',
     element: (
@@ -134,7 +141,7 @@ const routes: RouteConfig[] = [
     path: '/onboarding',
     element: <Onboarding />,
     protected: true,
-    roles: ['professional'],
+    roles: ['professional', 'admin'], // Allow admins to onboard if needed
   },
   {
     path: '/settings',
@@ -146,8 +153,7 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['professional', 'admin'],
   },
-
-  // Admin-only routes
+  // ... (all existing admin and misc routes)
   {
     path: '/admin',
     element: <Navigate to="/admin/dashboard" replace />,
@@ -194,14 +200,10 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['admin'],
   },
-
-  // Misc routes
   {
     path: '/maintenance',
     element: <Maintenance />,
   },
-
-  // Fallback 404
   {
     path: '*',
     element: <NotFound />,

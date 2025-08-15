@@ -7,6 +7,7 @@ defmodule BackendWeb.UserSocket do
 
   channel "chat:*", BackendWeb.ChatChannel
   channel "status", BackendWeb.StatusChannel
+  channel "notifications", BackendWeb.NotificationsChannel
 
   @impl true
   def connect(%{"token" => token}, socket, _connect_info) do

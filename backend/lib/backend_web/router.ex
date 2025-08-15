@@ -58,6 +58,10 @@ defmodule BackendWeb.Router do
     post "/chat/upload_image", ChatController, :upload_image
     post "/email/confirm", EmailConfirmationController, :create
 
+    # Notifications
+    get "/notifications", NotificationController, :index
+    put "/notifications/mark_as_read", NotificationController, :mark_as_read
+
     # Admin routes
     scope "/admin", Admin, as: :admin do
       pipe_through :ensure_admin

@@ -29,11 +29,7 @@ const CompanyAutocomplete: React.FC<CompanyAutocompleteProps> = ({
 }) => {
   return (
     <Command shouldFilter={false} className="overflow-visible">
-      <CommandInput
-        placeholder={placeholder}
-        value={searchTerm}
-        onValueChange={onSearchChange}
-      />
+      <CommandInput placeholder={placeholder} value={searchTerm} onValueChange={onSearchChange} />
       {searchTerm.length > 0 && (
         <CommandList className="absolute z-10 top-full mt-2 w-full bg-white border rounded-md shadow-lg">
           {isLoading && (

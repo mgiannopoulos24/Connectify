@@ -374,9 +374,10 @@ const EditModal = ({
   const [companySearch, setCompanySearch] = useState('');
   const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<{ id: string | null; name: string } | null>(
-    null,
-  );
+  const [selectedCompany, setSelectedCompany] = useState<{
+    id: string | null;
+    name: string;
+  } | null>(null);
 
   const [skillSearch, setSkillSearch] = useState('');
   const [skillResults, setSkillResults] = useState<Skill[]>([]);

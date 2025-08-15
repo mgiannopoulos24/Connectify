@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Bell,
   Briefcase,
   LogOut,
   MessageSquare,
@@ -12,12 +11,13 @@ import {
   User,
   Settings,
   Users,
-  LayoutDashboard,
+  ShieldUser,
   Building,
   UserCircle,
 } from 'lucide-react';
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '../common/StatusIndicator';
+import NotificationBell from '../notifications/NotificationBell'; 
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
@@ -31,7 +31,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     '/network',
     '/settings',
     '/people',
-    '/messaging', // Also hide for full-screen messaging
+    '/messaging',
+    '/notifications', // Also hide for full-screen notifications page
   ];
   const shouldHideSidebar =
     pagesWithoutSidebar.includes(location.pathname) || location.pathname.startsWith('/profile');
@@ -77,10 +78,9 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <MessageSquare className="w-6 h-6" />
                 <span className="text-xs">Messaging</span>
               </Link>
-              <Link to="#" className="flex flex-col items-center text-gray-600 hover:text-blue-600">
-                <Bell className="w-6 h-6" />
-                <span className="text-xs">Notifications</span>
-              </Link>
+              {/* === Replace Link with NotificationBell === */}
+              <NotificationBell />
+              {/* ========================================= */}
               <Link
                 to="/profile"
                 className="flex flex-col items-center text-gray-600 hover:text-blue-600"
@@ -93,7 +93,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   to="/admin/dashboard"
                   className="flex flex-col items-center text-gray-600 hover:text-blue-600"
                 >
-                  <LayoutDashboard className="w-6 h-6" />
+                  <ShieldUser className="w-6 h-6" />
                   <span className="text-xs">Admin</span>
                 </Link>
               )}
@@ -144,11 +144,11 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       {user.location && (
                         <p className="text-sm text-gray-500 mt-1">{user.location}</p>
                       )}
-                      {user.job_experiences?.[0]?.company?.name && ( // Changed from company_name
-    <div className="flex items-center justify-center gap-2 mt-2 text-sm text-gray-500">
-      <Building className="h-4 w-4" />
-      <span>{user.job_experiences[0].company.name}</span> {/* Changed from company_name */}
-    </div>
+                      {user.job_experiences?.[0]?.company?.name && (
+                        <div className="flex items-center justify-center gap-2 mt-2 text-sm text-gray-500">
+                          <Building className="h-4 w-4" />
+                          <span>{user.job_experiences[0].company.name}</span>
+                        </div>
                       )}
                       <Button
                         variant="outline"

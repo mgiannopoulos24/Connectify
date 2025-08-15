@@ -107,7 +107,8 @@ defmodule Backend.AccountsTest do
         name: "Another Name",
         surname: "Another Surname",
         password: "password123",
-        email: existing_user.email # Χρήση του ίδιου email
+        # Χρήση του ίδιου email
+        email: existing_user.email
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} = Accounts.create_user(attrs)
@@ -131,6 +132,7 @@ defmodule Backend.AccountsTest do
 
     test "authenticate_user/2 is case-sensitive for email" do
       user = user_fixture(%{email: "my.email@example.com", password: "password123"})
+
       # Η Repo.get_by είναι case-sensitive από προεπιλογή, οπότε αυτό πρέπει να αποτύχει
       assert :error = Accounts.authenticate_user("My.Email@example.com", "password123")
       # Επιβεβαίωση ότι με το σωστό email λειτουργεί
@@ -158,8 +160,10 @@ defmodule Backend.AccountsTest do
 
     test "update_user_role/2 returns an error for an invalid role" do
       user = user_fixture()
+
       assert {:error, %Ecto.Changeset{} = changeset} =
                Accounts.update_user_role(user, "not_a_real_role")
+
       assert errors_on(changeset).role == ["is invalid"]
     end
   end

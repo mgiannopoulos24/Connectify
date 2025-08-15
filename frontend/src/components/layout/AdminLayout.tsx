@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, LayoutDashboard, LogOut, Network, Users, Building, Sparkles } from 'lucide-react';
+import { Home, ShieldUser, LogOut, Network, Users, Building, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -14,7 +14,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     {
       href: '/admin/dashboard',
       label: 'Dashboard',
-      icon: LayoutDashboard,
+      icon: ShieldUser,
     },
     {
       href: '/admin/users',

@@ -50,6 +50,15 @@ defmodule BackendWeb.ConnectionJSON do
   end
 
   defp pending_request_data(%Connection{} = connection) do
+    # --- FIX STARTS HERE ---
+    # Safely get the job title from the first job experience, or use a default.
+    job_title =
+      case List.first(connection.user.job_experiences) do
+        nil -> "Professional" # Default value if the user has no job experience
+        job_experience -> job_experience.job_title
+      end
+    # --- FIX ENDS HERE ---
+
     %{
       id: connection.id,
       status: connection.status,
@@ -58,8 +67,8 @@ defmodule BackendWeb.ConnectionJSON do
         name: connection.user.name,
         surname: connection.user.surname,
         photo_url: connection.user.photo_url,
-        job_title:
-          connection.user.job_experiences |> List.first() |> Map.get(:job_title, "Professional")
+        # Use the safely extracted job_title
+        job_title: job_title
       },
       inserted_at: connection.inserted_at
     }

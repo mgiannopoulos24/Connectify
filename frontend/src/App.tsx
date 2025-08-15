@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { PresenceProvider } from './contexts/PresenceContext';
+import { NotificationsProvider } from './contexts/NotificationsContext'; // Import the provider
 
 const AppContent: React.FC = () => {
   const [isBackendDown, setIsBackendDown] = useState(false);
@@ -66,7 +67,10 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <PresenceProvider>
-        <AppContent />
+        {/* Wrap with NotificationsProvider */}
+        <NotificationsProvider>
+          <AppContent />
+        </NotificationsProvider>
       </PresenceProvider>
     </AuthProvider>
   );

@@ -8,6 +8,7 @@ defmodule Backend.Posts do
   alias Backend.Posts.Post
   alias Backend.Posts.Reaction
   alias Backend.Posts.Comment
+  alias Backend.Notifications
 
   @doc """
   Returns a list of all posts, with user, reactions and comments preloaded.
@@ -47,12 +48,26 @@ defmodule Backend.Posts do
   Adds or updates a reaction on a post.
   """
   def react_to_post(user, post, type) do
-    %Reaction{}
-    |> Reaction.changeset(%{user_id: user.id, post_id: post.id, type: type})
-    |> Repo.insert(
-      on_conflict: [set: [type: type, updated_at: DateTime.utc_now()]],
-      conflict_target: [:user_id, :post_id]
-    )
+    with {:ok, _reaction} <-
+           %Reaction{}
+           |> Reaction.changeset(%{user_id: user.id, post_id: post.id, type: type})
+           |> Repo.insert(
+             on_conflict: [set: [type: type, updated_at: DateTime.utc_now()]],
+             conflict_target: [:user_id, :post_id]
+           ) do
+      # Notify the post author, unless they are reacting to their own post
+      if post.user_id != user.id do
+        Notifications.create_notification(%{
+          user_id: post.user_id,
+          notifier_id: user.id,
+          type: "new_reaction",
+          resource_id: post.id,
+          resource_type: "post"
+        })
+      end
+
+      {:ok, post}
+    end
   end
 
   @doc """
@@ -71,8 +86,19 @@ defmodule Backend.Posts do
       |> Map.put("user_id", user.id)
       |> Map.put("post_id", post.id)
 
-    %Comment{}
-    |> Comment.changeset(attrs)
-    |> Repo.insert()
+    with {:ok, comment} <- %Comment{} |> Comment.changeset(attrs) |> Repo.insert() do
+      # Notify the post author, unless they are commenting on their own post
+      if post.user_id != user.id do
+        Notifications.create_notification(%{
+          user_id: post.user_id,
+          notifier_id: user.id,
+          type: "new_comment",
+          resource_id: post.id,
+          resource_type: "post"
+        })
+      end
+
+      {:ok, comment}
+    end
   end
 end

@@ -8,7 +8,7 @@ defmodule Backend.Companies.Company do
     field :name, :string
     field :logo_url, :string
     field :description, :string
-    
+
     has_many :job_experiences, Backend.Careers.JobExperience
 
     timestamps(type: :utc_datetime)

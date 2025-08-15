@@ -6,13 +6,26 @@ defmodule Backend.Connections do
   alias Backend.Repo
 
   alias Backend.Connections.Connection
+  alias Backend.Notifications
 
   def get_connection!(id), do: Repo.get!(Connection, id)
 
   def send_connection_request(requester_id, recipient_id) do
-    %Connection{}
-    |> Connection.changeset(%{user_id: requester_id, connected_user_id: recipient_id})
-    |> Repo.insert()
+    with {:ok, connection} <-
+           %Connection{}
+           |> Connection.changeset(%{user_id: requester_id, connected_user_id: recipient_id})
+           |> Repo.insert() do
+      # Create a notification for the recipient
+      Notifications.create_notification(%{
+        user_id: recipient_id,
+        notifier_id: requester_id,
+        type: "new_connection_request",
+        resource_id: connection.id,
+        resource_type: "connection"
+      })
+
+      {:ok, connection}
+    end
   end
 
   def accept_connection_request(%Connection{} = connection) do
@@ -26,11 +39,14 @@ defmodule Backend.Connections do
   end
 
   def list_pending_requests(user_id) do
+    # --- FIX STARTS HERE ---
+    # Build the full query with preloads first, then execute Repo.all() at the end.
     Connection
     |> where(connected_user_id: ^user_id, status: "pending")
+    # Preload the user (the requester) and their job experiences with the company
+    |> preload(user: [job_experiences: :company])
     |> Repo.all()
-    # Preload the user (the requester) and their job experiences
-    |> Repo.preload(user: [:job_experiences[:company]])
+    # --- FIX ENDS HERE ---
   end
 
   def list_user_connections(user_id) do

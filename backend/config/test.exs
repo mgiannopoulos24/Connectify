@@ -26,9 +26,9 @@ config :backend, Backend.Mailer, adapter: Swoosh.Adapters.Test
 # Configure a static JWT secret for the test environment.
 # It must be long enough for the signing algorithm.
 config :backend,
-  :jwt_secret_key,
-  "a-test-secret-that-is-long-enough-but-only-for-testing-purposes"
-  
+       :jwt_secret_key,
+       "a-test-secret-that-is-long-enough-but-only-for-testing-purposes"
+
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 
