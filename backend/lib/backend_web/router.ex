@@ -66,8 +66,8 @@ defmodule BackendWeb.Router do
       get "/users/:id", UserController, :show
       put "/users/:id/role", UserController, :update_role
       get "/statistics", DashboardController, :index
-      # Admin company management
       resources "/companies", CompanyController, except: [:new, :edit]
+      resources "/skills", SkillController, except: [:new, :edit]
     end
   end
 

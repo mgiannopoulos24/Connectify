@@ -18,7 +18,7 @@ defmodule Backend.Skills.Skill do
   def changeset(skill, attrs) do
     skill
     |> cast(attrs, [:name, :user_id])
-    |> validate_required([:name, :user_id])
+    |> validate_required([:name])
     |> unique_constraint([:user_id, :name], name: :user_skill_unique_index)
   end
 end

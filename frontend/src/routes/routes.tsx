@@ -1,9 +1,9 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom'; // Import Navigate
+import { Navigate } from 'react-router-dom';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
-import AdminDashboardPage from '@/pages/admin/Dashboard'; // Updated
-import AdminUsersPage from '@/pages/admin/UsersPage'; // Updated
+import AdminDashboardPage from '@/pages/admin/Dashboard';
+import AdminUsersPage from '@/pages/admin/UsersPage';
 import NotFound from '@/pages/misc/NotFound';
 import Welcome from '@/pages/Welcome';
 import Homepage from '@/pages/Homepage';
@@ -15,12 +15,13 @@ import Zip from '@/pages/games/Zip';
 import Onboarding from '@/pages/Onboarding';
 import SettingsPage from '@/pages/Settings';
 import AppLayout from '@/components/layout/AppLayout';
-import AdminLayout from '@/components/layout/AdminLayout'; // Import AdminLayout
+import AdminLayout from '@/components/layout/AdminLayout';
 import NetworkPage from '@/pages/Network';
 import MessagingPage from '@/pages/Messaging';
 import Maintenance from '@/pages/misc/Maintenance';
 import MemoryMatch from '@/pages/games/MemoryMatch';
 import AdminCompaniesPage from '@/pages/admin/CompaniesPage';
+import AdminSkillsPage from '@/pages/admin/SkillsPage';
 
 type RouteConfig = {
   path: string;
@@ -149,7 +150,7 @@ const routes: RouteConfig[] = [
   // Admin-only routes
   {
     path: '/admin',
-    element: <Navigate to="/admin/dashboard" replace />, // Redirect from /admin to dashboard
+    element: <Navigate to="/admin/dashboard" replace />,
     protected: true,
     roles: ['admin'],
   },
@@ -174,10 +175,20 @@ const routes: RouteConfig[] = [
     roles: ['admin'],
   },
   {
-    path: '/admin/companies', // Add the new route for companies
+    path: '/admin/companies',
     element: (
       <AdminLayout>
         <AdminCompaniesPage />
+      </AdminLayout>
+    ),
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/skills',
+    element: (
+      <AdminLayout>
+        <AdminSkillsPage />
       </AdminLayout>
     ),
     protected: true,

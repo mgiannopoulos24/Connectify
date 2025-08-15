@@ -1,5 +1,6 @@
 import { Post } from './post';
-import { CompanySummary } from './company'; // Import CompanySummary
+import { CompanySummary } from './company';
+import { Skill } from './skill'; // Import the new Skill type
 
 export type UserStatus = 'active' | 'idle' | 'offline';
 
@@ -15,11 +16,6 @@ interface Education {
   school_name: string;
   degree: string;
   field_of_study: string;
-}
-
-interface Skill {
-  id: string;
-  name: string;
 }
 
 interface Interest {

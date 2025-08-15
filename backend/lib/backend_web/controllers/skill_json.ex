@@ -2,6 +2,13 @@ defmodule BackendWeb.SkillJSON do
   alias Backend.Skills.Skill
 
   @doc """
+  Renders a list of skills.
+  """
+  def index(%{skills: skills}) do
+    %{data: Enum.map(skills, &data/1)}
+  end
+
+  @doc """
   Renders a single skill.
   """
   def show(%{skill: skill}) do

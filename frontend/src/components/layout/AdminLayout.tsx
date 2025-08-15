@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, LayoutDashboard, LogOut, Network, Users, Building } from 'lucide-react';
+import { Home, LayoutDashboard, LogOut, Network, Users, Building, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -22,9 +22,14 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       icon: Users,
     },
     {
-      href: '/admin/companies', // Add new navigation link
+      href: '/admin/companies',
       label: 'Companies',
       icon: Building,
+    },
+    {
+      href: '/admin/skills',
+      label: 'Skills',
+      icon: Sparkles,
     },
   ];
 
