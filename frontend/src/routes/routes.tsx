@@ -20,6 +20,7 @@ import NetworkPage from '@/pages/Network';
 import MessagingPage from '@/pages/Messaging';
 import Maintenance from '@/pages/misc/Maintenance';
 import MemoryMatch from '@/pages/games/MemoryMatch';
+import AdminCompaniesPage from '@/pages/admin/CompaniesPage';
 
 type RouteConfig = {
   path: string;
@@ -167,6 +168,16 @@ const routes: RouteConfig[] = [
     element: (
       <AdminLayout>
         <AdminUsersPage />
+      </AdminLayout>
+    ),
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/companies', // Add the new route for companies
+    element: (
+      <AdminLayout>
+        <AdminCompaniesPage />
       </AdminLayout>
     ),
     protected: true,

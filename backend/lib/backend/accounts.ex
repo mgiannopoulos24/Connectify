@@ -14,12 +14,12 @@ defmodule Backend.Accounts do
   defp preload_profile(user) do
     if user do
       Repo.preload(user, [
-        :job_experiences,
         :educations,
         :skills,
         :interests,
         :sent_connections,
-        :received_connections
+        :received_connections,
+        job_experiences: :company
       ])
     else
       nil
@@ -30,13 +30,13 @@ defmodule Backend.Accounts do
     if user do
       user
       |> Repo.preload([
-        :job_experiences,
         :educations,
         :skills,
         :interests,
         :sent_connections,
         :received_connections,
-        posts: [:user, comments: [:user], reactions: [:user]]
+        job_experiences: :company,
+        posts: [user: [], comments: [:user], reactions: [:user]]
       ])
     else
       nil
@@ -55,7 +55,7 @@ defmodule Backend.Accounts do
   def list_users do
     User
     |> Repo.all()
-    |> preload_profile()
+    |> Enum.map(&preload_profile/1)
   end
 
   @doc """
@@ -112,18 +112,26 @@ defmodule Backend.Accounts do
   """
   def create_user(attrs \\ %{}) do
     Repo.transaction(fn ->
-      with {:ok, %User{} = user} <-
-             %User{}
-             |> User.changeset(attrs)
-             |> Repo.insert(),
-           {:ok, _user} <- deliver_confirmation_instructions(user) do
-        preload_profile(user)
+      with {:ok, %User{} = user} <- insert_user(attrs),
+           {:ok, _} <- deliver_confirmation_instructions(user) do
+        user
       else
         error ->
           Repo.rollback(error)
       end
     end)
+    |> case do
+      {:ok, user} -> {:ok, preload_profile(user)}
+      {:error, reason} -> {:error, reason}
+    end
   end
+
+  defp insert_user(attrs) do
+    %User{}
+    |> User.changeset(attrs)
+    |> Repo.insert()
+  end
+
 
   @doc """
   Updates a user.

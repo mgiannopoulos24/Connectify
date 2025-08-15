@@ -1,0 +1,44 @@
+defmodule BackendWeb.Admin.CompanyController do
+  use BackendWeb, :controller
+
+  alias Backend.Companies
+  alias Backend.Companies.Company
+  alias BackendWeb.Admin.CompanyJSON
+
+  action_fallback BackendWeb.FallbackController
+
+  def index(conn, _params) do
+    companies = Companies.list_companies()
+    render(conn, CompanyJSON, :index, companies: companies)
+  end
+
+  def create(conn, %{"company" => company_params}) do
+    with {:ok, %Company{} = company} <- Companies.create_company(company_params) do
+      conn
+      |> put_status(:created)
+      |> put_resp_header("location", ~p"/api/admin/companies/#{company}")
+      |> render(CompanyJSON, :show, company: company)
+    end
+  end
+
+  def show(conn, %{"id" => id}) do
+    company = Companies.get_company!(id)
+    render(conn, CompanyJSON, :show, company: company)
+  end
+
+  def update(conn, %{"id" => id, "company" => company_params}) do
+    company = Companies.get_company!(id)
+
+    with {:ok, %Company{} = company} <- Companies.update_company(company, company_params) do
+      render(conn, CompanyJSON, :show, company: company)
+    end
+  end
+
+  def delete(conn, %{"id" => id}) do
+    company = Companies.get_company!(id)
+
+    with {:ok, %Company{}} <- Companies.delete_company(company) do
+      send_resp(conn, :no_content, "")
+    end
+  end
+end

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 import { DashboardStats } from '@/types/admin';
 
 /**

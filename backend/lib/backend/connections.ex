@@ -30,7 +30,7 @@ defmodule Backend.Connections do
     |> where(connected_user_id: ^user_id, status: "pending")
     |> Repo.all()
     # Preload the user (the requester) and their job experiences
-    |> Repo.preload(user: [:job_experiences])
+    |> Repo.preload(user: [:job_experiences[:company]])
   end
 
   def list_user_connections(user_id) do
@@ -41,7 +41,10 @@ defmodule Backend.Connections do
         where:
           (c.user_id == ^user_id or c.connected_user_id == ^user_id) and c.status == "accepted",
         # Preload the nested data for both users in the connection
-        preload: [user: [:job_experiences], connected_user: [:job_experiences]]
+        preload: [
+          user: [job_experiences: [:company]],
+          connected_user: [job_experiences: [:company]]
+        ]
 
     Repo.all(query)
   end

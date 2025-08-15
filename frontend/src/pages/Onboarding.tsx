@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,10 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Loader2, CheckCircle, Upload, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CompanySummary } from '@/types/company';
+import { searchCompanies } from '@/services/companyService';
+import CompanyAutocomplete from '@/components/common/CompanyAutocomplete';
+import debounce from 'lodash.debounce';
 
 const employmentTypes = [
   'Full-time',
@@ -48,16 +52,44 @@ const Onboarding = () => {
   const [jobTitle, setJobTitle] = useState('');
   const [employmentType, setEmploymentType] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [companySearch, setCompanySearch] = useState('');
+  const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isLookingForJob, setIsLookingForJob] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [followedCompanies, setFollowedCompanies] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // --- State for verification code ---
   const [verificationCode, setVerificationCode] = useState('');
 
   // --- Handlers ---
+  const debouncedSearch = useCallback(
+    debounce(async (term: string) => {
+      if (term) {
+        setIsSearching(true);
+        const results = await searchCompanies(term);
+        setCompanyResults(results);
+        setIsSearching(false);
+      } else {
+        setCompanyResults([]);
+      }
+    }, 300),
+    [],
+  );
+
+  useEffect(() => {
+    debouncedSearch(companySearch);
+    return () => debouncedSearch.cancel();
+  }, [companySearch, debouncedSearch]);
+
+  const handleCompanySelect = (company: CompanySummary | null, name: string) => {
+    setCompanyName(name);
+    setSelectedCompanyId(company ? company.id : null);
+    setCompanySearch(''); // Clear search to hide dropdown
+    setCompanyResults([]);
+  };
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -92,16 +124,21 @@ const Onboarding = () => {
       if (step === 2) {
         if (!jobTitle || !employmentType || !companyName)
           throw new Error('All job fields are required.');
-        await Promise.all([
-          axios.post('/api/job_experiences', {
-            job_experience: {
-              job_title: jobTitle,
-              employment_type: employmentType,
-              company_name: companyName,
-            },
-          }),
-          axios.post('/api/interests', { interest: { name: companyName, type: 'company' } }),
-        ]);
+        const jobExperiencePayload: any = {
+          job_title: jobTitle,
+          employment_type: employmentType,
+        };
+        if (selectedCompanyId) {
+          jobExperiencePayload.company_id = selectedCompanyId;
+        } else {
+          jobExperiencePayload.company_name = companyName;
+        }
+        await axios.post('/api/job_experiences', {
+          job_experience: jobExperiencePayload,
+        });
+        if (!selectedCompanyId) {
+          await axios.post('/api/interests', { interest: { name: companyName, type: 'company' } });
+        }
       }
 
       // Step 3: Email Confirmation
@@ -112,42 +149,29 @@ const Onboarding = () => {
         await axios.post('/api/email/confirm', { token: verificationCode });
       }
 
-      // Step 4: Looking for a job
-      if (step === 4) {
-        if (isLookingForJob === null) throw new Error('Please select an option.');
-        const response = await axios.put(`/api/users/${user?.id}`, {
-          user: { looking_for_job: isLookingForJob === 'yes' },
-        });
-        if (setUser) setUser(response.data.data);
+      // Step 4: Looking for a job (This step is now removed but logic is kept in case you want to re-add)
+      // Step 5 -> 4: Photo Upload
+      if (step === 4 && photoFile) {
+        // This is a placeholder as backend doesn't support photo uploads yet
+        console.log('Photo would be uploaded here.');
       }
 
-      // Step 5: Photo Upload
-      if (step === 5 && photoFile) {
-        const formData = new FormData();
-        formData.append('photo', photoFile);
-        const response = await axios.post(`/api/users/upload_photo`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        if (setUser) setUser(response.data.data);
-      }
-
-      // Step 6: Follow Companies
-      if (step === 6) {
+      // Step 6 -> 5: Follow Companies
+      if (step === 5) {
         const followPromises = Array.from(followedCompanies).map((company) =>
           axios.post('/api/interests', { interest: { name: company, type: 'company' } }),
         );
         await Promise.all(followPromises);
       }
 
-      // Final Step: Complete Onboarding
-      if (step === 7) {
+      // Step 7 -> 6: Complete Onboarding
+      if (step === 6) {
         await axios.put(`/api/users/${user?.id}`, { user: { onboarding_completed: true } });
-        navigate('/profile');
-        return; // This return should prevent further execution
+        navigate('/homepage'); // Go to homepage
+        return;
       }
 
-      // Only increment step if we're not on the final step
-      if (step < 7) {
+      if (step < 6) {
         setStep(step + 1);
       }
     } catch (err: any) {
@@ -165,7 +189,6 @@ const Onboarding = () => {
     }
   };
 
-  // --- Render Logic ---
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -219,13 +242,15 @@ const Onboarding = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
+              <div className="relative">
                 <Label htmlFor="company-name">Company Name</Label>
-                <Input
-                  id="company-name"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="e.g., Connectify Inc."
+                <CompanyAutocomplete
+                  searchTerm={companySearch}
+                  onSearchChange={setCompanySearch}
+                  onSelect={handleCompanySelect}
+                  results={companyResults}
+                  isLoading={isSearching}
+                  placeholder={companyName || 'Search or type to create...'}
                 />
               </div>
             </CardContent>
@@ -267,27 +292,6 @@ const Onboarding = () => {
         return (
           <>
             <CardHeader>
-              <CardTitle>Are you looking for a new job?</CardTitle>
-              <CardDescription>This helps us tailor your experience.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={isLookingForJob ?? ''} onValueChange={setIsLookingForJob}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="r-yes" />
-                  <Label htmlFor="r-yes">Yes, I am actively looking.</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="r-no" />
-                  <Label htmlFor="r-no">No, I am not looking right now.</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </>
-        );
-      case 5:
-        return (
-          <>
-            <CardHeader>
               <CardTitle>Add a Profile Photo</CardTitle>
               <CardDescription>A photo helps people recognize you.</CardDescription>
             </CardHeader>
@@ -315,7 +319,7 @@ const Onboarding = () => {
             </CardContent>
           </>
         );
-      case 6:
+      case 5:
         return (
           <>
             <CardHeader>
@@ -350,7 +354,7 @@ const Onboarding = () => {
             </CardContent>
           </>
         );
-      case 7:
+      case 6:
         return (
           <>
             <CardHeader className="text-center">
@@ -368,9 +372,9 @@ const Onboarding = () => {
   };
 
   const buttonText = () => {
-    if (step === 5 && !photoFile) return 'Skip and Continue';
-    if (step === 6) return 'Finish';
-    if (step === 7) return 'Go to Homepage';
+    if (step === 4 && !photoFile) return 'Skip and Continue';
+    if (step === 5) return 'Finish';
+    if (step === 6) return 'Go to Homepage';
     return 'Continue';
   };
 

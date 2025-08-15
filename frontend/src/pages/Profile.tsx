@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,13 +28,17 @@ import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '@/components/common/StatusIndicator';
+import CompanyAutocomplete from '@/components/common/CompanyAutocomplete';
+import { CompanySummary } from '@/types/company';
+import { searchCompanies } from '@/services/companyService';
+import debounce from 'lodash.debounce';
 
 // --- Type Definitions ---
 interface JobExperience {
   id: string;
   job_title: string;
   employment_type: string;
-  company_name: string;
+  company: CompanySummary;
 }
 interface Education {
   id: string;
@@ -79,8 +83,14 @@ const ProfilePage: React.FC = () => {
   const handleDelete = async (type: 'experience' | 'education' | 'skill', id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
 
+    const endpointMap = {
+      experience: 'job_experiences',
+      education: 'educations',
+      skill: 'skills',
+    };
+
     try {
-      await axios.delete(`/api/${type}s/${id}`);
+      await axios.delete(`/api/${endpointMap[type]}/${id}`);
       setUser((prevUser) => {
         if (!prevUser) return null;
         const key = `${type}s` as 'job_experiences' | 'educations' | 'skills';
@@ -97,7 +107,7 @@ const ProfilePage: React.FC = () => {
     if (!itemType) return;
 
     const key = `${itemType}s` as 'job_experiences' | 'educations' | 'skills';
-    const single = itemType; // 'experience'
+    const single = itemType;
     const url = editingItem ? `/api/${key}/${editingItem.id}` : `/api/${key}`;
     const method = editingItem ? 'put' : 'post';
 
@@ -193,7 +203,7 @@ const ProfilePage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-bold">{exp.job_title}</h3>
-                      <p className="text-sm text-gray-700">{exp.company_name}</p>
+                      <p className="text-sm text-gray-700">{exp.company.name}</p>
                       <p className="text-xs text-gray-500">{exp.employment_type}</p>
                     </div>
                   </div>
@@ -313,109 +323,176 @@ const ProfilePage: React.FC = () => {
       </Card>
 
       {/* --- CUD Modal --- */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingItem ? 'Edit' : 'Add'} {itemType}
-            </DialogTitle>
-            <DialogDescription>
-              {`Fill in the details for your ${itemType} below.`}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const data = Object.fromEntries(formData.entries());
-              handleSave(data);
-            }}
-          >
-            {itemType === 'experience' && (
-              <div className="space-y-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="job_title">Job Title</Label>
-                  <Input
-                    id="job_title"
-                    name="job_title"
-                    defaultValue={(editingItem as JobExperience)?.job_title}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="company_name">Company Name</Label>
-                  <Input
-                    id="company_name"
-                    name="company_name"
-                    defaultValue={(editingItem as JobExperience)?.company_name}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="employment_type">Employment Type</Label>
-                  <Input
-                    id="employment_type"
-                    name="employment_type"
-                    defaultValue={(editingItem as JobExperience)?.employment_type}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            {itemType === 'education' && (
-              <div className="space-y-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="school_name">School Name</Label>
-                  <Input
-                    id="school_name"
-                    name="school_name"
-                    defaultValue={(editingItem as Education)?.school_name}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="degree">Degree</Label>
-                  <Input
-                    id="degree"
-                    name="degree"
-                    defaultValue={(editingItem as Education)?.degree}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="field_of_study">Field of Study</Label>
-                  <Input
-                    id="field_of_study"
-                    name="field_of_study"
-                    defaultValue={(editingItem as Education)?.field_of_study}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            {itemType === 'skill' && (
-              <div className="space-y-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Skill Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    defaultValue={(editingItem as Skill)?.name}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseModal}>
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <EditModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        itemType={itemType}
+        editingItem={editingItem}
+        onSave={handleSave}
+      />
     </div>
+  );
+};
+
+// --- Modal Component for better state management ---
+const EditModal = ({
+  isOpen,
+  onClose,
+  itemType,
+  editingItem,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  itemType: 'experience' | 'education' | 'skill' | null;
+  editingItem: any;
+  onSave: (data: any) => void;
+}) => {
+  const [companySearch, setCompanySearch] = useState('');
+  const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<{ id: string | null; name: string } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (isOpen && itemType === 'experience' && editingItem) {
+      setSelectedCompany(editingItem.company);
+    } else {
+      setSelectedCompany(null);
+    }
+  }, [isOpen, itemType, editingItem]);
+
+  const debouncedSearch = useCallback(
+    debounce(async (term: string) => {
+      if (term) {
+        setIsSearching(true);
+        const results = await searchCompanies(term);
+        setCompanyResults(results);
+        setIsSearching(false);
+      } else {
+        setCompanyResults([]);
+      }
+    }, 300),
+    [],
+  );
+
+  useEffect(() => {
+    debouncedSearch(companySearch);
+    return () => debouncedSearch.cancel();
+  }, [companySearch, debouncedSearch]);
+
+  const handleCompanySelect = (company: CompanySummary | null, name: string) => {
+    setSelectedCompany({ id: company ? company.id : null, name });
+    setCompanySearch('');
+    setCompanyResults([]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    if (itemType === 'experience') {
+      data.company_id = selectedCompany?.id || '';
+      data.company_name = selectedCompany?.name || '';
+      // Clean up empty values to avoid sending them to backend
+      if (!data.company_id) delete data.company_id;
+      if (!data.company_name) delete data.company_name;
+    }
+
+    onSave(data);
+  };
+
+  if (!isOpen || !itemType) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {editingItem ? 'Edit' : 'Add'} {itemType}
+          </DialogTitle>
+          <DialogDescription>{`Fill in the details for your ${itemType} below.`}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          {itemType === 'experience' && (
+            <div className="space-y-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="job_title">Job Title</Label>
+                <Input
+                  id="job_title"
+                  name="job_title"
+                  defaultValue={editingItem?.job_title}
+                  required
+                />
+              </div>
+              <div className="grid gap-2 relative">
+                <Label htmlFor="company_name">Company Name</Label>
+                <CompanyAutocomplete
+                  searchTerm={companySearch}
+                  onSearchChange={setCompanySearch}
+                  onSelect={handleCompanySelect}
+                  results={companyResults}
+                  isLoading={isSearching}
+                  placeholder={selectedCompany?.name || 'Search or type to create'}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="employment_type">Employment Type</Label>
+                <Input
+                  id="employment_type"
+                  name="employment_type"
+                  defaultValue={editingItem?.employment_type}
+                  required
+                />
+              </div>
+            </div>
+          )}
+          {itemType === 'education' && (
+            <div className="space-y-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="school_name">School Name</Label>
+                <Input
+                  id="school_name"
+                  name="school_name"
+                  defaultValue={editingItem?.school_name}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="degree">Degree</Label>
+                <Input id="degree" name="degree" defaultValue={editingItem?.degree} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="field_of_study">Field of Study</Label>
+                <Input
+                  id="field_of_study"
+                  name="field_of_study"
+                  defaultValue={editingItem?.field_of_study}
+                  required
+                />
+              </div>
+            </div>
+          )}
+          {itemType === 'skill' && (
+            <div className="space-y-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Skill Name</Label>
+                <Input id="name" name="name" defaultValue={editingItem?.name} required />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

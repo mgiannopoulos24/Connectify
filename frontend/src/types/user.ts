@@ -1,4 +1,5 @@
 import { Post } from './post';
+import { CompanySummary } from './company'; // Import CompanySummary
 
 export type UserStatus = 'active' | 'idle' | 'offline';
 
@@ -6,7 +7,7 @@ interface JobExperience {
   id: string;
   job_title: string;
   employment_type: string;
-  company_name: string;
+  company: CompanySummary;
 }
 
 interface Education {

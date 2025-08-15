@@ -8,19 +8,70 @@ defmodule Backend.Careers do
 
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
+  alias Backend.Companies
 
-  def get_job_experience!(id), do: Repo.get!(JobExperience, id)
+  def get_job_experience!(id), do: Repo.get!(JobExperience, id) |> Repo.preload(:company)
 
   def create_job_experience(attrs \\ %{}) do
-    %JobExperience{}
-    |> JobExperience.changeset(attrs)
-    |> Repo.insert()
+    handle_job_experience_transaction(attrs, %JobExperience{})
   end
 
   def update_job_experience(%JobExperience{} = job_experience, attrs) do
-    job_experience
-    |> JobExperience.changeset(attrs)
-    |> Repo.update()
+    handle_job_experience_transaction(attrs, job_experience)
+  end
+
+  defp handle_job_experience_transaction(attrs, job_experience_struct) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:company, fn _repo, _changes ->
+      company_id = attrs["company_id"]
+      company_name = attrs["company_name"]
+
+      cond do
+        !is_nil(company_id) and company_id != "" ->
+          {:ok, Companies.get_company!(company_id)}
+
+        !is_nil(company_name) and company_name != "" ->
+          Companies.get_or_create_company_by_name(company_name)
+
+        true ->
+          # This allows updating a job experience without changing the company
+          # For creation, a company must be provided.
+          if job_experience_struct.id,
+            do: {:ok, nil},
+            else: {:error, "company_id or company_name must be provided"}
+      end
+    end)
+    |> Ecto.Multi.insert(:job_experience, fn %{company: company} ->
+      # Remove company_name as it's not a field on the schema
+      job_attrs = Map.drop(attrs, ["company_name"])
+
+      # If a company was found/created, add its ID.
+      # If not (e.g., during an update without company change), it won't be in the changeset.
+      job_attrs =
+        if company do
+          Map.put(job_attrs, "company_id", company.id)
+        else
+          job_attrs
+        end
+
+      JobExperience.changeset(job_experience_struct, job_attrs)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{job_experience: job_experience}} ->
+        {:ok, Repo.preload(job_experience, :company)}
+
+      {:error, :job_experience, changeset, _} ->
+        {:error, changeset}
+
+      {:error, :company, error_msg, _} ->
+        # For user clarity, wrap the error in a changeset-like structure
+        changeset = Ecto.Changeset.change(%JobExperience{}, %{})
+        {:error, Ecto.Changeset.add_error(changeset, :company_name, to_string(error_msg))}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def delete_job_experience(%JobExperience{} = job_experience) do

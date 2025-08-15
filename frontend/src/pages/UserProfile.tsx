@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getUserById } from '@/services/userService';
-import { User } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -135,7 +135,7 @@ const UserProfilePage: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold">{exp.job_title}</h3>
-                    <p className="text-sm text-gray-700">{exp.company_name}</p>
+                    <p className="text-sm text-gray-700">{exp.company.name}</p>
                     <p className="text-xs text-gray-500">{exp.employment_type}</p>
                   </div>
                 </li>

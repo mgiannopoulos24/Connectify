@@ -36,6 +36,8 @@ defmodule BackendWeb.Router do
     resources "/educations", EducationController, except: [:new, :edit]
     resources "/skills", SkillController, except: [:new, :edit]
     resources "/interests", InterestController, only: [:create], as: :interest
+    # Company search for autocomplete
+    resources "/companies", CompanyController, only: [:index], as: :company
 
     # Posts
     resources "/posts", PostController, except: [:new, :edit]
@@ -64,6 +66,8 @@ defmodule BackendWeb.Router do
       get "/users/:id", UserController, :show
       put "/users/:id/role", UserController, :update_role
       get "/statistics", DashboardController, :index
+      # Admin company management
+      resources "/companies", CompanyController, except: [:new, :edit]
     end
   end
 

@@ -144,11 +144,11 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       {user.location && (
                         <p className="text-sm text-gray-500 mt-1">{user.location}</p>
                       )}
-                      {user.job_experiences?.[0]?.company_name && (
-                        <div className="flex items-center justify-center gap-2 mt-2 text-sm text-gray-500">
-                          <Building className="h-4 w-4" />
-                          <span>{user.job_experiences[0].company_name}</span>
-                        </div>
+                      {user.job_experiences?.[0]?.company?.name && ( // Changed from company_name
+    <div className="flex items-center justify-center gap-2 mt-2 text-sm text-gray-500">
+      <Building className="h-4 w-4" />
+      <span>{user.job_experiences[0].company.name}</span> {/* Changed from company_name */}
+    </div>
                       )}
                       <Button
                         variant="outline"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, UserStatus } from '@/types/user'; // Import UserStatus
+import { User, UserStatus } from '@/types/user';
 import {
   Dialog,
   DialogContent,
@@ -24,14 +24,14 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
-import StatusIndicator from '../common/StatusIndicator'; // Import the StatusIndicator
+import StatusIndicator from '../common/StatusIndicator';
 
 interface UserDetailsModalProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
   isLoading: boolean;
-  status: UserStatus; // Add status prop
+  status: UserStatus;
 }
 
 const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
@@ -39,7 +39,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   isOpen,
   onClose,
   isLoading,
-  status, // Destructure status
+  status,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -58,7 +58,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
             </div>
           ) : user ? (
-            <ModalContent user={user} status={status} /> // Pass status to content
+            <ModalContent user={user} status={status} />
           ) : (
             <div className="flex h-full items-center justify-center">
               <p>Could not load user data.</p>
@@ -75,13 +75,11 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   );
 };
 
-// Add status to ModalContent props
 const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, status }) => {
   const totalConnections =
     user.sent_connections.filter((c) => c.status === 'accepted').length +
     user.received_connections.filter((c) => c.status === 'accepted').length;
 
-  // Helper for status badge styling
   const getStatusBadgeVariant = (status: UserStatus) => {
     switch (status) {
       case 'active':
@@ -162,7 +160,7 @@ const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, stat
           items={user.job_experiences}
           renderItem={(item: any) => (
             <p key={item.id}>
-              {item.job_title} at {item.company_name}
+              {item.job_title} at {item.company.name}
             </p>
           )}
         />
