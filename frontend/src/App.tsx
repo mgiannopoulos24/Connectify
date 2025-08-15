@@ -4,6 +4,7 @@ import routes from './routes/routes';
 import React, { useState, useEffect } from 'react';
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { PresenceProvider } from './contexts/PresenceContext';
 
 const AppContent: React.FC = () => {
   const [isBackendDown, setIsBackendDown] = useState(false);
@@ -64,7 +65,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <PresenceProvider>
+        <AppContent />
+      </PresenceProvider>
     </AuthProvider>
   );
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getUserDetails, getAllUsers, updateUserRole } from '@/services/adminService';
-import { User, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 import {
   Table,
   TableBody,
@@ -21,9 +22,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import UserDetailsModal from '@/components/admin/UserDetailsModal';
+import { usePresence } from '@/contexts/PresenceContext'; // Import usePresence
+import { UserStatus } from '@/types/user'; // Import UserStatus type
 
 const AdminUsersPage = () => {
   const { user: currentUser } = useAuth();
+  const { getUserStatus } = usePresence(); // Use the presence hook
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,6 +35,7 @@ const AdminUsersPage = () => {
 
   // State for the modal
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserStatus, setSelectedUserStatus] = useState<UserStatus>('offline'); // State for the status
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
@@ -69,6 +74,8 @@ const AdminUsersPage = () => {
   const handleViewDetails = async (userId: string) => {
     setIsDetailLoading(true);
     setIsModalOpen(true);
+    setSelectedUserStatus(getUserStatus(userId)); // Get and set the current status
+
     try {
       const userDetails = await getUserDetails(userId);
       setSelectedUser(userDetails);
@@ -174,6 +181,7 @@ const AdminUsersPage = () => {
         onClose={handleCloseModal}
         user={selectedUser}
         isLoading={isDetailLoading}
+        status={selectedUserStatus} // Pass the status as a prop
       />
     </>
   );

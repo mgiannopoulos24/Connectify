@@ -37,6 +37,8 @@ defmodule BackendWeb.UserJSON do
       location: user.location,
       onboarding_completed: user.onboarding_completed,
       email_confirmed_at: user.email_confirmed_at,
+      status: user.status,
+      last_seen_at: user.last_seen_at,
       job_experiences: Enum.map(user.job_experiences, &job_experience_data/1),
       educations: Enum.map(user.educations, &education_data/1),
       skills: Enum.map(user.skills, &skill_data/1),

@@ -14,6 +14,7 @@ defmodule Backend.Accounts.User do
   @foreign_key_type :binary_id
   # Defines allowed roles
   @roles ["professional", "admin"]
+  @statuses ["active", "idle", "offline"]
 
   schema "users" do
     field :email, :string
@@ -27,6 +28,8 @@ defmodule Backend.Accounts.User do
     field :onboarding_completed, :boolean, default: false
     field :email_confirmation_token, :string
     field :email_confirmed_at, :naive_datetime
+    field :status, :string, default: "offline"
+    field :last_seen_at, :naive_datetime
 
     field :password, :string,
       virtual: true,
@@ -66,12 +69,15 @@ defmodule Backend.Accounts.User do
       :location,
       :onboarding_completed,
       :email_confirmation_token,
-      :email_confirmed_at
+      :email_confirmed_at,
+      :status,
+      :last_seen_at
     ])
     |> validate_required([:name, :surname, :email])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:password, min: 8)
     |> unique_constraint(:email)
+    |> validate_inclusion(:status, @statuses)
     |> put_password_hash()
   end
 

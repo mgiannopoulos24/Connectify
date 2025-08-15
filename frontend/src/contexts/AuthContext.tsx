@@ -1,58 +1,7 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Post } from '@/types/post';
-
-interface JobExperience {
-  id: string;
-  job_title: string;
-  employment_type: string;
-  company_name: string;
-}
-
-interface Education {
-  id: string;
-  school_name: string;
-  degree: string;
-  field_of_study: string;
-}
-
-interface Skill {
-  id: string;
-  name: string;
-}
-
-interface Interest {
-  id: string;
-  name: string;
-  type: string;
-}
-
-interface ConnectionInfo {
-  id: string;
-  status: 'pending' | 'accepted' | 'declined';
-  user_id: string;
-  connected_user_id: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  surname: string;
-  email: string;
-  role: 'professional' | 'admin';
-  phone_number: string;
-  photo_url: string;
-  location: string | null;
-  onboarding_completed: boolean;
-  job_experiences: JobExperience[];
-  educations: Education[];
-  skills: Skill[];
-  interests: Interest[];
-  sent_connections: ConnectionInfo[];
-  received_connections: ConnectionInfo[];
-  posts?: Post[];
-}
+import { User } from '@/types/user';
 
 interface AuthContextType {
   isAuthenticated: boolean;

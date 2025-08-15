@@ -20,13 +20,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import axios from 'axios';
+import { usePresence } from '@/contexts/PresenceContext';
+import StatusIndicator from '@/components/common/StatusIndicator';
 
 // --- Type Definitions ---
 interface JobExperience {
@@ -49,6 +50,7 @@ interface Skill {
 
 const ProfilePage: React.FC = () => {
   const { user, setUser } = useAuth();
+  const { getUserStatus } = usePresence();
   const [editingItem, setEditingItem] = useState<JobExperience | Education | Skill | null>(null);
   const [itemType, setItemType] = useState<'experience' | 'education' | 'skill' | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,6 +58,8 @@ const ProfilePage: React.FC = () => {
   if (!user || !setUser) {
     return <div>Loading user profile...</div>;
   }
+
+  const userStatus = getUserStatus(user.id);
 
   const handleOpenModal = (
     type: 'experience' | 'education' | 'skill',
@@ -126,7 +130,7 @@ const ProfilePage: React.FC = () => {
       {/* --- Main Profile Card --- */}
       <Card className="w-full shadow-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
+          <div className="relative mx-auto mb-4 h-24 w-24">
             {user.photo_url ? (
               <img
                 src={user.photo_url}
@@ -134,8 +138,9 @@ const ProfilePage: React.FC = () => {
                 className="h-full w-full rounded-full object-cover"
               />
             ) : (
-              <UserCircle className="h-16 w-16 text-gray-500" />
+              <UserCircle className="h-full w-full text-gray-500" />
             )}
+            <StatusIndicator status={userStatus} className="h-6 w-6 right-1 bottom-1" />
           </div>
           <CardTitle className="text-3xl font-bold">{`${user.name} ${user.surname}`}</CardTitle>
           <CardDescription className="text-lg capitalize text-blue-600">

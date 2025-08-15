@@ -59,6 +59,15 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Gets a single user by id, returns nil if not found.
+  """
+  def get_user(id) do
+    User
+    |> Repo.get(id)
+    |> preload_profile()
+  end
+
+  @doc """
   Gets a single user.
 
   Raises `Ecto.NoResultsError` if the User does not exist.
@@ -178,6 +187,18 @@ defmodule Backend.Accounts do
       {:ok, updated_user} -> {:ok, preload_profile(updated_user)}
       error -> error
     end
+  end
+
+  @doc """
+  Updates a user's status and last_seen_at timestamp.
+  """
+  def update_user_status(%User{} = user, new_status) do
+    user
+    |> User.changeset(%{
+      "status" => new_status,
+      "last_seen_at" => NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    })
+    |> Repo.update()
   end
 
   @doc """

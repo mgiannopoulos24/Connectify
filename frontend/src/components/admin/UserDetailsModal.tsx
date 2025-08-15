@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from '@/contexts/AuthContext';
+import { User, UserStatus } from '@/types/user'; // Import UserStatus
 import {
   Dialog,
   DialogContent,
@@ -24,15 +24,23 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
+import StatusIndicator from '../common/StatusIndicator'; // Import the StatusIndicator
 
 interface UserDetailsModalProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
   isLoading: boolean;
+  status: UserStatus; // Add status prop
 }
 
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, isOpen, onClose, isLoading }) => {
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
+  user,
+  isOpen,
+  onClose,
+  isLoading,
+  status, // Destructure status
+}) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
@@ -50,7 +58,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, isOpen, onClo
               <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
             </div>
           ) : user ? (
-            <ModalContent user={user} />
+            <ModalContent user={user} status={status} /> // Pass status to content
           ) : (
             <div className="flex h-full items-center justify-center">
               <p>Could not load user data.</p>
@@ -67,25 +75,55 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, isOpen, onClo
   );
 };
 
-const ModalContent: React.FC<{ user: User }> = ({ user }) => {
+// Add status to ModalContent props
+const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, status }) => {
   const totalConnections =
     user.sent_connections.filter((c) => c.status === 'accepted').length +
     user.received_connections.filter((c) => c.status === 'accepted').length;
+
+  // Helper for status badge styling
+  const getStatusBadgeVariant = (status: UserStatus) => {
+    switch (status) {
+      case 'active':
+        return 'outline';
+      case 'idle':
+        return 'secondary';
+      case 'offline':
+        return 'destructive';
+      default:
+        return 'default';
+    }
+  };
+  const getStatusBadgeClass = (status: UserStatus) => {
+    switch (status) {
+      case 'active':
+        return 'text-green-600 border-green-600';
+      case 'idle':
+        return 'text-yellow-600 border-yellow-600';
+      case 'offline':
+        return '';
+      default:
+        return '';
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Basic Info */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-4">
-          {user.photo_url ? (
-            <img
-              src={user.photo_url}
-              alt="User"
-              className="h-20 w-20 rounded-full object-cover"
-            />
-          ) : (
-            <UserCircle className="h-20 w-20 text-gray-400" />
-          )}
+          <div className="relative h-20 w-20 flex-shrink-0">
+            {user.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt="User"
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              <UserCircle className="h-full w-full text-gray-400" />
+            )}
+            <StatusIndicator status={status} className="h-5 w-5 right-0 bottom-0" />
+          </div>
           <div>
             <h2 className="text-2xl font-bold">{`${user.name} ${user.surname}`}</h2>
             <p className="text-gray-600">{user.email}</p>
@@ -93,11 +131,17 @@ const ModalContent: React.FC<{ user: User }> = ({ user }) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-4 text-sm flex-wrap">
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4 text-gray-500" />
               <span>{totalConnections} Connections</span>
             </div>
+            <Badge
+              variant={getStatusBadgeVariant(status)}
+              className={getStatusBadgeClass(status)}
+            >
+              Status: {status}
+            </Badge>
             <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
             {user.onboarding_completed ? (
               <Badge variant="outline" className="text-green-600 border-green-600">

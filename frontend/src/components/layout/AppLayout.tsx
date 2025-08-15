@@ -16,23 +16,25 @@ import {
   Building,
   UserCircle,
 } from 'lucide-react';
+import { usePresence } from '@/contexts/PresenceContext';
+import StatusIndicator from '../common/StatusIndicator';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
+  const { getUserStatus } = usePresence();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Define paths where the left sidebar should not be displayed
+  const userStatus = user ? getUserStatus(user.id) : 'offline';
+
   const pagesWithoutSidebar = [
     '/network',
     '/settings',
     '/people',
-    // Also hide for profile pages since they are the main focus
+    '/messaging', // Also hide for full-screen messaging
   ];
   const shouldHideSidebar =
-    pagesWithoutSidebar.includes(location.pathname) ||
-    location.pathname.startsWith('/profile') ||
-    location.pathname.startsWith('/messaging');
+    pagesWithoutSidebar.includes(location.pathname) || location.pathname.startsWith('/profile');
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -121,16 +123,19 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 {user && (
                   <Card>
                     <CardContent className="p-6 text-center">
-                      <div className="mx-auto mb-4 h-24 w-24 rounded-full overflow-hidden border-2 border-gray-200">
-                        {user.photo_url ? (
-                          <img
-                            src={user.photo_url}
-                            alt={`${user.name} ${user.surname}`}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <UserCircle className="h-full w-full text-gray-400" />
-                        )}
+                      <div className="relative mx-auto mb-4 h-24 w-24">
+                        <div className="h-full w-full rounded-full overflow-hidden border-2 border-gray-200">
+                          {user.photo_url ? (
+                            <img
+                              src={user.photo_url}
+                              alt={`${user.name} ${user.surname}`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <UserCircle className="h-full w-full text-gray-400" />
+                          )}
+                        </div>
+                        <StatusIndicator status={userStatus} className="h-6 w-6 right-1 bottom-1" />
                       </div>
                       <h2 className="text-xl font-bold">{`${user.name} ${user.surname}`}</h2>
                       <p className="text-sm text-gray-600 mt-1">
