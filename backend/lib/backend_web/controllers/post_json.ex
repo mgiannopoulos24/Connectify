@@ -12,7 +12,7 @@ defmodule BackendWeb.PostJSON do
     %{data: data(post)}
   end
 
-  defp data(%Post{} = post) do
+  def data(%Post{} = post) do
     %{
       id: post.id,
       content: post.content,
@@ -29,6 +29,7 @@ defmodule BackendWeb.PostJSON do
   end
 
   defp user_data(nil), do: nil
+  defp user_data(%Ecto.Association.NotLoaded{}), do: nil
 
   defp user_data(%User{} = user) do
     %{

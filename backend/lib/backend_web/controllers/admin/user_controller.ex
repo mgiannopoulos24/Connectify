@@ -10,6 +10,11 @@ defmodule BackendWeb.Admin.UserController do
     render(conn, UserJSON, :index, users: users)
   end
 
+  def show(conn, %{"id" => id}) do
+    user = Accounts.get_user_for_admin!(id)
+    render(conn, UserJSON, :show, user: user)
+  end
+
   def update_role(conn, %{"id" => id, "user" => %{"role" => role}}) do
     user = Accounts.get_user!(id)
 

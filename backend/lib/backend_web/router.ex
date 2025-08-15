@@ -61,6 +61,7 @@ defmodule BackendWeb.Router do
       pipe_through :ensure_admin
 
       get "/users", UserController, :index
+      get "/users/:id", UserController, :show
       put "/users/:id/role", UserController, :update_role
       get "/statistics", DashboardController, :index
     end

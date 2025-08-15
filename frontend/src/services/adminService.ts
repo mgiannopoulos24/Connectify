@@ -19,6 +19,16 @@ export const getAllUsers = async (): Promise<User[]> => {
 };
 
 /**
+ * Fetches detailed information for a single user for the admin panel.
+ * @param userId The ID of the user to fetch.
+ * @returns The detailed user object, including posts.
+ */
+export const getUserDetails = async (userId: string): Promise<User> => {
+  const response = await axios.get<{ data: User }>(`/api/admin/users/${userId}`);
+  return response.data.data;
+};
+
+/**
  * Updates a user's role.
  * @param userId The ID of the user to update.
  * @param role The new role to assign.

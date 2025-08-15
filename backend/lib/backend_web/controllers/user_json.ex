@@ -5,6 +5,7 @@ defmodule BackendWeb.UserJSON do
   alias Backend.Skills.Skill
   alias Backend.Interests.Interest
   alias Backend.Connections.Connection
+  alias BackendWeb.PostJSON
 
   @doc """
   Renders a list of users.
@@ -16,7 +17,6 @@ defmodule BackendWeb.UserJSON do
   @doc """
   Renders a single user.
   """
-
   def show(%{user: user, token: token}) do
     %{data: data(user), token: token}
   end
@@ -26,7 +26,7 @@ defmodule BackendWeb.UserJSON do
   end
 
   defp data(%User{} = user) do
-    %{
+    data = %{
       id: user.id,
       name: user.name,
       surname: user.surname,
@@ -44,6 +44,12 @@ defmodule BackendWeb.UserJSON do
       sent_connections: Enum.map(user.sent_connections, &connection_info_data/1),
       received_connections: Enum.map(user.received_connections, &connection_info_data/1)
     }
+
+    if Ecto.assoc_loaded?(user.posts) do
+      Map.put(data, :posts, Enum.map(user.posts, &PostJSON.data/1))
+    else
+      data
+    end
   end
 
   defp job_experience_data(%JobExperience{} = job_experience) do

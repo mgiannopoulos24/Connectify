@@ -26,6 +26,23 @@ defmodule Backend.Accounts do
     end
   end
 
+  defp preload_for_admin(user) do
+    if user do
+      user
+      |> Repo.preload([
+        :job_experiences,
+        :educations,
+        :skills,
+        :interests,
+        :sent_connections,
+        :received_connections,
+        posts: [:user, comments: [:user], reactions: [:user]]
+      ])
+    else
+      nil
+    end
+  end
+
   @doc """
   Returns the list of users.
 
@@ -59,6 +76,17 @@ defmodule Backend.Accounts do
     User
     |> Repo.get!(id)
     |> preload_profile()
+  end
+
+  @doc """
+  Gets a single user with all related data for the admin panel.
+
+  Raises `Ecto.NoResultsError` if the User does not exist.
+  """
+  def get_user_for_admin!(id) do
+    User
+    |> Repo.get!(id)
+    |> preload_for_admin()
   end
 
   @doc """

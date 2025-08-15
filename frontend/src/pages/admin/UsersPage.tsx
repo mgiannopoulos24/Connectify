@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAllUsers, updateUserRole } from '@/services/adminService';
+import { getUserDetails, getAllUsers, updateUserRole } from '@/services/adminService';
 import { User, useAuth } from '@/contexts/AuthContext';
 import {
   Table,
@@ -10,8 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import UserDetailsModal from '@/components/admin/UserDetailsModal';
 
 const AdminUsersPage = () => {
   const { user: currentUser } = useAuth();
@@ -26,6 +28,11 @@ const AdminUsersPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingRoles, setUpdatingRoles] = useState<Record<string, boolean>>({});
+
+  // State for the modal
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -59,6 +66,25 @@ const AdminUsersPage = () => {
     }
   };
 
+  const handleViewDetails = async (userId: string) => {
+    setIsDetailLoading(true);
+    setIsModalOpen(true);
+    try {
+      const userDetails = await getUserDetails(userId);
+      setSelectedUser(userDetails);
+    } catch (err) {
+      setError('Failed to fetch user details.');
+      setIsModalOpen(false); // Close modal on error
+    } finally {
+      setIsDetailLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -72,65 +98,84 @@ const AdminUsersPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">User Management</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>All Users</CardTitle>
-          <CardDescription>A list of all users in the system.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Onboarding</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{`${user.name} ${user.surname}`}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    {updatingRoles[user.id] ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Select
-                        value={user.role}
-                        onValueChange={(newRole: 'professional' | 'admin') =>
-                          handleRoleChange(user.id, newRole)
-                        }
-                        disabled={currentUser?.id === user.id}
-                      >
-                        <SelectTrigger className="w-[150px]">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="professional">Professional</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.onboarding_completed ? (
-                      <Badge variant="outline" className="text-green-600 border-green-600">
-                        Completed
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">Pending</Badge>
-                    )}
-                  </TableCell>
+    <>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>All Users</CardTitle>
+            <CardDescription>A list of all users in the system.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Full Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Onboarding</TableHead>
+                  <TableHead className="text-right">Details</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{`${user.name} ${user.surname}`}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      {updatingRoles[user.id] ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Select
+                          value={user.role}
+                          onValueChange={(newRole: 'professional' | 'admin') =>
+                            handleRoleChange(user.id, newRole)
+                          }
+                          disabled={currentUser?.id === user.id}
+                        >
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.onboarding_completed ? (
+                        <Badge variant="outline" className="text-green-600 border-green-600">
+                          Completed
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive">Pending</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewDetails(user.id)}
+                      >
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      <UserDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        user={selectedUser}
+        isLoading={isDetailLoading}
+      />
+    </>
   );
 };
 
