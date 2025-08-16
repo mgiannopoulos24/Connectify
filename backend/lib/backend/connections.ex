@@ -46,6 +46,7 @@ defmodule Backend.Connections do
     # Preload the user (the requester) and their job experiences with the company
     |> preload(user: [job_experiences: :company])
     |> Repo.all()
+
     # --- FIX ENDS HERE ---
   end
 

@@ -23,6 +23,18 @@ defmodule Backend.Connections.Connection do
     |> cast(attrs, [:user_id, :connected_user_id, :status])
     |> validate_required([:user_id, :connected_user_id, :status])
     |> validate_inclusion(:status, @statuses)
+    |> validate_not_self()
     |> unique_constraint([:user_id, :connected_user_id], name: :user_connection_unique_index)
+  end
+
+  defp validate_not_self(changeset) do
+    user_id = get_field(changeset, :user_id)
+    connected_user_id = get_field(changeset, :connected_user_id)
+
+    if user_id && user_id == connected_user_id do
+      add_error(changeset, :connected_user_id, "cannot connect with oneself")
+    else
+      changeset
+    end
   end
 end
