@@ -35,17 +35,10 @@ defmodule Backend.Jobs do
 
     all_postings = Repo.all(base_query)
 
-    # The sort function now returns a tuple for multi-level sorting.
-    # Primary sort: score (descending because it's negative).
-    # Secondary sort: inserted_at timestamp (descending by using a negative unix timestamp).
     Enum.sort_by(all_postings, fn post ->
       post_skill_ids = MapSet.new(Enum.map(post.skills, & &1.id))
       user_skill_ids_set = MapSet.new(user_skill_ids)
-
-      # --- FIX APPLIED HERE ---
-      # Calculate the size of the intersection first, then negate the number.
       score = -(MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size())
-
       {score, -DateTime.to_unix(post.inserted_at)}
     end)
   end
@@ -117,13 +110,20 @@ defmodule Backend.Jobs do
     Repo.delete(job_posting)
   end
 
+  # --- FIX APPLIED HERE ---
   def apply_for_job(user, job_posting, attrs \\ %{}) do
-    attrs
-    |> Map.put("user_id", user.id)
-    |> Map.put("job_posting_id", job_posting.id)
-    |> JobApplication.changeset(%JobApplication{})
+    # 1. Build the full parameters map first.
+    params =
+      attrs
+      |> Map.put("user_id", user.id)
+      |> Map.put("job_posting_id", job_posting.id)
+
+    # 2. Call the changeset function with arguments in the correct order: struct, then params.
+    %JobApplication{}
+    |> JobApplication.changeset(params)
     |> Repo.insert()
   end
+  # --- END FIX ---
 
   def list_applications_for_posting(job_posting_id) do
     JobApplication
