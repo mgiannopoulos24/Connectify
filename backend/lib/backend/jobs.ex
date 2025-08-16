@@ -41,12 +41,12 @@ defmodule Backend.Jobs do
     Enum.sort_by(all_postings, fn post ->
       post_skill_ids = MapSet.new(Enum.map(post.skills, & &1.id))
       user_skill_ids_set = MapSet.new(user_skill_ids)
-      score = -MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size()
 
-      # --- FIX STARTS HERE ---
-      # Corrected the function call from to-unix to to_unix
+      # --- FIX APPLIED HERE ---
+      # Calculate the size of the intersection first, then negate the number.
+      score = -(MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size())
+
       {score, -DateTime.to_unix(post.inserted_at)}
-      # --- FIX ENDS HERE ---
     end)
   end
 
@@ -79,15 +79,13 @@ defmodule Backend.Jobs do
     end)
     |> Multi.run(:skills, fn _repo, _changes ->
       skill_ids = attrs["skill_ids"]
-
       if is_nil(skill_ids),
         do: {:ok, nil},
         else: {:ok, Repo.all(from s in Skill, where: s.id in ^skill_ids)}
     end)
     |> Multi.insert(:job_posting, fn %{company: company, skills: skills} ->
-      job_attrs =
-        Map.drop(attrs, ["company_name", "skill_ids"])
-        |> Map.put("user_id", user.id)
+      job_attrs = Map.drop(attrs, ["company_name", "skill_ids"])
+      |> Map.put("user_id", user.id)
 
       job_attrs =
         if company,
@@ -95,7 +93,6 @@ defmodule Backend.Jobs do
           else: job_attrs
 
       changeset = JobPosting.changeset(job_posting_struct, job_attrs)
-
       if skills,
         do: Ecto.Changeset.put_assoc(changeset, :skills, skills),
         else: changeset
@@ -109,9 +106,7 @@ defmodule Backend.Jobs do
         {:error, changeset}
 
       {:error, :company, error_msg, _} ->
-        {:error,
-         Ecto.Changeset.change(%JobPosting{})
-         |> Ecto.Changeset.add_error(:company, to_string(error_msg))}
+        {:error, Ecto.Changeset.change(%JobPosting{}) |> Ecto.Changeset.add_error(:company, to_string(error_msg))}
 
       {:error, _, reason, _} ->
         {:error, reason}
