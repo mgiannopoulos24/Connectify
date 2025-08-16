@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '../common/StatusIndicator';
-import NotificationBell from '../notifications/NotificationBell'; 
+import NotificationBell from '../notifications/NotificationBell';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
