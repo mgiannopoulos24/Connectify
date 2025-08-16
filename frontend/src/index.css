@@ -117,22 +117,22 @@
 
 /* Add these custom scrollbar styles */
 @layer components {
-  .custom-scrollbar::-webkit-scrollbar {
+  .thin-scrollbar::-webkit-scrollbar {
     width: 8px;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
+  .thin-scrollbar::-webkit-scrollbar-track {
     background-color: #f1f5f9; /* slate-100 */
     border-radius: 10px;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
+  .thin-scrollbar::-webkit-scrollbar-thumb {
     background-color: #94a3b8; /* slate-400 */
     border-radius: 10px;
     border: 2px solid #f1f5f9; /* Creates a nice padding effect */
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: #64748b; /* slate-500 */
   }
 }

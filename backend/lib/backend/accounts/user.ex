@@ -49,6 +49,9 @@ defmodule Backend.Accounts.User do
     has_many :chat_rooms_as_user1, ChatRoom, foreign_key: :user1_id
     has_many :chat_rooms_as_user2, ChatRoom, foreign_key: :user2_id
 
+    has_many :job_postings, Backend.Jobs.JobPosting, on_delete: :delete_all
+    has_many :job_applications, Backend.Jobs.JobApplication, on_delete: :delete_all
+
     timestamps(type: :utc_datetime)
   end
 

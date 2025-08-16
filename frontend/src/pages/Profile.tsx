@@ -93,7 +93,8 @@ const ProfilePage: React.FC = () => {
       setUser((prevUser) => {
         if (!prevUser) return null;
         const key = `${type}s` as 'job_experiences' | 'educations' | 'skills';
-        const updatedItems = prevUser[key].filter((item: any) => item.id !== id);
+        // --- FIX: Provide fallback empty array to prevent crash if key doesn't exist ---
+        const updatedItems = (prevUser[key] || []).filter((item: any) => item.id !== id);
         return { ...prevUser, [key]: updatedItems };
       });
     } catch (error) {
@@ -105,24 +106,38 @@ const ProfilePage: React.FC = () => {
   const handleSaveExperienceOrEducation = async (formData: any) => {
     if (!itemType || itemType === 'skill') return;
 
-    const key = `${itemType}s` as 'job_experiences' | 'educations';
-    const single = itemType;
-    const url = editingItem ? `/api/${key}/${editingItem.id}` : `/api/${key}`;
+    const endpointMap = {
+      experience: 'job_experiences',
+      education: 'educations',
+    };
+    
+    const payloadKeyMap = {
+      experience: 'job_experience',
+      education: 'education',
+    };
+
+    const endpoint = endpointMap[itemType];
+    const payloadKey = payloadKeyMap[itemType];
+    
+    const url = editingItem ? `/api/${endpoint}/${editingItem.id}` : `/api/${endpoint}`;
     const method = editingItem ? 'put' : 'post';
 
     try {
-      const response = await axios[method](url, { [single]: formData });
+      const response = await axios[method](url, { [payloadKey]: formData });
       const savedItem = response.data.data;
 
       setUser((prevUser) => {
         if (!prevUser) return null;
+        const key = `${itemType}s` as 'job_experiences' | 'educations';
         let updatedItems;
         if (editingItem) {
-          updatedItems = prevUser[key].map((item: any) =>
+          // --- FIX: Provide fallback empty array ---
+          updatedItems = (prevUser[key] || []).map((item: any) =>
             item.id === savedItem.id ? savedItem : item,
           );
         } else {
-          updatedItems = [...prevUser[key], savedItem];
+          // --- FIX: Provide fallback empty array to prevent crash on first item creation ---
+          updatedItems = [...(prevUser[key] || []), savedItem];
         }
         return { ...prevUser, [key]: updatedItems };
       });
@@ -139,13 +154,14 @@ const ProfilePage: React.FC = () => {
       const savedSkill = await addUserSkill(skillName);
       setUser((prevUser) => {
         if (!prevUser) return null;
-        // Avoid adding duplicates if user adds quickly
-        if (prevUser.skills.some((s) => s.id === savedSkill.id)) {
+        // --- FIX: Provide fallback empty array ---
+        const currentSkills = prevUser.skills || [];
+        if (currentSkills.some((s) => s.id === savedSkill.id)) {
           return prevUser;
         }
         return {
           ...prevUser,
-          skills: [...prevUser.skills, savedSkill],
+          skills: [...currentSkills, savedSkill],
         };
       });
       handleCloseModal();

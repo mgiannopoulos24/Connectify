@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getDashboardStats } from '@/services/adminService';
 import { DashboardStats } from '@/types/admin';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Users, Handshake } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';import {
+  Loader2,
+  Users,
+  Handshake,
+  BriefcaseBusiness,
+  FileText,
+} from 'lucide-react';
 
 const StatCard = ({
   title,
@@ -60,14 +65,29 @@ const AdminDashboardPage = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats && (
           <>
-            <StatCard title="Total Users" value={stats.total_users} icon={Users} />
+            <StatCard
+              title="Total Users"
+              value={stats.total_users}
+              icon={Users}
+            />
             <StatCard
               title="Accepted Connections"
               value={stats.accepted_connections}
               icon={Handshake}
+            />
+          
+            <StatCard
+              title="Total Job Postings"
+              value={stats.total_job_postings}
+              icon={BriefcaseBusiness}
+            />
+            <StatCard
+              title="Total Posts"
+              value={stats.total_posts}
+              icon={FileText}
             />
           </>
         )}

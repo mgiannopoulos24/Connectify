@@ -10,6 +10,7 @@ defmodule Backend.Companies.Company do
     field :description, :string
 
     has_many :job_experiences, Backend.Careers.JobExperience
+    has_many :job_postings, Backend.Jobs.JobPosting
 
     timestamps(type: :utc_datetime)
   end

@@ -23,6 +23,9 @@ import MemoryMatch from '@/pages/games/MemoryMatch';
 import AdminCompaniesPage from '@/pages/admin/CompaniesPage';
 import AdminSkillsPage from '@/pages/admin/SkillsPage';
 import NotificationsPage from '@/pages/Notifications'; // Import the new page
+import JobsPage from '@/pages/JobsPage'; // Add this import
+import AdminJobsManagementPage from '@/pages/admin/JobsManagementPage'; // Add this import
+import JobDetailsPage from '@/pages/JobDetailsPage'; // Add this import
 
 type RouteConfig = {
   path: string;
@@ -53,8 +56,6 @@ const routes: RouteConfig[] = [
     path: '/games/zip',
     element: <Zip />,
   },
-
-  // ... (all existing protected routes)
   {
     path: '/homepage',
     element: (
@@ -105,7 +106,26 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['professional', 'admin'],
   },
-  // --- ADD NEW NOTIFICATIONS ROUTE ---
+  {
+    path: '/jobs',
+    element: (
+      <AppLayout>
+        <JobsPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
+    path: '/jobs/:jobId',
+    element: (
+      <AppLayout>
+        <JobDetailsPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
   {
     path: '/notifications',
     element: (
@@ -116,7 +136,6 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['professional', 'admin'],
   },
-  // ------------------------------------
   {
     path: '/profile',
     element: (
@@ -141,7 +160,7 @@ const routes: RouteConfig[] = [
     path: '/onboarding',
     element: <Onboarding />,
     protected: true,
-    roles: ['professional', 'admin'], // Allow admins to onboard if needed
+    roles: ['professional', 'admin'], 
   },
   {
     path: '/settings',
@@ -153,7 +172,6 @@ const routes: RouteConfig[] = [
     protected: true,
     roles: ['professional', 'admin'],
   },
-  // ... (all existing admin and misc routes)
   {
     path: '/admin',
     element: <Navigate to="/admin/dashboard" replace />,
@@ -195,6 +213,16 @@ const routes: RouteConfig[] = [
     element: (
       <AdminLayout>
         <AdminSkillsPage />
+      </AdminLayout>
+    ),
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/jobs',
+    element: (
+      <AdminLayout>
+        <AdminJobsManagementPage />
       </AdminLayout>
     ),
     protected: true,

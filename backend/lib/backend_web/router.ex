@@ -62,6 +62,11 @@ defmodule BackendWeb.Router do
     get "/notifications", NotificationController, :index
     put "/notifications/mark_as_read", NotificationController, :mark_as_read
 
+    # Job Postings
+    resources "/job_postings", JobPostingController, except: [:new, :edit]
+    post "/job_postings/:id/apply", JobPostingController, :apply
+    get "/job_postings/:id/applications", JobPostingController, :applications
+
     # Admin routes
     scope "/admin", Admin, as: :admin do
       pipe_through :ensure_admin
@@ -72,6 +77,7 @@ defmodule BackendWeb.Router do
       get "/statistics", DashboardController, :index
       resources "/companies", CompanyController, except: [:new, :edit]
       resources "/skills", SkillController, except: [:new, :edit]
+      resources "/job_postings", JobPostingController, except: [:new, :edit]
     end
   end
 

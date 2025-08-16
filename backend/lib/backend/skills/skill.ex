@@ -11,6 +11,7 @@ defmodule Backend.Skills.Skill do
 
     belongs_to :user, User
 
+    many_to_many :job_postings, Backend.Jobs.JobPosting, join_through: "job_postings_skills"
     timestamps(type: :utc_datetime)
   end
 
