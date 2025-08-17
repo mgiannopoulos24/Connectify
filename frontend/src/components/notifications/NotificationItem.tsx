@@ -3,16 +3,23 @@ import { Link } from 'react-router-dom';
 import { Notification } from '@/types/notification';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { UserCircle, MessageSquare, ThumbsUp, UserPlus, CheckCircle, XCircle } from 'lucide-react';
-import { useNotifications } from '@/contexts/NotificationsContext'; // Import the hook
+import {
+  UserCircle,
+  MessageSquare,
+  ThumbsUp,
+  UserPlus,
+  CheckCircle,
+  XCircle,
+  Briefcase,
+} from 'lucide-react';
+import { useNotifications } from '@/contexts/NotificationsContext';
 
 interface NotificationItemProps {
   notification: Notification;
-  onItemClick: () => void; // Prop to close the popover
+  onItemClick: () => void;
 }
 
 const getNotificationDetails = (notification: Notification) => {
-  // ... (getNotificationDetails function remains unchanged)
   const { type, notifier, resource_id } = notification;
   const notifierName = `${notifier.name} ${notifier.surname}`;
 
@@ -63,6 +70,16 @@ const getNotificationDetails = (notification: Notification) => {
         text: <>There is an update on your job application.</>,
         link: `/jobs/${resource_id}`,
       };
+    case 'new_application':
+      return {
+        icon: Briefcase,
+        text: (
+          <>
+            <strong>{notifierName}</strong> applied to one of your job postings.
+          </>
+        ),
+        link: `/jobs/${resource_id}`,
+      };
     default:
       return {
         icon: UserCircle,
@@ -74,7 +91,7 @@ const getNotificationDetails = (notification: Notification) => {
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onItemClick }) => {
   const { markAsRead } = useNotifications(); // Get the context function
-  const { icon: Icon, text, link } = getNotificationDetails(notification);
+  const { text, link } = getNotificationDetails(notification);
 
   const handleClick = () => {
     // If the notification hasn't been read yet, mark it as read

@@ -53,18 +53,3 @@ export const getAllJobApplications = async (): Promise<AdminJobApplication[]> =>
   const response = await axios.get<{ data: AdminJobApplication[] }>('/api/admin/job_applications');
   return response.data.data;
 };
-
-/**
- * Updates the status of a job application.
- * @param id The ID of the application to review.
- * @param status The new status ('accepted' or 'rejected').
- */
-export const reviewJobApplication = async (
-  id: string,
-  status: 'accepted' | 'rejected',
-): Promise<void> => {
-  await axios.put(`/api/admin/job_applications/${id}/review`, {
-    application: { status },
-  });
-};
-// --- NEW FUNCTIONS END HERE ---

@@ -146,14 +146,30 @@ defmodule Backend.Jobs do
   end
 
   def apply_for_job(user, job_posting, attrs \\ %{}) do
-    params =
-      attrs
-      |> Map.put("user_id", user.id)
-      |> Map.put("job_posting_id", job_posting.id)
+    if user.id == job_posting.user_id do
+      {:error, :cannot_apply_to_own_job}
+    else
+      params =
+        attrs
+        |> Map.put("user_id", user.id)
+        |> Map.put("job_posting_id", job_posting.id)
 
-    %JobApplication{}
-    |> JobApplication.changeset(params)
-    |> Repo.insert()
+      with {:ok, application} <-
+             %JobApplication{}
+             |> JobApplication.changeset(params)
+             |> Repo.insert() do
+        # Notification logic remains, as this block is only hit if user.id != job_posting.user_id
+        Notifications.create_notification(%{
+          user_id: job_posting.user_id,
+          notifier_id: user.id,
+          type: "new_application",
+          resource_id: job_posting.id,
+          resource_type: "job_posting"
+        })
+
+        {:ok, application}
+      end
+    end
   end
 
   def list_applications_for_posting(job_posting_id) do

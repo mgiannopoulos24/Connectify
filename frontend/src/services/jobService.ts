@@ -37,6 +37,20 @@ export const getApplicationsForJob = async (jobId: string): Promise<JobPosting> 
   return response.data.data;
 };
 
+/**
+ * Allows a job poster to review an application (accept or reject).
+ * @param applicationId The ID of the application to review.
+ * @param status The new status for the application.
+ */
+export const reviewApplication = async (
+  applicationId: string,
+  status: 'accepted' | 'rejected',
+): Promise<void> => {
+  await axios.put(`/api/job_applications/${applicationId}/review`, {
+    application: { status },
+  });
+};
+
 // === Admin & User Job Management Functions ===
 
 type JobPostingPayload = {

@@ -138,9 +138,16 @@ if prof_user do
 
   # --- FIX APPLIED HERE ---
   # Use the full list of valid job types from the schema
-  valid_job_types = ["Full-time","Part-time","Self-employed","Freelance","Contract","Internship",
+  valid_job_types = [
+    "Full-time",
+    "Part-time",
+    "Self-employed",
+    "Freelance",
+    "Contract",
+    "Internship",
     "Apprenticeship",
-    "Seasonal",]
+    "Seasonal"
+  ]
 
   Enum.with_index(job_titles, 1)
   |> Enum.each(fn {title, index} ->

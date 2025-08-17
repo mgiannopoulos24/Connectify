@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { JobPosting } from '@/types/job';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Building, MapPin, Briefcase, CheckCircle, XCircle, Clock, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface JobCardProps {
   job: JobPosting;
+  matchingSkillsCount?: number;
 }
 
 const ApplicationStatusIndicator: React.FC<{ status: JobPosting['application_status'] }> = ({
@@ -51,11 +52,11 @@ const ApplicationStatusIndicator: React.FC<{ status: JobPosting['application_sta
   );
 };
 
-const JobCard: React.FC<JobCardProps> = ({ job }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, matchingSkillsCount }) => {
   return (
-    <Card className="hover:shadow-lg transition-shadow relative">
+    <Card className="hover:shadow-lg transition-shadow relative flex flex-col">
       <ApplicationStatusIndicator status={job.application_status} />
-      <Link to={`/jobs/${job.id}`} className="block">
+      <Link to={`/jobs/${job.id}`} className="block flex-grow">
         <CardHeader>
           <div className="flex items-start gap-4">
             {job.company.logo_url ? (
@@ -75,7 +76,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-grow flex flex-col">
           <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
             <span className="flex items-center gap-2">
               <MapPin className="h-4 w-4" /> {job.location || 'Remote'}
@@ -94,6 +95,15 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
               <Badge variant="outline">+{job.skills.length - 3} more</Badge>
             )}
           </div>
+          <div className="flex-grow" />
+          {matchingSkillsCount && matchingSkillsCount > 0 && (
+            <div className="flex items-center gap-2 text-sm text-blue-600 font-semibold mb-3">
+              <Sparkles className="h-4 w-4" />
+              <span>
+                {matchingSkillsCount} Matching Skill{matchingSkillsCount > 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
           <p className="text-xs text-gray-400">
             Posted {formatDistanceToNow(new Date(job.inserted_at), { addSuffix: true })}
           </p>

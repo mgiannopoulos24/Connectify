@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getAllJobApplications, reviewJobApplication } from '@/services/adminService';
+import { getAllJobApplications } from '@/services/adminService';
 import { AdminJobApplication } from '@/types/admin';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -18,10 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
 
 const AdminJobApplicationsPage: React.FC = () => {
   const [applications, setApplications] = useState<AdminJobApplication[]>([]);
@@ -41,23 +39,6 @@ const AdminJobApplicationsPage: React.FC = () => {
       setError('Failed to fetch job applications.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleReview = async (id: string, status: 'accepted' | 'rejected') => {
-    const originalApplications = [...applications];
-    // Optimistically update the application's status in the UI
-    setApplications((apps) =>
-      apps.map((app) => (app.id === id ? { ...app, status: status } : app)),
-    );
-
-    try {
-      await reviewJobApplication(id, status);
-      toast.success(`Application has been ${status}.`);
-    } catch (error) {
-      toast.error('Failed to update application status.');
-      // Revert on error
-      setApplications(originalApplications);
     }
   };
 
@@ -101,7 +82,7 @@ const AdminJobApplicationsPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>All Applications</CardTitle>
-          <CardDescription>Review and manage all job applications in the system.</CardDescription>
+          <CardDescription>A read-only view of all job applications in the system.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -112,7 +93,6 @@ const AdminJobApplicationsPage: React.FC = () => {
                 <TableHead>Company</TableHead>
                 <TableHead>Date Applied</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -129,26 +109,6 @@ const AdminJobApplicationsPage: React.FC = () => {
                     >
                       {app.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-green-600 hover:text-green-700"
-                      onClick={() => handleReview(app.id, 'accepted')}
-                      disabled={app.status === 'accepted' || app.status === 'rejected'}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => handleReview(app.id, 'rejected')}
-                      disabled={app.status === 'accepted' || app.status === 'rejected'}
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

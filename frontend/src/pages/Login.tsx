@@ -82,7 +82,7 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setPasswordVisible(!passwordVisible)}
-                  className="absolute right-3 top-8 text-gray-500"
+                  className="absolute right-3 top-9 text-gray-500"
                   disabled={isLoggingIn}
                 >
                   {passwordVisible ? <EyeOff size={20} /> : <Eye size={20} />}

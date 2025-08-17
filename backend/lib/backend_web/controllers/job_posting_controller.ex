@@ -61,6 +61,11 @@ defmodule BackendWeb.JobPostingController do
     with {:ok, _application} <- Jobs.apply_for_job(current_user, job_posting, application_params) do
       send_resp(conn, :created, "")
     else
+      {:error, :cannot_apply_to_own_job} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{errors: %{detail: "You cannot apply to your own job posting."}})
+
       {:error,
        %Ecto.Changeset{errors: [user_job_posting_unique_application_index: _]} = changeset} ->
         conn

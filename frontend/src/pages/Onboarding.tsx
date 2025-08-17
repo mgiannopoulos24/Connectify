@@ -165,7 +165,12 @@ const Onboarding = () => {
 
       // Step 7 -> 6: Complete Onboarding
       if (step === 6) {
-        await axios.put(`/api/users/${user?.id}`, { user: { onboarding_completed: true } });
+        const { data } = await axios.put(`/api/users/${user?.id}`, {
+          user: { onboarding_completed: true },
+        });
+        if (setUser) {
+          setUser(data.data);
+        }
         navigate('/homepage'); // Go to homepage
         return;
       }

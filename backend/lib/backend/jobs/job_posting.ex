@@ -9,9 +9,16 @@ defmodule Backend.Jobs.JobPosting do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @job_types ["Full-time","Part-time","Self-employed","Freelance","Contract","Internship",
+  @job_types [
+    "Full-time",
+    "Part-time",
+    "Self-employed",
+    "Freelance",
+    "Contract",
+    "Internship",
     "Apprenticeship",
-    "Seasonal",]
+    "Seasonal"
+  ]
 
   schema "job_postings" do
     field :title, :string

@@ -62,10 +62,15 @@ defmodule BackendWeb.Router do
     get "/notifications", NotificationController, :index
     put "/notifications/mark_as_read", NotificationController, :mark_as_read
 
-    # Job Postings
+    # Job Postings & Applications
     resources "/job_postings", JobPostingController, except: [:new, :edit]
     post "/job_postings/:id/apply", JobPostingController, :apply
     get "/job_postings/:id/applications", JobPostingController, :applications
+    put "/job_applications/:id/review", JobApplicationController, :review
+
+    # Recommendations
+    # get "/recommendations/connections", RecommendationController, :connections
+    # get "/recommendations/jobs", RecommendationController, :jobs
 
     # Admin routes
     scope "/admin", Admin, as: :admin do
@@ -79,7 +84,6 @@ defmodule BackendWeb.Router do
       resources "/skills", SkillController, except: [:new, :edit]
       resources "/job_postings", JobPostingController, except: [:new, :edit]
       get "/job_applications", JobApplicationController, :index
-      put "/job_applications/:id/review", JobApplicationController, :review
     end
   end
 

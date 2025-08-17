@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getJobPostingById, applyToJob } from '@/services/jobService';
-import { JobPosting } from '@/types/job';
+import { getJobPostingById, applyToJob, reviewApplication } from '@/services/jobService';
+import { JobPosting, JobApplication } from '@/types/job';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Building, MapPin, Briefcase, Sparkles, Send } from 'lucide-react';
+import {
+  Loader2,
+  Building,
+  MapPin,
+  Briefcase,
+  Sparkles,
+  Send,
+  UserCircle,
+  CheckCircle,
+  XCircle,
+  Info,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +27,7 @@ const JobDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [job, setJob] = useState<JobPosting | null>(null);
+  const [applications, setApplications] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -28,6 +40,13 @@ const JobDetailsPage: React.FC = () => {
       try {
         const data = await getJobPostingById(jobId);
         setJob(data);
+
+        // If the current user is the job owner, display applications
+        if (currentUser && data.user.id === currentUser.id) {
+          setApplications(data.applications || []);
+        }
+
+        // Check if the current user has already applied
         if (currentUser && data.applications) {
           const alreadyApplied = data.applications.some((app) => app.user.id === currentUser.id);
           if (alreadyApplied) {
@@ -62,6 +81,44 @@ const JobDetailsPage: React.FC = () => {
     }
   };
 
+  const handleReview = async (applicationId: string, status: 'accepted' | 'rejected') => {
+    const originalApplications = [...applications];
+    // Optimistic UI update
+    setApplications((apps) =>
+      apps.map((app) => (app.id === applicationId ? { ...app, status } : app)),
+    );
+
+    try {
+      await reviewApplication(applicationId, status);
+      toast.success(`Application has been ${status}.`);
+    } catch (error) {
+      toast.error('Failed to update application status.');
+      setApplications(originalApplications); // Revert on error
+    }
+  };
+
+  const getStatusVariant = (status: JobApplication['status']) => {
+    switch (status) {
+      case 'accepted':
+        return 'outline';
+      case 'rejected':
+        return 'destructive';
+      case 'reviewed':
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusClass = (status: JobApplication['status']) => {
+    switch (status) {
+      case 'accepted':
+        return 'text-green-600 border-green-600';
+      default:
+        return '';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -74,76 +131,160 @@ const JobDetailsPage: React.FC = () => {
     return <div className="text-center text-red-500 py-10">{error}</div>;
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start gap-4 mb-4">
-          {job.company.logo_url ? (
-            <img
-              src={job.company.logo_url}
-              alt={job.company.name}
-              className="h-16 w-16 rounded-lg object-contain bg-white"
-            />
-          ) : (
-            <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
-              <Building className="h-8 w-8 text-gray-500" />
-            </div>
-          )}
-          <div>
-            <CardTitle className="text-2xl">{job.title}</CardTitle>
-            <CardDescription className="text-base">
-              <Link to={`/companies/${job.company.id}`} className="hover:underline">
-                {job.company.name}
-              </Link>
-            </CardDescription>
-          </div>
-        </div>
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <span className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" /> {job.location || 'Remote'}
-          </span>
-          <span className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4" /> {job.job_type}
-          </span>
-          <span>Posted on {format(new Date(job.inserted_at), 'PPP')}</span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Button
-          onClick={handleApply}
-          disabled={isApplying || hasApplied}
-          size="lg"
-          className="w-full md:w-auto mb-6"
-        >
-          {isApplying ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="mr-2 h-4 w-4" />
-          )}
-          {isApplying ? 'Submitting...' : hasApplied ? 'Applied' : 'Apply Now'}
-        </Button>
+  const isOwner = currentUser?.id === job.user.id;
 
-        <div className="space-y-6">
-          <div>
-            <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
-              Required Skills
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {job.skills.map((skill) => (
-                <Badge key={skill.id} variant="secondary">
-                  {skill.name}
-                </Badge>
-              ))}
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start gap-4 mb-4">
+            {job.company.logo_url ? (
+              <img
+                src={job.company.logo_url}
+                alt={job.company.name}
+                className="h-16 w-16 rounded-lg object-contain bg-white"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                <Building className="h-8 w-8 text-gray-500" />
+              </div>
+            )}
+            <div>
+              <CardTitle className="text-2xl">{job.title}</CardTitle>
+              <CardDescription className="text-base">
+                <Link to={`/companies/${job.company.id}`} className="hover:underline">
+                  {job.company.name}
+                </Link>
+              </CardDescription>
             </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Job Description</h3>
-            <p className="whitespace-pre-wrap text-gray-700">{job.description}</p>
+          <div className="flex items-center gap-6 text-sm text-gray-600">
+            <span className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> {job.location || 'Remote'}
+            </span>
+            <span className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" /> {job.job_type}
+            </span>
+            <span>Posted on {format(new Date(job.inserted_at), 'PPP')}</span>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          {!isOwner && (
+            <Button
+              onClick={handleApply}
+              disabled={isApplying || hasApplied}
+              size="lg"
+              className="w-full md:w-auto mb-6"
+            >
+              {isApplying ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-2 h-4 w-4" />
+              )}
+              {isApplying ? 'Submitting...' : hasApplied ? 'Applied' : 'Apply Now'}
+            </Button>
+          )}
+
+          {isOwner && (
+            <div className="flex items-center justify-start gap-2 mb-6">
+              <Info className="h-5 w-5 text-blue-700" />
+              <p className="font-semibold text-blue-700">You can't apply on a job you posted.</p>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                Required Skills
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {job.skills.map((skill) => (
+                  <Badge key={skill.id} variant="secondary">
+                    {skill.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Job Description</h3>
+              <p className="whitespace-pre-wrap text-gray-700">{job.description}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {isOwner && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Applications Received ({applications.length})</CardTitle>
+            <CardDescription>Review candidates who have applied for this role.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {applications.length > 0 ? (
+              <div className="space-y-4">
+                {applications.map((app) => (
+                  <div
+                    key={app.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      {app.user.photo_url ? (
+                        <img
+                          src={app.user.photo_url}
+                          alt={app.user.name}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <UserCircle className="h-12 w-12 text-gray-400" />
+                      )}
+                      <div>
+                        <p className="font-semibold">
+                          {app.user.name} {app.user.surname}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Applied on {format(new Date(app.inserted_at), 'PPP')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={getStatusVariant(app.status)}
+                        className={getStatusClass(app.status)}
+                      >
+                        {app.status}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-green-600 hover:text-green-700"
+                        onClick={() => handleReview(app.id, 'accepted')}
+                        disabled={app.status === 'accepted' || app.status === 'rejected'}
+                      >
+                        <CheckCircle className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleReview(app.id, 'rejected')}
+                        disabled={app.status === 'accepted' || app.status === 'rejected'}
+                      >
+                        <XCircle className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-4">
+                No applications have been received yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 };
 
