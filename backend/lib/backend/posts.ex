@@ -9,14 +9,41 @@ defmodule Backend.Posts do
   alias Backend.Posts.Reaction
   alias Backend.Posts.Comment
   alias Backend.Notifications
+  alias Backend.Connections
 
   @doc """
-  Returns a list of all posts, with user, reactions and comments preloaded.
+  Returns a list of all posts for a user's feed.
+  This includes:
+  - Posts from the user themselves.
+  - Posts from their connections.
+  - Posts that their connections have reacted to or commented on.
   """
-  def list_posts do
-    Post
-    |> order_by(desc: :inserted_at)
-    |> preload(user: [], comments: [:user], reactions: [:user])
+  def list_posts(user) do
+    # Get the IDs of the user's accepted connections
+    connection_ids =
+      Connections.list_user_connections(user.id)
+      |> Enum.map(fn conn ->
+        if conn.user_id == user.id, do: conn.connected_user_id, else: conn.user_id
+      end)
+
+    # Combine the user's own ID with their connections' IDs for checking post authorship
+    author_ids = [user.id | connection_ids]
+
+    # Build the query
+    from(p in Post,
+      left_join: r in assoc(p, :reactions),
+      left_join: c in assoc(p, :comments),
+      # The WHERE clause checks for three conditions:
+      # 1. The post's author is the user or one of their connections.
+      # 2. A reaction on the post is from one of the user's connections.
+      # 3. A comment on the post is from one of the user's connections.
+      where:
+        p.user_id in ^author_ids or r.user_id in ^connection_ids or c.user_id in ^connection_ids,
+      # Use distinct to avoid returning the same post multiple times
+      distinct: true,
+      order_by: [desc: p.inserted_at],
+      preload: [:user, comments: [:user], reactions: [:user]]
+    )
     |> Repo.all()
   end
 

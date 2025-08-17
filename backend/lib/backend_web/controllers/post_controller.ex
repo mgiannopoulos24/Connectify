@@ -8,7 +8,8 @@ defmodule BackendWeb.PostController do
   action_fallback BackendWeb.FallbackController
 
   def index(conn, _params) do
-    posts = Posts.list_posts()
+    current_user = conn.assigns.current_user
+    posts = Posts.list_posts(current_user)
     render(conn, PostJSON, :index, posts: posts)
   end
 
