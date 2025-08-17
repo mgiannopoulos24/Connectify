@@ -26,6 +26,7 @@ import NotificationsPage from '@/pages/Notifications'; // Import the new page
 import JobsPage from '@/pages/JobsPage'; // Add this import
 import AdminJobsManagementPage from '@/pages/admin/JobsManagementPage'; // Add this import
 import JobDetailsPage from '@/pages/JobDetailsPage'; // Add this import
+import AdminJobApplicationsPage from '@/pages/admin/JobApplicationsPage'; // Import the new admin job applications page
 
 type RouteConfig = {
   path: string;
@@ -160,7 +161,7 @@ const routes: RouteConfig[] = [
     path: '/onboarding',
     element: <Onboarding />,
     protected: true,
-    roles: ['professional', 'admin'], 
+    roles: ['professional', 'admin'],
   },
   {
     path: '/settings',
@@ -223,6 +224,16 @@ const routes: RouteConfig[] = [
     element: (
       <AdminLayout>
         <AdminJobsManagementPage />
+      </AdminLayout>
+    ),
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/applications',
+    element: (
+      <AdminLayout>
+        <AdminJobApplicationsPage />
       </AdminLayout>
     ),
     protected: true,

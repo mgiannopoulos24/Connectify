@@ -159,7 +159,12 @@ const AdminJobsManagementPage: React.FC = () => {
         </Card>
       </div>
 
-      <JobFormModal isOpen={isModalOpen} onClose={handleCloseModal} onSave={handleSave} job={editingJob} />
+      <JobFormModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSave}
+        job={editingJob}
+      />
     </>
   );
 };

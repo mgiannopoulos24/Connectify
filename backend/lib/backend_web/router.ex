@@ -78,6 +78,8 @@ defmodule BackendWeb.Router do
       resources "/companies", CompanyController, except: [:new, :edit]
       resources "/skills", SkillController, except: [:new, :edit]
       resources "/job_postings", JobPostingController, except: [:new, :edit]
+      get "/job_applications", JobApplicationController, :index
+      put "/job_applications/:id/review", JobApplicationController, :review
     end
   end
 

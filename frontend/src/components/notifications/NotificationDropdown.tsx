@@ -6,7 +6,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, BellRing } from 'lucide-react';
 import NotificationItem from './NotificationItem';
 
-const NotificationDropdown: React.FC = () => {
+interface NotificationDropdownProps {
+  onItemClick: () => void; // Prop to handle closing the popover
+}
+
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onItemClick }) => {
   const { notifications, unreadCount, markAsRead, isLoading } = useNotifications();
 
   const handleMarkAllAsRead = () => {
@@ -37,16 +41,20 @@ const NotificationDropdown: React.FC = () => {
               You're all caught up!
             </div>
           ) : (
-            notifications
-              .slice(0, 10)
-              .map((notif) => <NotificationItem key={notif.id} notification={notif} />)
+            notifications.slice(0, 10).map((notif) => (
+              <NotificationItem
+                key={notif.id}
+                notification={notif}
+                onItemClick={onItemClick} // Pass the handler down
+              />
+            ))
           )}
         </div>
       </ScrollArea>
 
       <div className="border-t p-2">
         <Link to="/notifications" className="w-full">
-          <Button variant="ghost" className="w-full">
+          <Button variant="ghost" className="w-full" onClick={onItemClick}>
             View all notifications
           </Button>
         </Link>

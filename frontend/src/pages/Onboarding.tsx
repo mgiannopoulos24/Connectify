@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Loader2, CheckCircle, Upload, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CompanySummary } from '@/types/company';

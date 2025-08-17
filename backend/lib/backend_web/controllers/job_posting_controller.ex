@@ -1,10 +1,8 @@
 defmodule BackendWeb.JobPostingController do
   use BackendWeb, :controller
-
   alias Backend.Jobs
   alias Backend.Jobs.JobPosting
   alias BackendWeb.JobPostingJSON
-
   action_fallback BackendWeb.FallbackController
 
   def index(conn, _params) do
@@ -62,6 +60,22 @@ defmodule BackendWeb.JobPostingController do
 
     with {:ok, _application} <- Jobs.apply_for_job(current_user, job_posting, application_params) do
       send_resp(conn, :created, "")
+    else
+      {:error,
+       %Ecto.Changeset{errors: [user_job_posting_unique_application_index: _]} = changeset} ->
+        conn
+        |> put_status(:conflict)
+        |> put_view(json: BackendWeb.ChangesetJSON)
+        |> render("error", changeset: changeset)
+
+      # --- THIS IS THE FIX ---
+      # This block now correctly handles any other validation error
+      # by explicitly rendering it through the ChangesetJSON view.
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: BackendWeb.ChangesetJSON)
+        |> render("error", changeset: changeset)
     end
   end
 

@@ -67,7 +67,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <Users className="w-6 h-6" />
                 <span className="text-xs">My Network</span>
               </Link>
-              <Link to="/jobs" className="flex flex-col items-center text-gray-600 hover:text-blue-600">
+              <Link
+                to="/jobs"
+                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+              >
                 <Briefcase className="w-6 h-6" />
                 <span className="text-xs">Jobs</span>
               </Link>

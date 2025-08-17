@@ -15,10 +15,19 @@ export interface JobPosting {
   title: string;
   description: string;
   location: string | null;
-  job_type: 'Full-time' | 'Part-time' | 'Contract' | 'Internship' | 'Temporary';
+  job_type:
+    | 'Full-time'
+    | 'Part-time'
+    | 'Self-employed'
+    | 'Freelance'
+    | 'Contract'
+    | 'Internship'
+    | 'Apprenticeship'
+    | 'Seasonal';
   inserted_at: string;
   user: UserSummary;
   company: CompanySummary;
   skills: Skill[];
   applications?: JobApplication[]; // Optional, for when viewing applications for a posting
+  application_status?: 'submitted' | 'reviewed' | 'accepted' | 'rejected' | null;
 }

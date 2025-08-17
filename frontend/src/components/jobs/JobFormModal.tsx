@@ -5,12 +5,32 @@ import * as z from 'zod';
 import { JobPosting } from '@/types/job';
 import { Skill } from '@/types/skill';
 import { CompanySummary } from '@/types/company';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Loader2, Building, Sparkles, CheckCircle } from 'lucide-react';
 import CompanyAutocomplete from '../common/CompanyAutocomplete';
 import SkillMultiSelect from '../common/SkillMultiSelect';
@@ -24,19 +44,43 @@ const jobFormSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters.'),
   description: z.string().trim().min(10, 'Description must be at least 10 characters.'),
   location: z.string().optional(),
-  job_type: z.enum(['Full-time', 'Part-time', 'Contract', 'Internship', 'Temporary']),
+  job_type: z.enum([
+    'Full-time',
+    'Part-time',
+    'Self-employed',
+    'Freelance',
+    'Contract',
+    'Internship',
+    'Apprenticeship',
+    'Seasonal',
+  ]),
   company: z.object({
     id: z.string().nullable(),
     name: z.string().trim().min(1, 'Company is required.'),
   }),
-  skills: z.array(z.object({ id: z.string(), name: z.string() })).min(1, 'At least one skill is required.'),
+  skills: z
+    .array(z.object({ id: z.string(), name: z.string() }))
+    .min(1, 'At least one skill is required.'),
 });
 type JobFormValues = z.infer<typeof jobFormSchema>;
 
 // --- Constants ---
-const jobTypes: JobPosting['job_type'][] = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Temporary'];
+const jobTypes: JobPosting['job_type'][] = [
+  'Full-time',
+  'Part-time',
+  'Self-employed',
+  'Freelance',
+  'Contract',
+  'Internship',
+  'Apprenticeship',
+  'Seasonal',
+];
 const steps = [
-  { id: 1, name: 'Job Details', fields: ['title', 'company', 'description', 'location', 'job_type'] },
+  {
+    id: 1,
+    name: 'Job Details',
+    fields: ['title', 'company', 'description', 'location', 'job_type'],
+  },
   { id: 2, name: 'Required Skills', fields: ['skills'] },
   { id: 3, name: 'Review & Post' },
 ];
@@ -52,12 +96,17 @@ const Stepper = ({ currentStep }: { currentStep: number }) => (
               'w-8 h-8 rounded-full flex items-center justify-center font-bold transition-all',
               currentStep > step.id ? 'bg-blue-600 text-white' : '',
               currentStep === step.id ? 'bg-blue-600 text-white ring-4 ring-blue-200' : '',
-              currentStep < step.id ? 'bg-gray-200 text-gray-500' : ''
+              currentStep < step.id ? 'bg-gray-200 text-gray-500' : '',
             )}
           >
             {currentStep > step.id ? <CheckCircle className="w-5 h-5" /> : step.id}
           </div>
-          <p className={cn('text-sm mt-2', currentStep >= step.id ? 'text-gray-800 font-semibold' : 'text-gray-500')}>
+          <p
+            className={cn(
+              'text-sm mt-2',
+              currentStep >= step.id ? 'text-gray-800 font-semibold' : 'text-gray-500',
+            )}
+          >
             {step.name}
           </p>
         </div>
@@ -71,7 +120,9 @@ const Stepper = ({ currentStep }: { currentStep: number }) => (
 const ReviewStep = ({ formData }: { formData: JobFormValues }) => (
   <div className="space-y-6 text-sm">
     <div className="p-4 border rounded-lg bg-gray-50">
-      <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Building className="w-5 h-5 text-blue-600" /> Job Details</h3>
+      <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+        <Building className="w-5 h-5 text-blue-600" /> Job Details
+      </h3>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
         <strong className="text-gray-600">Title:</strong>
         <span>{formData.title}</span>
@@ -86,9 +137,15 @@ const ReviewStep = ({ formData }: { formData: JobFormValues }) => (
       </div>
     </div>
     <div className="p-4 border rounded-lg bg-gray-50">
-      <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Sparkles className="w-5 h-5 text-blue-600" /> Required Skills</h3>
+      <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+        <Sparkles className="w-5 h-5 text-blue-600" /> Required Skills
+      </h3>
       <div className="flex flex-wrap gap-2">
-        {formData.skills.map(skill => <Badge key={skill.id} variant="secondary">{skill.name}</Badge>)}
+        {formData.skills.map((skill) => (
+          <Badge key={skill.id} variant="secondary">
+            {skill.name}
+          </Badge>
+        ))}
       </div>
     </div>
   </div>
@@ -106,12 +163,12 @@ const JobFormModal: React.FC<{
     resolver: zodResolver(jobFormSchema),
     mode: 'onChange',
   });
-  
+
   // FIX: Separate state for the autocomplete's VISIBLE input value.
   const [companyInputValue, setCompanyInputValue] = useState('');
   const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // Get the actual form value for synchronization.
   const companyFormValue = form.watch('company');
 
@@ -119,36 +176,47 @@ const JobFormModal: React.FC<{
     if (isOpen) {
       if (job) {
         form.reset({
-          title: job.title, description: job.description, location: job.location || '', job_type: job.job_type,
-          company: { id: job.company.id, name: job.company.name }, skills: job.skills,
+          title: job.title,
+          description: job.description,
+          location: job.location || '',
+          job_type: job.job_type,
+          company: { id: job.company.id, name: job.company.name },
+          skills: job.skills,
         });
         setCompanyInputValue(job.company.name);
       } else {
         form.reset({
-          title: '', description: '', location: '', job_type: 'Full-time',
-          company: { id: null, name: '' }, skills: [],
+          title: '',
+          description: '',
+          location: '',
+          job_type: 'Full-time',
+          company: { id: null, name: '' },
+          skills: [],
         });
         setCompanyInputValue('');
       }
       setCurrentStep(1);
     }
   }, [job, isOpen, form]);
-  
+
   // FIX: Syncs the local input state if the form state changes (e.g., on reset).
   useEffect(() => {
     setCompanyInputValue(companyFormValue?.name || '');
   }, [companyFormValue]);
 
-  const debouncedSearch = useCallback(debounce(async (term: string) => {
-    if (term) {
-      setIsSearching(true);
-      const results = await searchCompanies(term);
-      setCompanyResults(results);
-      setIsSearching(false);
-    } else {
-      setCompanyResults([]);
-    }
-  }, 300), []);
+  const debouncedSearch = useCallback(
+    debounce(async (term: string) => {
+      if (term) {
+        setIsSearching(true);
+        const results = await searchCompanies(term);
+        setCompanyResults(results);
+        setIsSearching(false);
+      } else {
+        setCompanyResults([]);
+      }
+    }, 300),
+    [],
+  );
 
   useEffect(() => {
     debouncedSearch(companyInputValue);
@@ -168,7 +236,7 @@ const JobFormModal: React.FC<{
       setCurrentStep((prev) => prev + 1);
     }
   };
-  
+
   const handlePrevStep = () => setCurrentStep((prev) => prev - 1);
 
   const onSubmit = async (data: JobFormValues) => {
@@ -195,36 +263,111 @@ const JobFormModal: React.FC<{
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="py-4">
               <div className={cn('space-y-6', currentStep !== 1 && 'hidden')}>
-                <FormField control={form.control} name="title" render={({ field }) => (
-                  <FormItem><FormLabel>Job Title</FormLabel><FormControl><Input placeholder="e.g., Senior Frontend Developer" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-                <FormField control={form.control} name="company" render={() => ( // field is intentionally not used here to allow separate state
-                  <FormItem className="relative"><FormLabel>Company</FormLabel><FormControl>
-                    <CompanyAutocomplete searchTerm={companyInputValue} onSearchChange={setCompanyInputValue} onSelect={handleCompanySelect} results={companyResults} isLoading={isSearching} placeholder="Search or type to create..."/>
-                  </FormControl><FormMessage /></FormItem>
-                )}/>
-                <FormField control={form.control} name="description" render={({ field }) => (
-                  <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the role..." {...field} rows={5} /></FormControl><FormMessage /></FormItem>
-                )}/>
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Senior Frontend Developer" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={() => (
+                    // field is intentionally not used here to allow separate state
+                    <FormItem className="relative">
+                      <FormLabel>Company</FormLabel>
+                      <FormControl>
+                        <CompanyAutocomplete
+                          searchTerm={companyInputValue}
+                          onSearchChange={setCompanyInputValue}
+                          onSelect={handleCompanySelect}
+                          results={companyResults}
+                          isLoading={isSearching}
+                          placeholder="Search or type to create..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Describe the role..." {...field} rows={5} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <FormField control={form.control} name="location" render={({ field }) => (
-                    <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Athens, Greece" {...field} /></FormControl><FormMessage /></FormItem>
-                  )}/>
-                  <FormField control={form.control} name="job_type" render={({ field }) => (
-                    <FormItem><FormLabel>Job Type</FormLabel><Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
-                      <SelectContent>{jobTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                    </Select><FormMessage /></FormItem>
-                  )}/>
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Athens, Greece" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="job_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Job Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {jobTypes.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
 
               <div className={cn(currentStep !== 2 && 'hidden')}>
-                <FormField control={form.control} name="skills" render={({ field }) => (
-                  <FormItem className="relative"><FormLabel>Required Skills</FormLabel><FormControl>
-                    <SkillMultiSelect selectedSkills={field.value} onSelectionChange={field.onChange} />
-                  </FormControl><FormMessage /></FormItem>
-                )}/>
+                <FormField
+                  control={form.control}
+                  name="skills"
+                  render={({ field }) => (
+                    <FormItem className="relative">
+                      <FormLabel>Required Skills</FormLabel>
+                      <FormControl>
+                        <SkillMultiSelect
+                          selectedSkills={field.value}
+                          onSelectionChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className={cn(currentStep !== 3 && 'hidden')}>
@@ -246,7 +389,12 @@ const JobFormModal: React.FC<{
             </Button>
           )}
           {currentStep === 3 && (
-            <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={form.formState.isSubmitting} className="ml-auto">
+            <Button
+              type="submit"
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={form.formState.isSubmitting}
+              className="ml-auto"
+            >
               {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {form.formState.isSubmitting ? 'Posting...' : 'Post Job'}
             </Button>

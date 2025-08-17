@@ -28,7 +28,8 @@ defmodule BackendWeb.JobPostingJSON do
           Enum.map(job_posting.job_applications, &application_data/1)
         else
           []
-        end
+        end,
+      application_status: job_posting.application_status
     }
   end
 

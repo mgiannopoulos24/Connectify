@@ -22,10 +22,7 @@ export const getJobPostingById = async (id: string): Promise<JobPosting> => {
 /**
  * Applies to a job posting.
  */
-export const applyToJob = async (
-  jobId: string,
-  coverLetter?: string,
-): Promise<JobApplication> => {
+export const applyToJob = async (jobId: string, coverLetter?: string): Promise<JobApplication> => {
   const response = await axios.post<{ data: JobApplication }>(`/api/job_postings/${jobId}/apply`, {
     application: { cover_letter: coverLetter },
   });

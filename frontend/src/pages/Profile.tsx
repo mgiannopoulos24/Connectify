@@ -25,6 +25,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import axios from 'axios';
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '@/components/common/StatusIndicator';
@@ -35,21 +42,7 @@ import debounce from 'lodash.debounce';
 import { Skill } from '@/types/skill';
 import { searchSkills, addUserSkill } from '@/services/skillService';
 import SkillAutocomplete from '@/components/common/SkillAutocomplete';
-
-// --- Type Definitions ---
-interface JobExperience {
-  id: string;
-  job_title: string;
-  employment_type: string;
-  company: CompanySummary;
-}
-interface Education {
-  id: string;
-  school_name: string;
-  degree: string;
-  field_of_study: string;
-}
-// --- End Type Definitions ---
+import { JobExperience, Education } from '@/types/user'; // Import types for JobExperience and Education
 
 const ProfilePage: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -87,13 +80,17 @@ const ProfilePage: React.FC = () => {
       education: 'educations',
       skill: 'skills',
     };
+    const stateKeyMap = {
+      experience: 'job_experiences',
+      education: 'educations',
+      skill: 'skills',
+    } as const;
 
     try {
       await axios.delete(`/api/${endpointMap[type]}/${id}`);
       setUser((prevUser) => {
         if (!prevUser) return null;
-        const key = `${type}s` as 'job_experiences' | 'educations' | 'skills';
-        // --- FIX: Provide fallback empty array to prevent crash if key doesn't exist ---
+        const key = stateKeyMap[type];
         const updatedItems = (prevUser[key] || []).filter((item: any) => item.id !== id);
         return { ...prevUser, [key]: updatedItems };
       });
@@ -110,15 +107,20 @@ const ProfilePage: React.FC = () => {
       experience: 'job_experiences',
       education: 'educations',
     };
-    
+
     const payloadKeyMap = {
       experience: 'job_experience',
       education: 'education',
     };
 
+    const stateKeyMap = {
+      experience: 'job_experiences',
+      education: 'educations',
+    } as const;
+
     const endpoint = endpointMap[itemType];
     const payloadKey = payloadKeyMap[itemType];
-    
+
     const url = editingItem ? `/api/${endpoint}/${editingItem.id}` : `/api/${endpoint}`;
     const method = editingItem ? 'put' : 'post';
 
@@ -128,15 +130,13 @@ const ProfilePage: React.FC = () => {
 
       setUser((prevUser) => {
         if (!prevUser) return null;
-        const key = `${itemType}s` as 'job_experiences' | 'educations';
+        const key = stateKeyMap[itemType];
         let updatedItems;
         if (editingItem) {
-          // --- FIX: Provide fallback empty array ---
           updatedItems = (prevUser[key] || []).map((item: any) =>
             item.id === savedItem.id ? savedItem : item,
           );
         } else {
-          // --- FIX: Provide fallback empty array to prevent crash on first item creation ---
           updatedItems = [...(prevUser[key] || []), savedItem];
         }
         return { ...prevUser, [key]: updatedItems };
@@ -154,7 +154,6 @@ const ProfilePage: React.FC = () => {
       const savedSkill = await addUserSkill(skillName);
       setUser((prevUser) => {
         if (!prevUser) return null;
-        // --- FIX: Provide fallback empty array ---
         const currentSkills = prevUser.skills || [];
         if (currentSkills.some((s) => s.id === savedSkill.id)) {
           return prevUser;
@@ -387,6 +386,7 @@ const EditModal = ({
   onSave: (data: any) => void;
   onSaveSkill: (name: string) => void;
 }) => {
+  const [formData, setFormData] = useState<any>({});
   const [companySearch, setCompanySearch] = useState('');
   const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
@@ -399,11 +399,35 @@ const EditModal = ({
   const [skillResults, setSkillResults] = useState<Skill[]>([]);
   const [isSearchingSkills, setIsSearchingSkills] = useState(false);
 
+  const employmentTypes = [
+    'Full-time',
+    'Part-time',
+    'Self-employed',
+    'Freelance',
+    'Contract',
+    'Internship',
+    'Apprenticeship',
+    'Seasonal',
+  ];
+
   useEffect(() => {
-    if (isOpen && itemType === 'experience' && editingItem) {
-      setSelectedCompany(editingItem.company);
-    } else {
-      setSelectedCompany(null);
+    if (isOpen) {
+      const initialData = editingItem
+        ? { ...editingItem }
+        : {
+            job_title: '',
+            employment_type: '',
+            school_name: '',
+            degree: '',
+            field_of_study: '',
+          };
+      setFormData(initialData);
+
+      if (itemType === 'experience' && editingItem?.company) {
+        setSelectedCompany(editingItem.company);
+      } else {
+        setSelectedCompany(null);
+      }
     }
   }, [isOpen, itemType, editingItem]);
 
@@ -457,20 +481,27 @@ const EditModal = ({
     setSkillResults([]);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData((prev: any) => ({ ...prev, employment_type: value }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    let submissionData = { ...formData };
 
     if (itemType === 'experience') {
-      data.company_id = selectedCompany?.id || '';
-      data.company_name = selectedCompany?.name || '';
-      if (!data.company_id) delete data.company_id;
-      if (!data.company_name) delete data.company_name;
+      submissionData.company_id = selectedCompany?.id || undefined;
+      submissionData.company_name = selectedCompany?.name || undefined;
+      if (!submissionData.company_id) delete submissionData.company_id;
+      if (!submissionData.company_name) delete submissionData.company_name;
     }
 
-    onSave(data);
+    onSave(submissionData);
   };
 
   if (!isOpen || !itemType) return null;
@@ -509,7 +540,8 @@ const EditModal = ({
                   <Input
                     id="job_title"
                     name="job_title"
-                    defaultValue={editingItem?.job_title}
+                    value={formData.job_title || ''}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -526,12 +558,22 @@ const EditModal = ({
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="employment_type">Employment Type</Label>
-                  <Input
-                    id="employment_type"
+                  <Select
+                    value={formData.employment_type || ''}
+                    onValueChange={handleSelectChange}
                     name="employment_type"
-                    defaultValue={editingItem?.employment_type}
-                    required
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employmentTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}
@@ -542,20 +584,28 @@ const EditModal = ({
                   <Input
                     id="school_name"
                     name="school_name"
-                    defaultValue={editingItem?.school_name}
+                    value={formData.school_name || ''}
+                    onChange={handleChange}
                     required
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="degree">Degree</Label>
-                  <Input id="degree" name="degree" defaultValue={editingItem?.degree} required />
+                  <Input
+                    id="degree"
+                    name="degree"
+                    value={formData.degree || ''}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="field_of_study">Field of Study</Label>
                   <Input
                     id="field_of_study"
                     name="field_of_study"
-                    defaultValue={editingItem?.field_of_study}
+                    value={formData.field_of_study || ''}
+                    onChange={handleChange}
                     required
                   />
                 </div>

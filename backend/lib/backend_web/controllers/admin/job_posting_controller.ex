@@ -18,7 +18,9 @@ defmodule BackendWeb.Admin.JobPostingController do
   end
 
   def create(conn, %{"job_posting" => job_posting_params}) do
-    # Admin creates on behalf of a user
+    # --- FIX APPLIED HERE ---
+    # Admin creates on behalf of a user by passing user_id in params.
+    # This now correctly calls the new `Jobs.create_job_posting/1` function.
     with {:ok, %JobPosting{} = job_posting} <- Jobs.create_job_posting(job_posting_params) do
       conn
       |> put_status(:created)

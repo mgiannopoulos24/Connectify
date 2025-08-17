@@ -2,7 +2,17 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, ShieldUser, LogOut, Network, Users, Building, Sparkles, BriefcaseBusiness } from 'lucide-react';
+import {
+  Home,
+  ShieldUser,
+  LogOut,
+  Network,
+  Users,
+  Building,
+  Sparkles,
+  BriefcaseBusiness,
+  FileCheck,
+} from 'lucide-react'; // Import FileCheck
 import { cn } from '@/lib/utils';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -36,6 +46,13 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       label: 'Jobs',
       icon: BriefcaseBusiness,
     },
+    // --- NEW LINK START HERE ---
+    {
+      href: '/admin/applications',
+      label: 'Applications',
+      icon: FileCheck,
+    },
+    // --- NEW LINK END HERE ---
   ];
 
   return (

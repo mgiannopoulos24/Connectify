@@ -3,16 +3,58 @@ import { Link } from 'react-router-dom';
 import { JobPosting } from '@/types/job';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase } from 'lucide-react';
+import { Building, MapPin, Briefcase, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface JobCardProps {
   job: JobPosting;
 }
 
+const ApplicationStatusIndicator: React.FC<{ status: JobPosting['application_status'] }> = ({
+  status,
+}) => {
+  if (!status) return null;
+
+  const statusMap = {
+    accepted: {
+      Icon: CheckCircle,
+      className: 'text-green-600 bg-green-100',
+      tooltip: 'Application Accepted',
+    },
+    rejected: {
+      Icon: XCircle,
+      className: 'text-red-600 bg-red-100',
+      tooltip: 'Application Update',
+    },
+    submitted: {
+      Icon: Clock,
+      className: 'text-gray-600 bg-yellow-100',
+      tooltip: 'Application Submitted',
+    },
+    reviewed: {
+      Icon: Clock,
+      className: 'text-gray-600 bg-yellow-100',
+      tooltip: 'Application In Review',
+    },
+  };
+
+  const currentStatus = statusMap[status];
+  if (!currentStatus) return null;
+
+  const { Icon, className, tooltip } = currentStatus;
+
+  return (
+    <div className={cn('absolute top-2 right-2 p-1.5 rounded-full', className)} title={tooltip}>
+      <Icon className="h-5 w-5" />
+    </div>
+  );
+};
+
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow relative">
+      <ApplicationStatusIndicator status={job.application_status} />
       <Link to={`/jobs/${job.id}`} className="block">
         <CardHeader>
           <div className="flex items-start gap-4">
@@ -48,7 +90,9 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
                 {skill.name}
               </Badge>
             ))}
-            {job.skills.length > 3 && <Badge variant="outline">+{job.skills.length - 3} more</Badge>}
+            {job.skills.length > 3 && (
+              <Badge variant="outline">+{job.skills.length - 3} more</Badge>
+            )}
           </div>
           <p className="text-xs text-gray-400">
             Posted {formatDistanceToNow(new Date(job.inserted_at), { addSuffix: true })}

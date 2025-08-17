@@ -9,13 +9,16 @@ defmodule Backend.Jobs.JobPosting do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @job_types ["Full-time", "Part-time", "Contract", "Internship", "Temporary"]
+  @job_types ["Full-time","Part-time","Self-employed","Freelance","Contract","Internship",
+    "Apprenticeship",
+    "Seasonal",]
 
   schema "job_postings" do
     field :title, :string
     field :description, :string
     field :location, :string
     field :job_type, :string
+    field :application_status, :string, virtual: true
 
     belongs_to :user, User
     belongs_to :company, Company

@@ -4,14 +4,14 @@ import { Skill } from './skill'; // Import the new Skill type
 
 export type UserStatus = 'active' | 'idle' | 'offline';
 
-interface JobExperience {
+export interface JobExperience {
   id: string;
   job_title: string;
   employment_type: string;
   company: CompanySummary;
 }
 
-interface Education {
+export interface Education {
   id: string;
   school_name: string;
   degree: string;

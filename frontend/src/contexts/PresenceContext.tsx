@@ -11,7 +11,7 @@ interface PresenceContextType {
 }
 
 // --- Constants ---
-const IDLE_TIMEOUT = 1 * 60 * 1000; // 5 minutes
+const IDLE_TIMEOUT = 1 * 60 * 1000; // 1 minute
 const CHANNEL_NAME = 'status';
 
 // --- Context ---
@@ -27,22 +27,22 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const userStatusRef = useRef<UserStatus>('offline');
 
-  // --- THIS IS THE CORRECTED FUNCTION ---
   const getUserStatus = (userId: string): UserStatus => {
     const userPresence = presenceState[userId];
 
-    // 1. If there's no presence entry at all, the user is definitely offline.
+    // 1. If there's no presence entry at all, or no sessions are listed, the user is offline.
     if (!userPresence || userPresence.metas.length === 0) {
       return 'offline';
     }
 
-    // 2. If ANY of their connections are 'active', their overall status is 'active'.
+    // 2. If ANY of their sessions are 'active', their overall status is 'active'.
+    // This takes top priority.
     if (userPresence.metas.some((meta) => meta.status === 'active')) {
       return 'active';
     }
 
-    // 3. If they have a presence but none are 'active', they must be 'idle'.
-    //    This is the crucial change that fixes the bug.
+    // 3. If they have presence but none are 'active', they must be 'idle'.
+    // This is the crucial logic that correctly identifies the idle state.
     return 'idle';
   };
 

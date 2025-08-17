@@ -26,7 +26,8 @@ defmodule BackendWeb.UserJSON do
     %{data: data(user)}
   end
 
-  defp data(%User{} = user) do
+  # --- FIX APPLIED HERE: Changed defp to def ---
+  def data(%User{} = user) do
     data = %{
       id: user.id,
       name: user.name,

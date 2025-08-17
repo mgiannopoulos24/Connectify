@@ -5,7 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { PresenceProvider } from './contexts/PresenceContext';
-import { NotificationsProvider } from './contexts/NotificationsContext'; // Import the provider
+import { NotificationsProvider } from './contexts/NotificationsContext';
+import { Toaster } from 'sonner';
 
 const AppContent: React.FC = () => {
   const [isBackendDown, setIsBackendDown] = useState(false);
@@ -15,12 +16,10 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     const healthCheck = async () => {
-      // Don't run the check on the maintenance page itself
       if (location.pathname === '/maintenance') return;
       try {
         await axios.get('/api/health');
         if (isBackendDown) {
-          // Backend is back online, navigate away from maintenance
           navigate('/');
         }
       } catch (error) {
@@ -67,8 +66,8 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <PresenceProvider>
-        {/* Wrap with NotificationsProvider */}
         <NotificationsProvider>
+          <Toaster position="top-right" richColors />
           <AppContent />
         </NotificationsProvider>
       </PresenceProvider>

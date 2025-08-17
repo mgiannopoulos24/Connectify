@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getDashboardStats } from '@/services/adminService';
 import { DashboardStats } from '@/types/admin';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';import {
-  Loader2,
-  Users,
-  Handshake,
-  BriefcaseBusiness,
-  FileText,
-} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Users, Handshake, BriefcaseBusiness, FileText } from 'lucide-react';
 
 const StatCard = ({
   title,
@@ -68,27 +63,19 @@ const AdminDashboardPage = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats && (
           <>
-            <StatCard
-              title="Total Users"
-              value={stats.total_users}
-              icon={Users}
-            />
+            <StatCard title="Total Users" value={stats.total_users} icon={Users} />
             <StatCard
               title="Accepted Connections"
               value={stats.accepted_connections}
               icon={Handshake}
             />
-          
+
             <StatCard
               title="Total Job Postings"
               value={stats.total_job_postings}
               icon={BriefcaseBusiness}
             />
-            <StatCard
-              title="Total Posts"
-              value={stats.total_posts}
-              icon={FileText}
-            />
+            <StatCard title="Total Posts" value={stats.total_posts} icon={FileText} />
           </>
         )}
       </div>

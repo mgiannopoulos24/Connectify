@@ -2,7 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { Skill } from '@/types/skill';
 import { searchSkills } from '@/services/skillService';
 import debounce from 'lodash.debounce';
-import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from '@/components/ui/command';
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandEmpty,
+} from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 import { X as XIcon, Loader2 } from 'lucide-react';
 
@@ -65,9 +71,7 @@ const SkillMultiSelect: React.FC<SkillMultiSelectProps> = ({
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             )}
-            {!isLoading && results.length === 0 && (
-              <CommandEmpty>No skills found.</CommandEmpty>
-            )}
+            {!isLoading && results.length === 0 && <CommandEmpty>No skills found.</CommandEmpty>}
             {results.map((skill) => (
               <CommandItem key={skill.id} onSelect={() => handleSelect(skill)}>
                 {skill.name}
@@ -80,7 +84,10 @@ const SkillMultiSelect: React.FC<SkillMultiSelectProps> = ({
         {selectedSkills.map((skill) => (
           <Badge key={skill.id} variant="secondary">
             {skill.name}
-            <button onClick={() => handleRemove(skill.id)} className="ml-2 rounded-full hover:bg-gray-300">
+            <button
+              onClick={() => handleRemove(skill.id)}
+              className="ml-2 rounded-full hover:bg-gray-300"
+            >
               <XIcon className="h-3 w-3" />
             </button>
           </Badge>

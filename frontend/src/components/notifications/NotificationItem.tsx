@@ -3,14 +3,17 @@ import { Link } from 'react-router-dom';
 import { Notification } from '@/types/notification';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { UserCircle, MessageSquare, ThumbsUp, UserPlus } from 'lucide-react';
+import { UserCircle, MessageSquare, ThumbsUp, UserPlus, CheckCircle, XCircle } from 'lucide-react';
+import { useNotifications } from '@/contexts/NotificationsContext'; // Import the hook
 
 interface NotificationItemProps {
   notification: Notification;
+  onItemClick: () => void; // Prop to close the popover
 }
 
 const getNotificationDetails = (notification: Notification) => {
-  const { type, notifier, resource_type, resource_id } = notification;
+  // ... (getNotificationDetails function remains unchanged)
+  const { type, notifier, resource_id } = notification;
   const notifierName = `${notifier.name} ${notifier.surname}`;
 
   switch (type) {
@@ -32,7 +35,6 @@ const getNotificationDetails = (notification: Notification) => {
             <strong>{notifierName}</strong> reacted to your post.
           </>
         ),
-        // This link will need adjustment if you have specific post pages
         link: '/homepage',
       };
     case 'new_comment':
@@ -43,8 +45,23 @@ const getNotificationDetails = (notification: Notification) => {
             <strong>{notifierName}</strong> commented on your post.
           </>
         ),
-        // This link will need adjustment if you have specific post pages
         link: '/homepage',
+      };
+    case 'application_accepted':
+      return {
+        icon: CheckCircle,
+        text: (
+          <>
+            Your application for a job has been <strong>accepted</strong>.
+          </>
+        ),
+        link: `/jobs/${resource_id}`,
+      };
+    case 'application_rejected':
+      return {
+        icon: XCircle,
+        text: <>There is an update on your job application.</>,
+        link: `/jobs/${resource_id}`,
       };
     default:
       return {
@@ -55,8 +72,18 @@ const getNotificationDetails = (notification: Notification) => {
   }
 };
 
-const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
+const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onItemClick }) => {
+  const { markAsRead } = useNotifications(); // Get the context function
   const { icon: Icon, text, link } = getNotificationDetails(notification);
+
+  const handleClick = () => {
+    // If the notification hasn't been read yet, mark it as read
+    if (!notification.read_at) {
+      markAsRead([notification.id]);
+    }
+    // Close the popover
+    onItemClick();
+  };
 
   return (
     <Link
@@ -65,6 +92,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         'flex items-start gap-4 p-3 hover:bg-gray-100 rounded-lg transition-colors w-full text-left',
         !notification.read_at && 'bg-blue-50',
       )}
+      onClick={handleClick} // Add the click handler
     >
       <div className="flex-shrink-0">
         {notification.notifier.photo_url ? (
