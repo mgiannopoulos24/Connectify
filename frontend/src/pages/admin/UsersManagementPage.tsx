@@ -25,7 +25,7 @@ import UserDetailsModal from '@/components/admin/UserDetailsModal';
 import { usePresence } from '@/contexts/PresenceContext'; // Import usePresence
 import { UserStatus } from '@/types/user'; // Import UserStatus type
 
-const AdminUsersPage = () => {
+const AdminUsersManagementPage = () => {
   const { user: currentUser } = useAuth();
   const { getUserStatus } = usePresence(); // Use the presence hook
   const [users, setUsers] = useState<User[]>([]);
@@ -187,4 +187,4 @@ const AdminUsersPage = () => {
   );
 };
 
-export default AdminUsersPage;
+export default AdminUsersManagementPage;

@@ -49,10 +49,21 @@ defmodule BackendWeb.UserJSON do
       received_connections: Enum.map(user.received_connections, &connection_info_data/1)
     }
 
-    if Ecto.assoc_loaded?(user.posts) do
-      Map.put(data, :posts, Enum.map(user.posts, &PostJSON.data/1))
+    data_with_posts =
+      if Ecto.assoc_loaded?(user.posts) do
+        Map.put(data, :posts, Enum.map(user.posts, &PostJSON.data/1))
+      else
+        data
+      end
+
+    if Ecto.assoc_loaded?(user.job_postings) do
+      Map.put(
+        data_with_posts,
+        :job_postings,
+        Enum.map(user.job_postings, &BackendWeb.JobPostingJSON.data/1)
+      )
     else
-      data
+      data_with_posts
     end
   end
 

@@ -44,12 +44,42 @@ export const updateUserRole = async (
   return response.data.data;
 };
 
-// --- NEW FUNCTIONS START HERE ---
-
 /**
  * Fetches all job applications for the admin panel.
  */
 export const getAllJobApplications = async (): Promise<AdminJobApplication[]> => {
   const response = await axios.get<{ data: AdminJobApplication[] }>('/api/admin/job_applications');
   return response.data.data;
+};
+
+/**
+ * Exports user data from the system.
+ * @param userIds An array of user IDs to export, or null to export all.
+ * @param format The desired format ('json' or 'xml').
+ * @returns The data as a string (either JSON or XML).
+ */
+export const exportUsers = async (
+  userIds: string[] | null,
+  format: 'json' | 'xml',
+): Promise<string> => {
+  const response = await axios.get<any>('/api/admin/users/export', {
+    params: {
+      user_ids: userIds,
+      format,
+    },
+    // Use a params serializer that supports array formats Phoenix expects (e.g., user_ids[]=1&user_ids[]=2)
+    paramsSerializer: {
+      indexes: null, // to get user_ids[]=... instead of user_ids[0]=...
+    },
+    // We need to handle the response as raw text for XML
+    transformResponse: [(data) => data],
+  });
+
+  // For JSON, we beautify the output
+  if (format === 'json') {
+    return JSON.stringify(JSON.parse(response.data).data, null, 2);
+  }
+
+  // For XML, the response is already a formatted string
+  return response.data;
 };

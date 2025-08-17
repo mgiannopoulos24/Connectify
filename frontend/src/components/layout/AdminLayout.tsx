@@ -12,7 +12,8 @@ import {
   Sparkles,
   BriefcaseBusiness,
   FileCheck,
-} from 'lucide-react'; // Import FileCheck
+  Download,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -46,13 +47,16 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       label: 'Jobs',
       icon: BriefcaseBusiness,
     },
-    // --- NEW LINK START HERE ---
     {
       href: '/admin/applications',
       label: 'Applications',
       icon: FileCheck,
     },
-    // --- NEW LINK END HERE ---
+    {
+      href: '/admin/export',
+      label: 'Export Data',
+      icon: Download,
+    },
   ];
 
   return (

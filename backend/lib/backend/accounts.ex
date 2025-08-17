@@ -36,7 +36,8 @@ defmodule Backend.Accounts do
         :sent_connections,
         :received_connections,
         job_experiences: :company,
-        posts: [user: [], comments: [:user], reactions: [:user]]
+        posts: [user: [], comments: [:user], reactions: [:user]],
+        job_postings: [:company, :skills, job_applications: :user]
       ])
     else
       nil
@@ -99,6 +100,36 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Returns a list of users with all their related data for export.
+  If user_ids are provided, it fetches only those users.
+  If user_ids is nil or empty, it fetches all users.
+  """
+  def get_users_for_export(user_ids \\ nil) do
+    query =
+      case user_ids do
+        nil ->
+          User
+
+        [] ->
+          User
+
+        # --- FIX STARTS HERE ---
+        # Handle the case where only one ID is passed as a string
+        id when is_binary(id) ->
+          from(u in User, where: u.id in ^[id])
+
+        # --- FIX ENDS HERE ---
+
+        ids when is_list(ids) ->
+          from(u in User, where: u.id in ^ids)
+      end
+
+    query
+    |> Repo.all()
+    |> Enum.map(&preload_for_admin/1)
+  end
+
+  @doc """
   Creates a user.
 
   ## Examples
@@ -116,19 +147,15 @@ defmodule Backend.Accounts do
            {:ok, _} <- deliver_confirmation_instructions(user) do
         user
       else
-        # If insert_user returns {:error, changeset}, we rollback with just the changeset
-        # to keep the error format consistent.
         {:error, %Ecto.Changeset{} = changeset} ->
           Repo.rollback(changeset)
 
-        # For any other error (e.g., from email delivery), rollback with the raw error
         error ->
           Repo.rollback(error)
       end
     end)
     |> case do
       {:ok, user} -> {:ok, preload_profile(user)}
-      # The reason will now be the changeset itself in case of validation failure
       {:error, reason} -> {:error, reason}
     end
   end

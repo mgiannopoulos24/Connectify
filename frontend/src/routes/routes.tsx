@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import AdminDashboardPage from '@/pages/admin/Dashboard';
-import AdminUsersPage from '@/pages/admin/UsersPage';
+import AdminUsersManagementPage from '@/pages/admin/UsersManagementPage';
 import NotFound from '@/pages/misc/NotFound';
 import Welcome from '@/pages/Welcome';
 import Homepage from '@/pages/Homepage';
@@ -22,11 +22,12 @@ import Maintenance from '@/pages/misc/Maintenance';
 import MemoryMatch from '@/pages/games/MemoryMatch';
 import AdminCompaniesPage from '@/pages/admin/CompaniesPage';
 import AdminSkillsPage from '@/pages/admin/SkillsPage';
-import NotificationsPage from '@/pages/Notifications'; // Import the new page
-import JobsPage from '@/pages/JobsPage'; // Add this import
-import AdminJobsManagementPage from '@/pages/admin/JobsManagementPage'; // Add this import
-import JobDetailsPage from '@/pages/JobDetailsPage'; // Add this import
-import AdminJobApplicationsPage from '@/pages/admin/JobApplicationsPage'; // Import the new admin job applications page
+import NotificationsPage from '@/pages/Notifications';
+import JobsPage from '@/pages/JobsPage';
+import AdminJobsManagementPage from '@/pages/admin/JobsManagementPage';
+import JobDetailsPage from '@/pages/JobDetailsPage';
+import AdminJobApplicationsPage from '@/pages/admin/JobApplicationsPage';
+import AdminExportPage from '@/pages/admin/ExportPage';
 
 type RouteConfig = {
   path: string;
@@ -193,7 +194,7 @@ const routes: RouteConfig[] = [
     path: '/admin/users',
     element: (
       <AdminLayout>
-        <AdminUsersPage />
+        <AdminUsersManagementPage />
       </AdminLayout>
     ),
     protected: true,
@@ -234,6 +235,16 @@ const routes: RouteConfig[] = [
     element: (
       <AdminLayout>
         <AdminJobApplicationsPage />
+      </AdminLayout>
+    ),
+    protected: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/export',
+    element: (
+      <AdminLayout>
+        <AdminExportPage />
       </AdminLayout>
     ),
     protected: true,

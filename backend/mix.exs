@@ -70,7 +70,8 @@ defmodule Backend.MixProject do
       {:dotenv, "~> 3.0"},
       {:bandit, "~> 1.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:xml_builder, "~> 2.1"}
     ]
   end
 
