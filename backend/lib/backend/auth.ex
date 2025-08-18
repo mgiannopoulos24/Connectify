@@ -20,7 +20,8 @@ defmodule Backend.Auth do
   def sign_token(user) do
     # Create the claims, including the standard "exp" (expiration time) claim.
     claims = %{
-      "sub" => user.id,
+      # Use Map.get so missing :id does not raise
+      "sub" => Map.get(user, :id),
       "exp" => Joken.current_time() + token_lifespan()
     }
 
@@ -31,11 +32,25 @@ defmodule Backend.Auth do
   @doc """
   Verifies a JWT and extracts the user ID.
   """
+  # Return :error for non-binary inputs early to avoid Joken function clause errors
+  def verify_token(token) when not is_binary(token), do: :error
+
   def verify_token(token) do
-    # It directly takes the token and the signer.
     case Joken.verify(token, get_signer()) do
-      {:ok, %{"sub" => user_id}} ->
-        {:ok, user_id}
+      {:ok, claims} when is_map(claims) ->
+        case Map.get(claims, "exp") do
+          exp when is_integer(exp) ->
+            if exp > Joken.current_time() do
+              {:ok, Map.get(claims, "sub")}
+            else
+              Logger.error("JWT verification failed: expired token")
+              :error
+            end
+
+          _ ->
+            Logger.error("JWT verification failed: exp claim missing or invalid")
+            :error
+        end
 
       {:error, reason} ->
         Logger.error("JWT verification failed: #{inspect(reason)}")

@@ -166,5 +166,43 @@ defmodule Backend.AccountsTest do
 
       assert errors_on(changeset).role == ["is invalid"]
     end
+
+    # New tests for recent Accounts changes
+
+    test "get_users_for_export/1 with nil returns all users" do
+      u1 = user_fixture()
+      u2 = user_fixture()
+      exported = Accounts.get_users_for_export(nil)
+      assert Enum.sort(Enum.map(exported, & &1.id)) == Enum.sort([u1.id, u2.id])
+    end
+
+    test "get_users_for_export/1 with a list of ids returns only those users" do
+      u1 = user_fixture()
+      _u2 = user_fixture()
+      exported = Accounts.get_users_for_export([u1.id])
+      assert Enum.map(exported, & &1.id) == [u1.id]
+    end
+
+    test "get_users_for_export/1 accepts a single id as string" do
+      u = user_fixture()
+      # u.id is already a string (UUID) in recent schemas — pass it directly
+      exported = Accounts.get_users_for_export(u.id)
+      assert Enum.map(exported, & &1.id) == [u.id]
+    end
+
+    test "update_user_status/2 updates status and last_seen_at for a valid status" do
+      user = user_fixture()
+      # use a status that is allowed by the schema (e.g. "active")
+      assert {:ok, updated} = Accounts.update_user_status(user, "active")
+      assert updated.status == "active"
+      assert not is_nil(updated.last_seen_at)
+    end
+
+    test "update_user_status/2 returns an error changeset for invalid status" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{} = changeset} = Accounts.update_user_status(user, "online")
+      # the schema validates inclusion, so status should be invalid
+      assert errors_on(changeset).status == ["is invalid"]
+    end
   end
 end
