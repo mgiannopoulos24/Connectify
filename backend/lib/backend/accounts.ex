@@ -205,6 +205,39 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Deletes pending users that are older than a day.
+  This is intended to be called by a periodic cleanup task.
+  """
+  def delete_stale_pending_users do
+    # Calculate the timestamp for 24 hours ago
+    cutoff_datetime = DateTime.add(DateTime.utc_now(), -24, :hour)
+
+    from(u in User,
+      where: u.status == "pending_confirmation" and u.inserted_at < ^cutoff_datetime
+    )
+    |> Repo.delete_all()
+  end
+
+  @doc """
+  Cancels a pending registration using a token, deleting the user record.
+  """
+  def cancel_registration(token) do
+    case Repo.get_by(User, email_confirmation_token: token) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        if user.status == "pending_confirmation" do
+          # It's a pending registration, so we can delete it.
+          Repo.delete(user)
+        else
+          # The user is already confirmed or in some other state. Cannot cancel.
+          {:error, :cannot_cancel}
+        end
+    end
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples
@@ -306,12 +339,17 @@ defmodule Backend.Accounts do
         {:error, :not_found}
 
       user ->
-        user
-        |> Ecto.Changeset.change(%{
-          email_confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
-          email_confirmation_token: nil
-        })
-        |> Repo.update()
+        if user.status == "pending_confirmation" do
+          user
+          |> Ecto.Changeset.change(%{
+            email_confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+            email_confirmation_token: nil,
+            status: "offline"
+          })
+          |> Repo.update()
+        else
+          {:error, :already_confirmed}
+        end
     end
   end
 end

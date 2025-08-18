@@ -39,9 +39,10 @@ defmodule Backend.AuthTest do
     # Corrupt token by appending an extra char (invalidates signature)
     tampered = token <> "a"
 
-    log = capture_log(fn ->
-      assert :error = Auth.verify_token(tampered)
-    end)
+    log =
+      capture_log(fn ->
+        assert :error = Auth.verify_token(tampered)
+      end)
 
     assert log =~ "JWT verification failed"
   end
@@ -53,9 +54,10 @@ defmodule Backend.AuthTest do
     claims = %{"sub" => 7, "exp" => Joken.current_time() - 10}
     {:ok, token, _} = Joken.generate_and_sign(%{}, claims, signer)
 
-    log = capture_log(fn ->
-      assert :error = Auth.verify_token(token)
-    end)
+    log =
+      capture_log(fn ->
+        assert :error = Auth.verify_token(token)
+      end)
 
     assert log =~ "expired token"
   end
@@ -63,11 +65,18 @@ defmodule Backend.AuthTest do
   test "verify_token/1 returns :error if token was signed with a different secret" do
     # generate token with another secret
     other_signer = Joken.Signer.create("HS256", "other-secret")
-    {:ok, token, _} = Joken.generate_and_sign(%{}, %{"sub" => 99, "exp" => Joken.current_time() + 60}, other_signer)
 
-    log = capture_log(fn ->
-      assert :error = Auth.verify_token(token)
-    end)
+    {:ok, token, _} =
+      Joken.generate_and_sign(
+        %{},
+        %{"sub" => 99, "exp" => Joken.current_time() + 60},
+        other_signer
+      )
+
+    log =
+      capture_log(fn ->
+        assert :error = Auth.verify_token(token)
+      end)
 
     assert log =~ "JWT verification failed"
   end
@@ -80,7 +89,8 @@ defmodule Backend.AuthTest do
   end
 
   test "sign_token/1 handles user without id (sub becomes nil) and verify returns nil subject" do
-    user = %{} # no id key
+    # no id key
+    user = %{}
     assert {:ok, token, claims} = Auth.sign_token(user)
     assert Map.has_key?(claims, "sub")
     assert claims["sub"] == nil
@@ -96,9 +106,10 @@ defmodule Backend.AuthTest do
     signer = Joken.Signer.create("HS256", secret)
     {:ok, token, _} = Joken.generate_and_sign(%{}, %{"sub" => 5}, signer)
 
-    log = capture_log(fn ->
-      assert :error = Auth.verify_token(token)
-    end)
+    log =
+      capture_log(fn ->
+        assert :error = Auth.verify_token(token)
+      end)
 
     assert log =~ "exp claim missing or invalid"
   end
@@ -108,9 +119,10 @@ defmodule Backend.AuthTest do
     signer = Joken.Signer.create("HS256", secret)
     {:ok, token, _} = Joken.generate_and_sign(%{}, %{"sub" => 6, "exp" => "not-an-int"}, signer)
 
-    log = capture_log(fn ->
-      assert :error = Auth.verify_token(token)
-    end)
+    log =
+      capture_log(fn ->
+        assert :error = Auth.verify_token(token)
+      end)
 
     assert log =~ "exp claim missing or invalid"
   end

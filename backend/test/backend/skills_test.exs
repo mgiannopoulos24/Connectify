@@ -29,6 +29,7 @@ defmodule Backend.SkillsTest do
 
       results = Skills.search_skills("preF")
       assert length(results) == 10
+
       assert Enum.all?(results, fn s -> String.downcase(s.name) |> String.starts_with?("pref") end)
     end
   end
@@ -40,9 +41,8 @@ defmodule Backend.SkillsTest do
       assert user_skill.user_id == user.id
       # master skill exists (user_id is NULL in DB) — use an explicit query with is_nil/1
       master =
-        Repo.one!(
-          from(s in Skill, where: s.name == ^"Phoenix" and is_nil(s.user_id))
-        )
+        Repo.one!(from(s in Skill, where: s.name == ^"Phoenix" and is_nil(s.user_id)))
+
       assert master.name == "Phoenix"
     end
 

@@ -15,7 +15,7 @@ defmodule Backend.Accounts.User do
   @foreign_key_type :binary_id
   # Defines allowed roles
   @roles ["professional", "admin"]
-  @statuses ["active", "idle", "offline"]
+  @statuses ["pending_confirmation", "active", "idle", "offline"]
 
   schema "users" do
     field :email, :string
@@ -29,7 +29,7 @@ defmodule Backend.Accounts.User do
     field :onboarding_completed, :boolean, default: false
     field :email_confirmation_token, :string
     field :email_confirmed_at, :naive_datetime
-    field :status, :string, default: "offline"
+    field :status, :string, default: "pending_confirmation"
     field :last_seen_at, :naive_datetime
 
     field :password, :string,

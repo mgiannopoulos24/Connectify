@@ -9,8 +9,13 @@ defmodule Backend.InterestsTest do
   describe "interests" do
     test "create_interest/1 with valid data creates an interest" do
       user = user_fixture()
+
       assert {:ok, %Interest{} = interest} =
-               Interests.create_interest(%{"name" => "Microsoft", "type" => "company", "user_id" => user.id})
+               Interests.create_interest(%{
+                 "name" => "Microsoft",
+                 "type" => "company",
+                 "user_id" => user.id
+               })
 
       assert interest.name == "Microsoft"
       assert interest.type == "company"
@@ -19,6 +24,7 @@ defmodule Backend.InterestsTest do
 
     test "create_interest/1 with missing name returns error changeset" do
       user = user_fixture()
+
       assert {:error, %Ecto.Changeset{} = changeset} =
                Interests.create_interest(%{"type" => "company", "user_id" => user.id})
 
@@ -27,10 +33,20 @@ defmodule Backend.InterestsTest do
 
     test "create_interest/1 rejects duplicate name (unique constraint)" do
       user = user_fixture()
-      {:ok, _} = Interests.create_interest(%{"name" => "Microsoft", "type" => "company", "user_id" => user.id})
+
+      {:ok, _} =
+        Interests.create_interest(%{
+          "name" => "Microsoft",
+          "type" => "company",
+          "user_id" => user.id
+        })
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Interests.create_interest(%{"name"  => "Microsoft", "type" => "company", "user_id" => user.id})
+               Interests.create_interest(%{
+                 "name" => "Microsoft",
+                 "type" => "company",
+                 "user_id" => user.id
+               })
 
       errors = errors_on(changeset)
       # composite unique constraint may attach the error to any of the indexed fields;
@@ -40,6 +56,7 @@ defmodule Backend.InterestsTest do
 
     test "create_interest/1 accepts atom keys" do
       user = user_fixture()
+
       assert {:ok, %Interest{} = interest} =
                Interests.create_interest(%{name: "Apple", type: "company", user_id: user.id})
 
@@ -48,8 +65,14 @@ defmodule Backend.InterestsTest do
 
     test "create_interest/1 ignores unexpected attrs" do
       user = user_fixture()
+
       {:ok, interest} =
-        Interests.create_interest(%{"name" => "CENSUS", "unexpected" => "value", "type" => "company", "user_id" => user.id})
+        Interests.create_interest(%{
+          "name" => "CENSUS",
+          "unexpected" => "value",
+          "type" => "company",
+          "user_id" => user.id
+        })
 
       refute Map.has_key?(interest, :unexpected)
       assert interest.name == "CENSUS"
@@ -57,14 +80,33 @@ defmodule Backend.InterestsTest do
 
     test "interests support type 'people' and 'company'" do
       user = user_fixture()
-      assert {:ok, %Interest{}} = Interests.create_interest(%{"name" => "Alice", "type" => "people", "user_id" => user.id})
-      assert {:ok, %Interest{}} = Interests.create_interest(%{"name" => "Acme Corp", "type" => "company", "user_id" => user.id})
+
+      assert {:ok, %Interest{}} =
+               Interests.create_interest(%{
+                 "name" => "Alice",
+                 "type" => "people",
+                 "user_id" => user.id
+               })
+
+      assert {:ok, %Interest{}} =
+               Interests.create_interest(%{
+                 "name" => "Acme Corp",
+                 "type" => "company",
+                 "user_id" => user.id
+               })
     end
 
     # --- added tests for people ---
     test "people interest preserves name case and can be retrieved" do
       user = user_fixture()
-      {:ok, interest} = Interests.create_interest(%{"name" => "AlIce Johnson", "type" => "people", "user_id" => user.id})
+
+      {:ok, interest} =
+        Interests.create_interest(%{
+          "name" => "AlIce Johnson",
+          "type" => "people",
+          "user_id" => user.id
+        })
+
       assert interest.name == "AlIce Johnson"
       assert interest.type == "people"
     end
@@ -72,16 +114,31 @@ defmodule Backend.InterestsTest do
     test "same person name allowed for different users" do
       u1 = user_fixture()
       u2 = user_fixture()
-      {:ok, _} = Interests.create_interest(%{"name" => "Jordan", "type" => "people", "user_id" => u1.id})
+
+      {:ok, _} =
+        Interests.create_interest(%{"name" => "Jordan", "type" => "people", "user_id" => u1.id})
+
       # different user — should succeed
-      assert {:ok, %Interest{}} = Interests.create_interest(%{"name" => "Jordan", "type" => "people", "user_id" => u2.id})
+      assert {:ok, %Interest{}} =
+               Interests.create_interest(%{
+                 "name" => "Jordan",
+                 "type" => "people",
+                 "user_id" => u2.id
+               })
     end
 
     test "duplicate people interest for same user and type is rejected" do
       user = user_fixture()
-      {:ok, _} = Interests.create_interest(%{"name" => "Taylor", "type" => "people", "user_id" => user.id})
+
+      {:ok, _} =
+        Interests.create_interest(%{"name" => "Taylor", "type" => "people", "user_id" => user.id})
+
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Interests.create_interest(%{"name" => "Taylor", "type" => "people", "user_id" => user.id})
+               Interests.create_interest(%{
+                 "name" => "Taylor",
+                 "type" => "people",
+                 "user_id" => user.id
+               })
 
       errors = errors_on(changeset)
       assert Enum.any?(Map.values(errors), fn vals -> "has already been taken" in vals end)

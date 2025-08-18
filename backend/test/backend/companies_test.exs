@@ -46,7 +46,8 @@ defmodule Backend.CompaniesTest do
     test "search_companies/1 returns prefix matches and is limited to 10" do
       prefix = "Pref"
       # create 12 companies with same prefix
-      1..12 |> Enum.each(fn i ->
+      1..12
+      |> Enum.each(fn i ->
         Companies.create_company(%{name: "#{prefix}#{i}"})
       end)
 

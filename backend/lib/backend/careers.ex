@@ -42,26 +42,26 @@ defmodule Backend.Careers do
       end
     end)
     |> (fn multi ->
-      job_changeset_fun = fn %{company: company} ->
-        job_attrs = Map.drop(attrs, ["company_name"])
-        # If a company was found or created, include its ID in the changeset
-        # Otherwise, leave it out to allow updates without changing the company
-        job_attrs =
-          if company do
-            Map.put(job_attrs, "company_id", company.id)
-          else
-            job_attrs
+          job_changeset_fun = fn %{company: company} ->
+            job_attrs = Map.drop(attrs, ["company_name"])
+            # If a company was found or created, include its ID in the changeset
+            # Otherwise, leave it out to allow updates without changing the company
+            job_attrs =
+              if company do
+                Map.put(job_attrs, "company_id", company.id)
+              else
+                job_attrs
+              end
+
+            JobExperience.changeset(job_experience_struct, job_attrs)
           end
 
-        JobExperience.changeset(job_experience_struct, job_attrs)
-      end
-
-      if job_experience_struct.id do
-        Ecto.Multi.update(multi, :job_experience, job_changeset_fun)
-      else
-        Ecto.Multi.insert(multi, :job_experience, job_changeset_fun)
-      end
-    end).()
+          if job_experience_struct.id do
+            Ecto.Multi.update(multi, :job_experience, job_changeset_fun)
+          else
+            Ecto.Multi.insert(multi, :job_experience, job_changeset_fun)
+          end
+        end).()
     |> Repo.transaction()
     |> case do
       {:ok, %{job_experience: job_experience}} ->

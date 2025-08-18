@@ -136,7 +136,9 @@ defmodule Backend.JobsTest do
       assert {:error, :cannot_apply_to_own_job} = Jobs.apply_for_job(owner, posting, %{})
 
       # other can apply
-      assert {:ok, %JobApplication{} = app} = Jobs.apply_for_job(other, posting, %{"cover_letter" => "Hi"})
+      assert {:ok, %JobApplication{} = app} =
+               Jobs.apply_for_job(other, posting, %{"cover_letter" => "Hi"})
+
       assert app.user_id == other.id
       assert app.job_posting_id == posting.id
 
@@ -145,7 +147,10 @@ defmodule Backend.JobsTest do
                Jobs.apply_for_job(other, posting, %{"cover_letter" => "Again"})
 
       errors = errors_on(changeset)
-      assert Enum.any?(Map.values(errors), fn vals -> Enum.any?(vals, &String.contains?(&1, "already applied")) end)
+
+      assert Enum.any?(Map.values(errors), fn vals ->
+               Enum.any?(vals, &String.contains?(&1, "already applied"))
+             end)
     end
 
     test "review_application/2 updates status and returns updated application" do

@@ -15,6 +15,7 @@ defmodule Backend.Application do
       BackendWeb.Presence,
       # Start a worker by calling: Backend.Worker.start_link(arg)
       # {Backend.Worker, arg},
+      {Backend.Accounts.StaleUserJanitor, []},
       # Start to serve requests, typically the last entry
       BackendWeb.Endpoint
     ]

@@ -1,6 +1,27 @@
 defmodule BackendWeb.Router do
   use BackendWeb, :router
 
+  defmodule Plugs.EnsureConfirmed do
+    import Plug.Conn
+    import Phoenix.Controller, only: [json: 2, halt: 1]
+
+    def init(opts), do: opts
+
+    def call(conn, _opts) do
+      case conn.assigns[:current_user] do
+        # This plug only acts if a user is assigned
+        %Backend.Accounts.User{status: "pending_confirmation"} ->
+          conn
+          |> put_status(:forbidden)
+          |> json(%{errors: %{detail: "Please confirm your email to continue."}})
+          |> halt()
+
+        _ ->
+          conn
+      end
+    end
+  end
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -15,6 +36,10 @@ defmodule BackendWeb.Router do
     plug BackendWeb.Plugs.AuthPlug
   end
 
+  pipeline :api_confirmed do
+    plug Plugs.EnsureConfirmed
+  end
+
   pipeline :ensure_admin do
     plug BackendWeb.Plugs.EnsureAdminPlug
   end
@@ -22,14 +47,19 @@ defmodule BackendWeb.Router do
   scope "/api", BackendWeb do
     pipe_through :api
 
-    get "/users/me", UserController, :me
+    # --- Public / Pre-confirmation routes ---
     get "/health", HealthController, :index
-    resources "/users", UserController, except: [:new, :edit, :create]
-
-    # Authentication routes
     post "/register", UserController, :create
     post "/login", SessionController, :create
     delete "/logout", SessionController, :delete
+    post "/email/confirm", EmailConfirmationController, :create
+    post "/email/confirm/cancel", EmailConfirmationController, :cancel
+
+    # --- Authenticated & Confirmed routes ---
+    pipe_through :api_confirmed
+
+    get "/users/me", UserController, :me
+    resources "/users", UserController, except: [:new, :edit, :create]
 
     # Other resources
     resources "/job_experiences", JobExperienceController, except: [:new, :edit]
@@ -56,7 +86,6 @@ defmodule BackendWeb.Router do
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index
     post "/chat/upload_image", ChatController, :upload_image
-    post "/email/confirm", EmailConfirmationController, :create
 
     # Notifications
     get "/notifications", NotificationController, :index

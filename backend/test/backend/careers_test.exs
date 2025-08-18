@@ -10,6 +10,7 @@ defmodule Backend.CareersTest do
   describe "job experiences" do
     test "create_job_experience/1 with company_name creates company and job_experience (preloads company)" do
       user = user_fixture()
+
       attrs = %{
         "company_name" => "TestCo",
         "job_title" => "Developer",
@@ -25,6 +26,7 @@ defmodule Backend.CareersTest do
     test "create_job_experience/1 with company_id uses existing company" do
       {:ok, company} = Companies.get_or_create_company_by_name("ExistingCo")
       user = user_fixture()
+
       attrs = %{
         "company_id" => company.id,
         "job_title" => "Engineer",
@@ -38,6 +40,7 @@ defmodule Backend.CareersTest do
 
     test "create_job_experience/1 without company_id or company_name returns error changeset" do
       user = user_fixture()
+
       attrs = %{
         "job_title" => "NoCompanyRole",
         "employment_type" => "full_time",
@@ -51,15 +54,18 @@ defmodule Backend.CareersTest do
     test "update_job_experience/2 accepts update without company fields (when existing record present)" do
       user = user_fixture()
       # create initial experience with a company name
-      {:ok, je} = Careers.create_job_experience(%{
-        "company_name" => "InitialCo",
-        "job_title" => "X",
-        "employment_type" => "full_time",
-        "user_id" => user.id
-      })
+      {:ok, je} =
+        Careers.create_job_experience(%{
+          "company_name" => "InitialCo",
+          "job_title" => "X",
+          "employment_type" => "full_time",
+          "user_id" => user.id
+        })
 
       # update some attrs without providing company info
-      assert {:ok, %JobExperience{} = updated} = Careers.update_job_experience(je, %{"job_title" => "Updated"})
+      assert {:ok, %JobExperience{} = updated} =
+               Careers.update_job_experience(je, %{"job_title" => "Updated"})
+
       assert updated.job_title == "Updated"
       # company should still be present
       assert not is_nil(updated.company)
@@ -67,12 +73,14 @@ defmodule Backend.CareersTest do
 
     test "get_job_experience!/1 preloads company" do
       user = user_fixture()
-      {:ok, je} = Careers.create_job_experience(%{
-        "company_name" => "PreloadCo",
-        "job_title" => "T",
-        "employment_type" => "full_time",
-        "user_id" => user.id
-      })
+
+      {:ok, je} =
+        Careers.create_job_experience(%{
+          "company_name" => "PreloadCo",
+          "job_title" => "T",
+          "employment_type" => "full_time",
+          "user_id" => user.id
+        })
 
       reloaded = Careers.get_job_experience!(je.id)
       assert not is_nil(reloaded.company)
@@ -81,12 +89,14 @@ defmodule Backend.CareersTest do
 
     test "delete_job_experience/1 deletes the job experience" do
       user = user_fixture()
-      {:ok, je} = Careers.create_job_experience(%{
-        "company_name" => "ToDeleteCo",
-        "job_title" => "Temp",
-        "employment_type" => "full_time",
-        "user_id" => user.id
-      })
+
+      {:ok, je} =
+        Careers.create_job_experience(%{
+          "company_name" => "ToDeleteCo",
+          "job_title" => "Temp",
+          "employment_type" => "full_time",
+          "user_id" => user.id
+        })
 
       assert {:ok, %JobExperience{}} = Careers.delete_job_experience(je)
       assert_raise Ecto.NoResultsError, fn -> Careers.get_job_experience!(je.id) end
@@ -94,14 +104,18 @@ defmodule Backend.CareersTest do
 
     test "update_job_experience/2 can change company by providing company_name" do
       user = user_fixture()
-      {:ok, je} = Careers.create_job_experience(%{
-        "company_name" => "OldCo",
-        "job_title" => "Dev",
-        "employment_type" => "full_time",
-        "user_id" => user.id
-      })
 
-      assert {:ok, %JobExperience{} = updated} = Careers.update_job_experience(je, %{"company_name" => "NewCo"})
+      {:ok, je} =
+        Careers.create_job_experience(%{
+          "company_name" => "OldCo",
+          "job_title" => "Dev",
+          "employment_type" => "full_time",
+          "user_id" => user.id
+        })
+
+      assert {:ok, %JobExperience{} = updated} =
+               Careers.update_job_experience(je, %{"company_name" => "NewCo"})
+
       assert not is_nil(updated.company)
       assert updated.company.name == "NewCo"
     end
@@ -119,6 +133,7 @@ defmodule Backend.CareersTest do
   describe "educations" do
     test "create, update, delete education lifecycle" do
       user = user_fixture()
+
       valid_attrs = %{
         "institution" => "Uni",
         "degree" => "BS",
