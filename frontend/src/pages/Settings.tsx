@@ -36,7 +36,7 @@ const settingsOptions = [
         icon: Eye,
         title: 'Visibility',
         description: 'Control who sees your profile and activity.',
-        to: '#',
+        to: '/settings/visibility',
       },
       {
         icon: FileText,

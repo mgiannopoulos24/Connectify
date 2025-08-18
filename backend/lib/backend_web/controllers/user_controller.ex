@@ -23,6 +23,12 @@ defmodule BackendWeb.UserController do
     render(conn, :index, users: users)
   end
 
+  def search(conn, %{"term" => search_term}) do
+    current_user = conn.assigns.current_user
+    users = Accounts.search_users(search_term, current_user.id)
+    render(conn, UserJSON, :search_results, users: users)
+  end
+
   def new(conn, _params) do
     changeset = Accounts.change_user(%User{})
     render(conn, :new, changeset: changeset)
@@ -59,8 +65,9 @@ defmodule BackendWeb.UserController do
   end
 
   def show(conn, %{"id" => id}) do
-    user = Accounts.get_user!(id)
-    render(conn, :show, user: user)
+    current_user = conn.assigns.current_user
+    user_profile = Accounts.get_user_profile!(id, current_user)
+    render(conn, UserJSON, :show, user: user_profile)
   end
 
   def edit(conn, %{"id" => id}) do

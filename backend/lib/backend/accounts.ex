@@ -45,6 +45,101 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Searches for users by name or surname for autocomplete.
+  Limits results to 10 and excludes the current user.
+  """
+  def search_users(search_term, current_user_id) when is_binary(search_term) do
+    pattern = "%#{search_term}%"
+
+    from(u in User,
+      where:
+        (ilike(u.name, ^pattern) or ilike(u.surname, ^pattern) or
+           ilike(fragment("? || ' ' || ?", u.name, u.surname), ^pattern)) and
+          u.id != ^current_user_id,
+      limit: 10,
+      select: %{id: u.id, name: u.name, surname: u.surname, photo_url: u.photo_url}
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single user's profile, filtering fields based on visibility rules.
+  Raises `Ecto.NoResultsError` if the User does not exist.
+  """
+  def get_user_profile!(profile_user_id, current_user) do
+    # A user can always see their own full profile.
+    if profile_user_id == current_user.id do
+      get_user!(profile_user_id)
+    else
+      # Fetch the full user profile from the database.
+      profile_user = get_user!(profile_user_id)
+
+      # Check if the users are connected.
+      are_connected = are_users_connected?(current_user.id, profile_user.id, profile_user)
+
+      # If the profile is public or they are connected, return the full profile.
+      if profile_user.profile_visibility == "public" or are_connected do
+        profile_user
+      else
+        # Otherwise, return the filtered public version of the profile.
+        filter_for_public_view(profile_user)
+      end
+    end
+  end
+
+  @doc """
+  Checks if two users have an accepted connection.
+  """
+  def are_users_connected?(user1_id, user2_id, preloaded_profile_user \\ nil) do
+    # Optimization: use preloaded associations if available to avoid a DB query.
+    connections =
+      if preloaded_profile_user do
+        preloaded_profile_user.sent_connections ++ preloaded_profile_user.received_connections
+      else
+        from(c in Backend.Connections.Connection,
+          where:
+            ((c.user_id == ^user1_id and c.connected_user_id == ^user2_id) or
+               (c.user_id == ^user2_id and c.connected_user_id == ^user1_id)) and
+              c.status == "accepted"
+        )
+        |> Repo.all()
+      end
+
+    Enum.any?(connections, &(&1.status == "accepted"))
+  end
+
+  defp filter_for_public_view(user) do
+    # Create a new User struct, nullifying private fields.
+    # This preserves the struct type for consistent handling in JSON views.
+    %User{
+      id: user.id,
+      name: user.name,
+      surname: user.surname,
+      photo_url: user.photo_url,
+      location: user.location,
+      role: user.role,
+      onboarding_completed: user.onboarding_completed,
+      # Null out sensitive or connections-only data
+      email: nil,
+      phone_number: nil,
+      email_confirmed_at: nil,
+      status: "offline", # Hide real-time status
+      last_seen_at: nil,
+      job_experiences: [],
+      educations: [],
+      skills: [],
+      interests: [],
+      sent_connections: [],
+      received_connections: [],
+      posts: [],
+      job_postings: [],
+      job_applications: [],
+      inserted_at: user.inserted_at,
+      updated_at: user.updated_at
+    }
+  end
+  
+  @doc """
   Returns the list of users.
 
   ## Examples

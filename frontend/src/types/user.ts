@@ -35,14 +35,15 @@ export interface User {
   id: string;
   name: string;
   surname: string;
-  email: string;
+  email: string | null;
   role: 'professional' | 'admin';
-  phone_number: string;
+  phone_number: string | null;
   photo_url: string;
   location: string | null;
   onboarding_completed: boolean;
   status: UserStatus;
   last_seen_at: string | null;
+  profile_visibility: 'public' | 'connections_only';
   job_experiences: JobExperience[];
   educations: Education[];
   skills: Skill[];

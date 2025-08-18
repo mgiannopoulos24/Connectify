@@ -26,6 +26,19 @@ defmodule BackendWeb.UserJSON do
     %{data: data(user)}
   end
 
+  @doc """
+  Renders a list of users for search autocomplete results.
+  """
+  def search_results(%{users: users}) do
+    %{data: for(user <- users, do: search_result_data(user))}
+  end
+
+  defp search_result_data(user_map) do
+    # The search query in the Accounts context already returns a map
+    # with the exact fields needed for the autocomplete dropdown.
+    user_map
+  end
+
   # --- FIX APPLIED HERE: Changed defp to def ---
   def data(%User{} = user) do
     data = %{
@@ -41,6 +54,8 @@ defmodule BackendWeb.UserJSON do
       email_confirmed_at: user.email_confirmed_at,
       status: user.status,
       last_seen_at: user.last_seen_at,
+      # Add the new visibility field to the response
+      profile_visibility: user.profile_visibility,
       job_experiences: Enum.map(user.job_experiences, &job_experience_data/1),
       educations: Enum.map(user.educations, &education_data/1),
       skills: Enum.map(user.skills, &skill_data/1),

@@ -18,6 +18,7 @@ import {
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '../common/StatusIndicator';
 import NotificationBell from '../notifications/NotificationBell';
+import UserSearchBar from '../common/UserSearchBar';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
@@ -42,76 +43,86 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link
-              to="/homepage"
-              className="flex items-center gap-2 text-2xl font-bold text-blue-600"
-            >
-              <NetworkIcon />
-              <span>Connectify</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center h-16">
+            {/* Left Section */}
+            <div className="flex items-center justify-start">
               <Link
                 to="/homepage"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                className="flex items-center gap-2 text-2xl font-bold text-blue-600"
               >
-                <NetworkIcon className="w-6 h-6" />
-                <span className="text-xs">Home</span>
+                <NetworkIcon />
+                <span className="hidden sm:inline">Connectify</span>
               </Link>
-              <Link
-                to="/network"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
-                <Users className="w-6 h-6" />
-                <span className="text-xs">My Network</span>
-              </Link>
-              <Link
-                to="/jobs"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
-                <Briefcase className="w-6 h-6" />
-                <span className="text-xs">Jobs</span>
-              </Link>
-              <Link
-                to="/messaging"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
-                <MessageSquare className="w-6 h-6" />
-                <span className="text-xs">Messaging</span>
-              </Link>
-              {/* === Replace Link with NotificationBell === */}
-              <NotificationBell />
-              {/* ========================================= */}
-              <Link
-                to="/profile"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
-                <User className="w-6 h-6" />
-                <span className="text-xs">Me</span>
-              </Link>
-              {user?.role === 'admin' && (
+            </div>
+
+            {/* Center Section */}
+            <div className="flex items-center justify-center">
+              <div className="w-full max-w-xl">
+                <UserSearchBar />
+              </div>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center justify-end">
+              <nav className="hidden md:flex items-center gap-6">
                 <Link
-                  to="/admin/dashboard"
+                  to="/homepage"
                   className="flex flex-col items-center text-gray-600 hover:text-blue-600"
                 >
-                  <ShieldUser className="w-6 h-6" />
-                  <span className="text-xs">Admin</span>
+                  <NetworkIcon className="w-6 h-6" />
+                  <span className="text-xs">Home</span>
                 </Link>
-              )}
-              <Link
-                to="/settings"
-                className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-              >
-                <Settings className="w-6 h-6" />
-                <span className="text-xs">Settings</span>
-              </Link>
-              <Button onClick={logout} variant="destructive" size="sm">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </nav>
+                <Link
+                  to="/network"
+                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                >
+                  <Users className="w-6 h-6" />
+                  <span className="text-xs">My Network</span>
+                </Link>
+                <Link
+                  to="/jobs"
+                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                >
+                  <Briefcase className="w-6 h-6" />
+                  <span className="text-xs">Jobs</span>
+                </Link>
+                <Link
+                  to="/messaging"
+                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                >
+                  <MessageSquare className="w-6 h-6" />
+                  <span className="text-xs">Messaging</span>
+                </Link>
+                <NotificationBell />
+                <Link
+                  to="/profile"
+                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                >
+                  <User className="w-6 h-6" />
+                  <span className="text-xs">Me</span>
+                </Link>
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin/dashboard"
+                    className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                  >
+                    <ShieldUser className="w-6 h-6" />
+                    <span className="text-xs">Admin</span>
+                  </Link>
+                )}
+                <Link
+                  to="/settings"
+                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
+                >
+                  <Settings className="w-6 h-6" />
+                  <span className="text-xs">Settings</span>
+                </Link>
+                <Button onClick={logout} variant="destructive" size="sm">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </nav>
+            </div>
           </div>
         </div>
       </header>
@@ -130,7 +141,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         <div className="h-full w-full rounded-full overflow-hidden border-2 border-gray-200">
                           {user.photo_url ? (
                             <img
-                              src={user.photo_url}
+                              src={`${user.photo_url}`}
                               alt={`${user.name} ${user.surname}`}
                               className="h-full w-full object-cover"
                             />

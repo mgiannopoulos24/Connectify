@@ -16,6 +16,7 @@ defmodule Backend.Accounts.User do
   # Defines allowed roles
   @roles ["professional", "admin"]
   @statuses ["pending_confirmation", "active", "idle", "offline"]
+  @visibilities ["public", "connections_only"]
 
   schema "users" do
     field :email, :string
@@ -31,6 +32,7 @@ defmodule Backend.Accounts.User do
     field :email_confirmed_at, :naive_datetime
     field :status, :string, default: "pending_confirmation"
     field :last_seen_at, :naive_datetime
+    field :profile_visibility, :string, default: "public"
 
     field :password, :string,
       virtual: true,
@@ -71,13 +73,15 @@ defmodule Backend.Accounts.User do
       :email_confirmation_token,
       :email_confirmed_at,
       :status,
-      :last_seen_at
+      :last_seen_at,
+      :profile_visibility
     ])
     |> validate_required([:name, :surname, :email])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:password, min: 8)
     |> unique_constraint(:email)
     |> validate_inclusion(:status, @statuses)
+    |> validate_inclusion(:profile_visibility, @visibilities)
     |> put_password_hash()
   end
 

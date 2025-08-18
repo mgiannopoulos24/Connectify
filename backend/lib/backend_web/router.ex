@@ -59,6 +59,7 @@ defmodule BackendWeb.Router do
     pipe_through :api_confirmed
 
     get "/users/me", UserController, :me
+    get "/users/search", UserController, :search
     resources "/users", UserController, except: [:new, :edit, :create]
 
     # Other resources
