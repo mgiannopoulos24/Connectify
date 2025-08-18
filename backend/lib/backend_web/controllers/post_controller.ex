@@ -10,7 +10,7 @@ defmodule BackendWeb.PostController do
   def index(conn, _params) do
     current_user = conn.assigns.current_user
     posts = Posts.list_posts(current_user)
-    render(conn, PostJSON, :index, posts: posts)
+    render(conn, PostJSON, :index, posts: posts, current_user: current_user)
   end
 
   def create(conn, %{"post" => post_params}) do

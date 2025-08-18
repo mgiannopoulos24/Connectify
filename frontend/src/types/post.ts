@@ -28,4 +28,7 @@ export interface Post {
   reaction_counts: ReactionCounts;
   reactions: Reaction[];
   comments: Comment[];
+  latest_comment: Comment | null;
+  top_reactions: Reaction['type'][];
+  last_connection_reaction: Reaction | null;
 }

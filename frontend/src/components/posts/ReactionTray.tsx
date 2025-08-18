@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Post, Reaction } from '@/types/post';
 import { reactToPost, removeReaction } from '@/services/postService';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import ReactionIcon from './ReactionIcon';
-import { ThumbsUp, MessageCircle, Share2, Send, Trash2 } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Share2, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ReactionTrayProps {
   post: Post;
@@ -22,10 +23,42 @@ const Reactions: Reaction['type'][] = [
   'constructive',
 ];
 
+const reactionColors: Record<Reaction['type'], string> = {
+  like: 'bg-blue-100 text-blue-600',
+  support: 'bg-teal-100 text-teal-600',
+  congrats: 'bg-yellow-100 text-yellow-600',
+  awesome: 'bg-purple-100 text-purple-700',
+  funny: 'bg-orange-100 text-orange-600',
+  constructive: 'bg-green-100 text-green-700',
+};
+
 const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentClick }) => {
   const { user } = useAuth();
   const [isReacting, setIsReacting] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const currentUserReaction = post.reactions.find((r) => r.user.id === user?.id)?.type;
+
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleHide = (delay = 2000) => {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    hideTimeoutRef.current = setTimeout(() => setShowReactions(false), delay);
+  };
+
+  const cancelHide = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  };
 
   const handleReact = async (type: Reaction['type']) => {
     if (isReacting) return;
@@ -33,6 +66,8 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentCl
     try {
       const updatedPost = await reactToPost(post.id, type);
       onUpdate(updatedPost);
+      // hide reactions shortly after reacting
+      scheduleHide(300);
     } catch (error) {
       console.error('Failed to react:', error);
     } finally {
@@ -46,6 +81,7 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentCl
     try {
       const updatedPost = await removeReaction(post.id);
       onUpdate(updatedPost);
+      scheduleHide(300);
     } catch (error) {
       console.error('Failed to remove reaction:', error);
     } finally {
@@ -55,7 +91,16 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentCl
 
   return (
     <div className="flex justify-around items-center mt-2 pt-2 border-t">
-      <div className="group relative">
+      <div
+        className="relative"
+        onMouseEnter={() => {
+          cancelHide();
+          setShowReactions(true);
+        }}
+        onMouseLeave={() => {
+          scheduleHide(500); // hide after 2 seconds when leaving
+        }}
+      >
         <Button
           variant="ghost"
           className={cn(
@@ -63,6 +108,11 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentCl
             currentUserReaction && 'text-blue-600 font-semibold',
           )}
           onClick={() => (currentUserReaction ? handleRemoveReaction() : handleReact('like'))}
+          onFocus={() => {
+            cancelHide();
+            setShowReactions(true);
+          }}
+          onBlur={() => scheduleHide(2000)}
         >
           {currentUserReaction ? (
             <ReactionIcon type={currentUserReaction} />
@@ -71,18 +121,47 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentCl
           )}
           <span className="capitalize">{currentUserReaction || 'React'}</span>
         </Button>
-        <div className="absolute bottom-full mb-2 hidden group-hover:flex bg-white shadow-lg rounded-full p-1 gap-1 border">
-          {Reactions.map((type) => (
-            <button
-              key={type}
-              onClick={() => handleReact(type)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-transform hover:scale-125"
+
+        <AnimatePresence>
+          {showReactions && (
+            <motion.div
+              key="reactions-popup"
+              initial={{ opacity: 0, scale: 0.85, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="absolute bottom-full mb-2 flex bg-white shadow-lg rounded-full p-1 gap-1 border z-20"
+              onMouseEnter={() => {
+                cancelHide();
+                setShowReactions(true);
+              }}
+              onMouseLeave={() => scheduleHide(2000)}
             >
-              <ReactionIcon type={type} />
-            </button>
-          ))}
-        </div>
+              {Reactions.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleReact(type)}
+                  onMouseEnter={cancelHide}
+                  onMouseLeave={() => scheduleHide(2000)}
+                  className="p-1 hover:scale-110 transition-transform rounded-full"
+                  aria-label={`React ${type}`}
+                  type="button"
+                >
+                  <span
+                    className={cn(
+                      'flex items-center justify-center w-8 h-8 rounded-full',
+                      reactionColors[type],
+                    )}
+                  >
+                    <ReactionIcon type={type} className="w-5 h-5" />
+                  </span>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
       <Button variant="ghost" className="flex items-center gap-2 w-full" onClick={onCommentClick}>
         <MessageCircle className="w-5 h-5" />
         Comment

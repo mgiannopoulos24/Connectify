@@ -25,7 +25,7 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
   const { user } = useAuth();
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(post.comments.length > 0);
 
   const handleUpdateComments = (newComment: any) => {
     const updatedPost = {
@@ -105,7 +105,11 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
             {post.link_url}
           </a>
         )}
-        <ReactionSummary post={post} />
+
+        <div className="space-y-2 mt-2 mb-2">
+          <ReactionSummary post={post} />
+        </div>
+
         <ReactionTray
           post={post}
           onUpdate={onUpdate}
