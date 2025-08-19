@@ -1,3 +1,4 @@
+# backend/lib/backend_web/controllers/post_json.ex
 defmodule BackendWeb.PostJSON do
   alias Backend.Posts.Post
   alias Backend.Posts.Reaction
@@ -12,29 +13,34 @@ defmodule BackendWeb.PostJSON do
     %{data: Enum.map(posts, &data(&1, nil))}
   end
 
-  def show(%{post: post}) do
-    %{data: data(post)}
+  def show(%{post: post, current_user: current_user}) do
+    %{data: data(post, current_user)}
   end
 
-  def data(%Post{} = post), do: data(post, nil)
+  def show(%{post: post}) do
+    %{data: data(post, nil)}
+  end
 
   def data(%Post{} = post, current_user \\ nil) do
+    comments_tree = build_comment_tree(post.comments)
+
     base_data = %{
       id: post.id,
       content: post.content,
       image_url: post.image_url,
       link_url: post.link_url,
+      video_url: post.video_url,
       inserted_at: post.inserted_at,
       user: user_data(post.user),
       reactions_count: Enum.count(post.reactions),
       comments_count: Enum.count(post.comments),
       reaction_counts: reaction_counts(post.reactions),
       reactions: Enum.map(post.reactions, &reaction_data/1),
-      comments: Enum.map(post.comments, &comment_data/1)
+      comments: Enum.map(comments_tree, &comment_data(&1, current_user))
     }
 
     detailed_data = %{
-      latest_comment: latest_comment_data(post.comments),
+      latest_comment: latest_comment_data(post.comments, current_user),
       top_reactions: top_reaction_types(post.reactions),
       last_connection_reaction: last_connection_reaction_data(post.reactions, current_user)
     }
@@ -42,13 +48,26 @@ defmodule BackendWeb.PostJSON do
     Map.merge(base_data, detailed_data)
   end
 
-  defp latest_comment_data(comments) do
+  defp build_comment_tree(comments) do
+    grouped = Enum.group_by(comments, & &1.parent_comment_id, & &1)
+    add_replies_to_list(Map.get(grouped, nil, []), grouped)
+  end
+
+  defp add_replies_to_list(comments, grouped_comments) do
+    Enum.map(comments, fn comment ->
+      replies = Map.get(grouped_comments, comment.id, [])
+      hydrated_replies = add_replies_to_list(replies, grouped_comments)
+      Map.put(comment, :replies, hydrated_replies)
+    end)
+  end
+
+  defp latest_comment_data(comments, current_user) do
     comments
     |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
     |> List.first()
     |> case do
       nil -> nil
-      comment -> comment_data(comment)
+      comment -> comment_data(comment, current_user)
     end
   end
 
@@ -88,11 +107,22 @@ defmodule BackendWeb.PostJSON do
   defp user_data(%Ecto.Association.NotLoaded{}), do: nil
 
   defp user_data(%User{} = user) do
+    job_title =
+      case user.job_experiences do
+        %Ecto.Association.NotLoaded{} -> nil
+        nil -> nil
+        [] -> nil
+        [first | _] when is_map(first) -> Map.get(first, :job_title)
+        first when is_map(first) -> Map.get(first, :job_title)
+        _ -> nil
+      end
+
     %{
       id: user.id,
       name: user.name,
       surname: user.surname,
-      photo_url: user.photo_url
+      photo_url: user.photo_url,
+      job_title: job_title
     }
   end
 
@@ -105,12 +135,41 @@ defmodule BackendWeb.PostJSON do
 
   defp reaction_data(%Reaction{} = reaction), do: %{id: reaction.id, type: reaction.type}
 
-  def comment_data(%Comment{} = comment) do
+  def comment_data(comment, current_user \\ nil) do
+    # Safely get the list of replies, whether it was pre-processed by build_comment_tree or not.
+    replies_to_render =
+      case Map.get(comment, :replies) do
+        %Ecto.Association.NotLoaded{} ->
+          []
+
+        nil ->
+          []
+
+        replies_list when is_list(replies_list) ->
+          Enum.map(replies_list, &comment_data(&1, current_user))
+      end
+
+    # Safely get the list of likes, which might not be loaded.
+    likes_list =
+      case comment.likes do
+        %Ecto.Association.NotLoaded{} -> []
+        nil -> []
+        likes -> likes
+      end
+
     %{
       id: comment.id,
       content: comment.content,
       inserted_at: comment.inserted_at,
-      user: user_data(comment.user)
+      user: user_data(comment.user),
+      replies: replies_to_render,
+      likes_count: Enum.count(likes_list),
+      current_user_liked:
+        if current_user do
+          Enum.any?(likes_list, &(&1.user_id == current_user.id))
+        else
+          false
+        end
     }
   end
 

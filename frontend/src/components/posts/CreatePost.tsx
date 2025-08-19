@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createPost } from '@/services/postService';
+import { createPost, uploadPostImage, uploadPostVideo } from '@/services/postService';
 import { Post } from '@/types/post';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Video, Image as ImageIcon, FileText, UserCircle, Loader2, Link2 } from 'lucide-react';
+import {
+  Video,
+  Image as ImageIcon,
+  FileText,
+  UserCircle,
+  Loader2,
+  Link2,
+  XCircle,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface CreatePostProps {
   onPostCreated: (newPost: Post) => void;
@@ -21,77 +31,100 @@ interface CreatePostProps {
 
 const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadType, setUploadType] = useState<'image' | 'video' | null>(null);
 
-  // State for the form inside the modal
   const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [linkUrl, setLinkUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
     setContent('');
-    setImageUrl('');
     setLinkUrl('');
-    setError(null);
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaFile(null);
+    setMediaPreview(null);
     setIsLoading(false);
   };
 
-  const handleOpenModal = () => {
+  const handleOpenModal = (type: 'image' | 'video') => {
     resetForm();
+    setUploadType(type);
     setIsModalOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMediaFile(file);
+      setMediaPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeMedia = () => {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaFile(null);
+    setMediaPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() && !imageUrl.trim() && !linkUrl.trim()) {
-      setError('A post must have some content, an image, or a link.');
+    if (!content.trim() && !mediaFile && !linkUrl.trim()) {
+      toast.error('A post must have some content, media, or a link.');
       return;
     }
     setIsLoading(true);
-    setError(null);
 
     try {
-      const postData = {
+      let finalMediaUrl: string | undefined = undefined;
+      let postData: any = {
         content: content.trim() || undefined,
-        image_url: imageUrl.trim() || undefined,
         link_url: linkUrl.trim() || undefined,
       };
-      const newPost = await createPost(postData);
-      onPostCreated(newPost);
-      setIsModalOpen(false); // Close modal on success
-    } catch (err: any) {
-      const errors = err.response?.data?.errors;
-      let errorMessage = 'Failed to create post.';
-      if (errors) {
-        if (errors.base) {
-          errorMessage = errors.base[0];
-        } else if (errors.link_url) {
-          errorMessage = `Link URL: ${errors.link_url[0]}`;
+
+      if (mediaFile) {
+        if (uploadType === 'image') {
+          finalMediaUrl = await uploadPostImage(mediaFile);
+          postData.image_url = finalMediaUrl;
+        } else if (uploadType === 'video') {
+          finalMediaUrl = await uploadPostVideo(mediaFile);
+          postData.video_url = finalMediaUrl;
         }
       }
-      setError(errorMessage);
+
+      const newPost = await createPost(postData);
+      onPostCreated(newPost);
+      toast.success('Post created successfully!');
+      setIsModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.errors?.detail || 'Failed to create post.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!user) return null;
+  const fileInputAccept =
+    uploadType === 'image'
+      ? 'image/png, image/jpeg, image/gif'
+      : 'video/mp4, video/webm, image/gif';
 
   return (
     <>
-      {/* The main trigger component */}
       <Card className="mb-8">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            {user.photo_url ? (
+            {user?.photo_url ? (
               <img src={user.photo_url} alt="You" className="w-12 h-12 rounded-full object-cover" />
             ) : (
               <UserCircle className="w-12 h-12 text-gray-400" />
             )}
             <button
-              onClick={handleOpenModal}
+              onClick={() => navigate('/create-article')}
               className="w-full text-left p-3 border rounded-full text-gray-500 hover:bg-gray-100 transition"
             >
               Start a post
@@ -101,32 +134,28 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
             <Button
               variant="ghost"
               className="flex items-center gap-2 text-gray-600 hover:bg-gray-100"
-              onClick={handleOpenModal}
+              onClick={() => handleOpenModal('video')}
             >
-              <Video className="text-green-500" />
-              Video
+              <Video className="text-green-500" /> Video
             </Button>
             <Button
               variant="ghost"
               className="flex items-center gap-2 text-gray-600 hover:bg-gray-100"
-              onClick={handleOpenModal}
+              onClick={() => handleOpenModal('image')}
             >
-              <ImageIcon className="text-blue-500" />
-              Photo
+              <ImageIcon className="text-blue-500" /> Photo
             </Button>
             <Button
               variant="ghost"
               className="flex items-center gap-2 text-gray-600 hover:bg-gray-100"
-              onClick={handleOpenModal}
+              onClick={() => navigate('/create-article')}
             >
-              <FileText className="text-orange-500" />
-              Write article
+              <FileText className="text-orange-500" /> Write article
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* The Dialog for creating the post */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
@@ -135,7 +164,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
           <form onSubmit={handleSubmit}>
             <div className="py-4 space-y-4">
               <div className="flex items-center gap-3">
-                {user.photo_url ? (
+                {user?.photo_url ? (
                   <img
                     src={user.photo_url}
                     alt="You"
@@ -146,25 +175,41 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
                 )}
                 <div>
                   <p className="font-semibold">
-                    {user.name} {user.surname}
+                    {user?.name} {user?.surname}
                   </p>
                   <p className="text-sm text-gray-500">Post to anyone</p>
                 </div>
               </div>
               <Textarea
-                placeholder={`What's on your mind, ${user.name}?`}
+                placeholder={`What's on your mind, ${user?.name}?`}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="min-h-[120px] text-base"
               />
-              <div className="flex items-center gap-2">
-                <ImageIcon className="text-gray-500" />
-                <Input
-                  placeholder="Image URL (optional)"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                />
-              </div>
+
+              {mediaPreview && (
+                <div className="relative">
+                  {uploadType === 'image' ? (
+                    <img
+                      src={mediaPreview}
+                      alt="Preview"
+                      className="rounded-lg w-full max-h-60 object-contain"
+                    />
+                  ) : (
+                    <video src={mediaPreview} controls className="rounded-lg w-full max-h-60" />
+                  )}
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={removeMedia}
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </Button>
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
                 <Link2 className="text-gray-500" />
                 <Input
@@ -173,23 +218,41 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
                   onChange={(e) => setLinkUrl(e.target.value)}
                 />
               </div>
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept={fileInputAccept}
+              />
             </div>
-            <DialogFooter>
-              <Button
-                type="submit"
-                disabled={isLoading || (!content && !imageUrl && !linkUrl)}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Posting...
-                  </>
-                ) : (
-                  'Post'
-                )}
-              </Button>
+            <DialogFooter className="border-t pt-4">
+              <div className="flex items-center justify-between w-full">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                >
+                  {uploadType === 'image' ? (
+                    <ImageIcon className="w-6 h-6 text-blue-500" />
+                  ) : (
+                    <Video className="w-6 h-6 text-green-500" />
+                  )}
+                </Button>
+                <Button type="submit" disabled={isLoading || (!content && !mediaFile && !linkUrl)}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    'Post'
+                  )}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>

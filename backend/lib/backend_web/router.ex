@@ -72,9 +72,13 @@ defmodule BackendWeb.Router do
 
     # Posts
     resources "/posts", PostController, except: [:new, :edit]
+    post "/posts/upload_image", PostController, :upload_image
+    post "/posts/upload_video", PostController, :upload_video
     post "/posts/:id/react", PostController, :react
     delete "/posts/:id/react", PostController, :remove_reaction
     post "/posts/:id/comments", PostController, :create_comment
+    post "/posts/:post_id/comments/:comment_id/like", PostController, :like_comment
+    delete "/posts/:post_id/comments/:comment_id/like", PostController, :unlike_comment
 
     # Connections
     get "/connections", ConnectionController, :index

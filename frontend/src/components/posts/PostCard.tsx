@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Post } from '@/types/post';
+import React, { useState, useEffect } from 'react';
+import { Post, Comment as CommentType } from '@/types/post';
 import { useAuth } from '@/contexts/AuthContext';
-import { deletePost } from '@/services/postService';
+import { deletePost, updatePost } from '@/services/postService';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { UserCircle, Globe, MoreHorizontal, Trash2 } from 'lucide-react';
+import { UserCircle, Globe, MoreHorizontal, Trash2, Edit, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,6 +16,10 @@ import { Link } from 'react-router-dom';
 import ReactionTray from './ReactionTray';
 import ReactionSummary from './ReactionSummary';
 import CommentSection from './CommentSection';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 interface PostCardProps {
   post: Post;
@@ -26,11 +30,63 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
   const { user } = useAuth();
   const [showComments, setShowComments] = useState(post.comments.length > 0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(post.content || '');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleUpdateComments = (newComment: any) => {
+  const isArticle = /<[a-z][\s\S]*>/i.test(post.content || '');
+
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image', 'code-block', 'blockquote'],
+      ['clean'],
+    ],
+  };
+
+  useEffect(() => {
+    setEditedContent(post.content || '');
+  }, [post.content]);
+
+  const handleNewComment = (newComment: CommentType) => {
+    const addReplyToTree = (
+      comments: CommentType[],
+      reply: CommentType,
+    ): [CommentType[], boolean] => {
+      let found = false;
+      const updatedComments = comments.map((comment) => {
+        if (comment.id === reply.parent_comment_id) {
+          found = true;
+          return {
+            ...comment,
+            replies: [...(comment.replies || []), reply],
+          };
+        }
+        if (comment.replies && comment.replies.length > 0) {
+          const [updatedReplies, childFound] = addReplyToTree(comment.replies, reply);
+          if (childFound) {
+            found = true;
+            return { ...comment, replies: updatedReplies };
+          }
+        }
+        return comment;
+      });
+      return [updatedComments, found];
+    };
+
+    let updatedComments;
+    if (newComment.parent_comment_id) {
+      const [tree] = addReplyToTree(post.comments, newComment);
+      updatedComments = tree;
+    } else {
+      updatedComments = [...post.comments, newComment];
+    }
+
     const updatedPost = {
       ...post,
-      comments: [...post.comments, newComment],
+      comments: updatedComments,
       comments_count: post.comments_count + 1,
     };
     onUpdate(updatedPost);
@@ -41,10 +97,39 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
     try {
       await deletePost(post.id);
       onDelete(post.id);
+      toast.success('Post deleted.');
     } catch (error) {
       console.error('Failed to delete post:', error);
-      alert('Failed to delete post.');
+      toast.error('Failed to delete post.');
     }
+  };
+
+  const handleSaveEdit = async () => {
+    if (editedContent.replace(/<(.|\n)*?>/g, '').trim().length === 0) {
+      toast.error('Post content cannot be empty.');
+      return;
+    }
+    if (editedContent === post.content) {
+      setIsEditing(false);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const updatedPost = await updatePost(post.id, { content: editedContent });
+      onUpdate(updatedPost);
+      setIsEditing(false);
+      toast.success('Post updated successfully!');
+    } catch (error) {
+      console.error('Failed to update post:', error);
+      toast.error('Failed to update post.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedContent(post.content || '');
+    setIsEditing(false);
   };
 
   return (
@@ -81,6 +166,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Post
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDelete} className="text-red-600">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Post
@@ -91,19 +180,58 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
       </CardHeader>
 
       <CardContent className="p-4 pt-0">
-        {post.content && <p className="mb-4 whitespace-pre-wrap">{post.content}</p>}
-        {post.image_url && (
-          <img src={post.image_url} alt="Post content" className="rounded-lg mb-4 w-full" />
-        )}
-        {post.link_url && (
-          <a
-            href={post.link_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            {post.link_url}
-          </a>
+        {isEditing ? (
+          <div className="space-y-2 mb-4">
+            {isArticle ? (
+              <ReactQuill
+                theme="snow"
+                value={editedContent}
+                onChange={setEditedContent}
+                modules={quillModules}
+              />
+            ) : (
+              <Textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="min-h-[120px] text-base"
+                autoFocus
+              />
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={isSaving}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {post.content && (
+              <div
+                className="prose max-w-none mb-4"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            )}
+            {post.image_url && (
+              <img src={post.image_url} alt="Post content" className="rounded-lg mb-4 w-full" />
+            )}
+            {post.video_url && (
+              <video src={post.video_url} controls className="rounded-lg mb-4 w-full" />
+            )}
+            {post.link_url && (
+              <a
+                href={post.link_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {post.link_url}
+              </a>
+            )}
+          </>
         )}
 
         <div className="space-y-2 mt-2 mb-2">
@@ -115,7 +243,13 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
           onUpdate={onUpdate}
           onCommentClick={() => setShowComments(!showComments)}
         />
-        {showComments && <CommentSection post={post} onCommentAdded={handleUpdateComments} />}
+        {showComments && (
+          <CommentSection
+            post={post}
+            onCommentAdded={handleNewComment}
+            onPostUpdate={onUpdate} // <-- PASS THE onUpdate PROP HERE
+          />
+        )}
       </CardContent>
     </Card>
   );

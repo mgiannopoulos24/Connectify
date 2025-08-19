@@ -10,6 +10,10 @@ export interface Comment {
   content: string;
   inserted_at: string;
   user: UserSummary;
+  replies: Comment[];
+  parent_comment_id?: string | null;
+  likes_count: number; // <-- ADD THIS
+  current_user_liked: boolean; // <-- ADD THIS
 }
 
 export type ReactionCounts = {
@@ -21,6 +25,7 @@ export interface Post {
   content: string | null;
   image_url: string | null;
   link_url: string | null;
+  video_url: string | null;
   inserted_at: string;
   user: UserSummary;
   reactions_count: number;

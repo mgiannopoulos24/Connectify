@@ -107,22 +107,30 @@ defmodule Backend.Jobs do
         do: {:ok, nil},
         else: {:ok, Repo.all(from s in Skill, where: s.id in ^skill_ids)}
     end)
-    |> Multi.insert(:job_posting, fn %{company: company, skills: skills} ->
-      job_attrs =
-        Map.drop(attrs, ["company_name", "skill_ids"])
-        |> Map.put("user_id", user.id)
+    |> (fn multi ->
+          job_changeset_fun = fn %{company: company, skills: skills} ->
+            job_attrs =
+              Map.drop(attrs, ["company_name", "skill_ids"])
+              |> Map.put("user_id", user.id)
 
-      job_attrs =
-        if company,
-          do: Map.put(job_attrs, "company_id", company.id),
-          else: job_attrs
+            job_attrs =
+              if company,
+                do: Map.put(job_attrs, "company_id", company.id),
+                else: job_attrs
 
-      changeset = JobPosting.changeset(job_posting_struct, job_attrs)
+            changeset = JobPosting.changeset(job_posting_struct, job_attrs)
 
-      if skills,
-        do: Ecto.Changeset.put_assoc(changeset, :skills, skills),
-        else: changeset
-    end)
+            if skills,
+              do: Ecto.Changeset.put_assoc(changeset, :skills, skills),
+              else: changeset
+          end
+
+          if job_posting_struct.id do
+            Ecto.Multi.update(multi, :job_posting, job_changeset_fun)
+          else
+            Ecto.Multi.insert(multi, :job_posting, job_changeset_fun)
+          end
+        end).()
     |> Repo.transaction()
     |> case do
       {:ok, %{job_posting: job_posting}} ->

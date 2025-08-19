@@ -12,13 +12,20 @@ defmodule Backend.Posts.Comment do
     belongs_to :user, User
     belongs_to :post, Backend.Posts.Post
 
+    # Self-referencing association for replies
+    belongs_to :parent_comment, __MODULE__, foreign_key: :parent_comment_id
+    has_many :replies, __MODULE__, foreign_key: :parent_comment_id, on_delete: :delete_all
+
+    # NEW: Association for likes
+    has_many :likes, Backend.Posts.CommentLike, on_delete: :delete_all
+
     timestamps(type: :utc_datetime)
   end
 
   @doc false
   def changeset(comment, attrs) do
     comment
-    |> cast(attrs, [:content, :user_id, :post_id])
+    |> cast(attrs, [:content, :user_id, :post_id, :parent_comment_id])
     |> validate_required([:content, :user_id, :post_id])
   end
 end

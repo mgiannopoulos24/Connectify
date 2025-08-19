@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getJobPostingById, applyToJob, reviewApplication } from '@/services/jobService';
+import {
+  getJobPostingById,
+  applyToJob,
+  reviewApplication,
+  deleteJobPosting,
+  updateJobPosting,
+} from '@/services/jobService';
 import { JobPosting, JobApplication } from '@/types/job';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,11 +22,14 @@ import {
   CheckCircle,
   XCircle,
   Info,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import JobFormModal from '@/components/jobs/JobFormModal';
 
 const JobDetailsPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
@@ -32,6 +41,7 @@ const JobDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -97,6 +107,32 @@ const JobDetailsPage: React.FC = () => {
     }
   };
 
+  const handleUpdate = async (jobData: any) => {
+    if (!job) return;
+    try {
+      const updatedJob = await updateJobPosting(job.id, jobData);
+      setJob(updatedJob);
+      setIsModalOpen(false);
+      toast.success('Job posting updated successfully!');
+    } catch (error) {
+      console.error('Failed to update job:', error);
+      toast.error('Failed to update job posting.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!job) return;
+    if (confirm('Are you sure you want to delete this job posting?')) {
+      try {
+        await deleteJobPosting(job.id);
+        toast.success('Job posting deleted.');
+        navigate('/jobs');
+      } catch (error) {
+        toast.error('Failed to delete job posting.');
+      }
+    }
+  };
+
   const getStatusVariant = (status: JobApplication['status']) => {
     switch (status) {
       case 'accepted':
@@ -137,26 +173,38 @@ const JobDetailsPage: React.FC = () => {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-start gap-4 mb-4">
-            {job.company.logo_url ? (
-              <img
-                src={job.company.logo_url}
-                alt={job.company.name}
-                className="h-16 w-16 rounded-lg object-contain bg-white"
-              />
-            ) : (
-              <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
-                <Building className="h-8 w-8 text-gray-500" />
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-4 mb-4">
+              {job.company.logo_url ? (
+                <img
+                  src={job.company.logo_url}
+                  alt={job.company.name}
+                  className="h-16 w-16 rounded-lg object-contain bg-white"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                  <Building className="h-8 w-8 text-gray-500" />
+                </div>
+              )}
+              <div>
+                <CardTitle className="text-2xl">{job.title}</CardTitle>
+                <CardDescription className="text-base">
+                  <Link to={`/companies/${job.company.id}`} className="hover:underline">
+                    {job.company.name}
+                  </Link>
+                </CardDescription>
+              </div>
+            </div>
+            {isOwner && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={() => setIsModalOpen(true)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button variant="destructive" size="icon" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             )}
-            <div>
-              <CardTitle className="text-2xl">{job.title}</CardTitle>
-              <CardDescription className="text-base">
-                <Link to={`/companies/${job.company.id}`} className="hover:underline">
-                  {job.company.name}
-                </Link>
-              </CardDescription>
-            </div>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
             <span className="flex items-center gap-2">
@@ -185,10 +233,12 @@ const JobDetailsPage: React.FC = () => {
             </Button>
           )}
 
-          {isOwner && (
+          {isOwner && applications.length === 0 && (
             <div className="flex items-center justify-start gap-2 mb-6">
               <Info className="h-5 w-5 text-blue-700" />
-              <p className="font-semibold text-blue-700">You can't apply on a job you posted.</p>
+              <p className="font-semibold text-blue-700">
+                You can manage this job posting using the buttons above.
+              </p>
             </div>
           )}
 
@@ -284,6 +334,13 @@ const JobDetailsPage: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      <JobFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleUpdate}
+        job={job}
+      />
     </>
   );
 };

@@ -68,7 +68,6 @@
 }
 
 /* Styles for the Zip game */
-/* Add these new animation keyframes */
 @layer utilities {
   @keyframes pop {
     0%,
@@ -115,24 +114,37 @@
   }
 }
 
-/* Add these custom scrollbar styles */
+/* Custom scrollbar styles */
 @layer components {
   .thin-scrollbar::-webkit-scrollbar {
     width: 8px;
   }
 
   .thin-scrollbar::-webkit-scrollbar-track {
-    background-color: #f1f5f9; /* slate-100 */
+    background-color: #f1f5f9;
     border-radius: 10px;
   }
 
   .thin-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #94a3b8; /* slate-400 */
+    background-color: #94a3b8;
     border-radius: 10px;
-    border: 2px solid #f1f5f9; /* Creates a nice padding effect */
+    border: 2px solid #f1f5f9;
   }
 
   .thin-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #64748b; /* slate-500 */
+    background-color: #64748b;
   }
+}
+
+/* Custom styles for react quill */
+.prose h1 {
+  @apply text-3xl font-extrabold tracking-tight my-0 mx-3;
+}
+
+.prose p {
+  @apply my-0 mx-3;
+}
+
+.prose img {
+  @apply my-1;
 }

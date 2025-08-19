@@ -12,6 +12,7 @@ defmodule Backend.Posts.Post do
     field :content, :string
     field :image_url, :string
     field :link_url, :string
+    field :video_url, :string
 
     belongs_to :user, User
     # --- Using full module names to break the compile-time cycle ---
@@ -24,7 +25,7 @@ defmodule Backend.Posts.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:content, :image_url, :link_url, :user_id])
+    |> cast(attrs, [:content, :image_url, :link_url, :video_url, :user_id])
     |> validate_required([:user_id])
     |> validate_link_url()
     |> validate_at_least_one_field()
@@ -48,9 +49,11 @@ defmodule Backend.Posts.Post do
     content = get_field(changeset, :content)
     image_url = get_field(changeset, :image_url)
     link_url = get_field(changeset, :link_url)
+    video_url = get_field(changeset, :video_url)
 
-    if (is_nil(content) || content == "") && is_nil(image_url) && is_nil(link_url) do
-      add_error(changeset, :base, "Post must have content, an image, or a link.")
+    if (is_nil(content) || content == "") && is_nil(image_url) && is_nil(link_url) &&
+         is_nil(video_url) do
+      add_error(changeset, :base, "Post must have content, an image, a video, or a link.")
     else
       changeset
     end

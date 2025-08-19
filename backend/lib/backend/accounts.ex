@@ -1,5 +1,5 @@
 defmodule Backend.Accounts do
-  @moduledoc """
+  @modledoc """
   The Accounts context.
   """
 
@@ -35,7 +35,6 @@ defmodule Backend.Accounts do
         :interests,
         :sent_connections,
         :received_connections,
-        job_experiences: :company,
         posts: [user: [], comments: [:user], reactions: [:user]],
         job_postings: [:company, :skills, job_applications: :user]
       ])
@@ -123,7 +122,8 @@ defmodule Backend.Accounts do
       email: nil,
       phone_number: nil,
       email_confirmed_at: nil,
-      status: "offline", # Hide real-time status
+      # Hide real-time status
+      status: "offline",
       last_seen_at: nil,
       job_experiences: [],
       educations: [],
@@ -138,7 +138,7 @@ defmodule Backend.Accounts do
       updated_at: user.updated_at
     }
   end
-  
+
   @doc """
   Returns the list of users.
 
@@ -208,12 +208,8 @@ defmodule Backend.Accounts do
         [] ->
           User
 
-        # --- FIX STARTS HERE ---
-        # Handle the case where only one ID is passed as a string
         id when is_binary(id) ->
           from(u in User, where: u.id in ^[id])
-
-        # --- FIX ENDS HERE ---
 
         ids when is_list(ids) ->
           from(u in User, where: u.id in ^ids)
@@ -307,10 +303,14 @@ defmodule Backend.Accounts do
     # Calculate the timestamp for 24 hours ago
     cutoff_datetime = DateTime.add(DateTime.utc_now(), -24, :hour)
 
-    from(u in User,
-      where: u.status == "pending_confirmation" and u.inserted_at < ^cutoff_datetime
-    )
-    |> Repo.delete_all()
+    # --- FIX: Match on the return value of Repo.delete_all and return {:ok, count} ---
+    {count, nil} =
+      from(u in User,
+        where: u.status == "pending_confirmation" and u.inserted_at < ^cutoff_datetime
+      )
+      |> Repo.delete_all()
+
+    {:ok, count}
   end
 
   @doc """
