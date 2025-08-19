@@ -2,7 +2,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchUsers } from '@/services/userService';
 import { UserSummary } from '@/types/connections';
-import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from '@/components/ui/command';
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandEmpty,
+} from '@/components/ui/command';
 import { Loader2, Search, UserCircle, X } from 'lucide-react';
 import debounce from 'lodash.debounce';
 
@@ -122,7 +128,7 @@ const UserSearchBar: React.FC = () => {
                   <span className="font-medium">
                     {user.name} {user.surname}
                   </span>
-                    <span className="text-gray-500">{user.job_title || 'Professional'}</span>
+                  <span className="text-gray-500">{user.job_title || 'Professional'}</span>
                 </div>
               </CommandItem>
             ))}

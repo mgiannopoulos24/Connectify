@@ -28,15 +28,11 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const userStatus = user ? getUserStatus(user.id) : 'offline';
 
-  const pagesWithoutSidebar = [
-    '/network',
-    '/settings',
-    '/people',
-    '/messaging',
-    '/notifications', // Also hide for full-screen notifications page
-  ];
+  const pagesWithoutSidebar = ['/network', '/settings', '/people', '/messaging', '/notifications'];
   const shouldHideSidebar =
-    pagesWithoutSidebar.includes(location.pathname) || location.pathname.startsWith('/profile');
+    pagesWithoutSidebar.includes(location.pathname) ||
+    location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/messaging/');
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

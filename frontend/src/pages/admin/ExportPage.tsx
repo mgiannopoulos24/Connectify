@@ -132,10 +132,7 @@ const AdminExportPage = () => {
                         className="flex items-center gap-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
                         {user.photo_url ? (
-                          <img
-                            src={user.photo_url}
-                            className="h-8 w-8 rounded-full object-cover"
-                          />
+                          <img src={user.photo_url} className="h-8 w-8 rounded-full object-cover" />
                         ) : (
                           <UserCircle className="h-8 w-8 text-gray-400" />
                         )}
