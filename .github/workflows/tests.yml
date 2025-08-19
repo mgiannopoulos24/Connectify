@@ -34,10 +34,23 @@ jobs:
 
   test-backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backend_test
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     defaults:
       run:
         working-directory: backend
-  
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,6 +70,16 @@ jobs:
 
       - name: Install dependencies
         run: mix deps.get
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..15}; do
+            pg_isready -h localhost -U postgres && break
+            sleep 1
+          done
+
+      - name: Create and migrate database
+        run: mix ecto.setup
 
       - name: Run backend tests
         run: mix test
