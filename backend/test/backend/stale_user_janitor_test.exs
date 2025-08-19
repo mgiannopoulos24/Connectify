@@ -5,8 +5,6 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
   alias Backend.Accounts.StaleUserJanitor
   alias Backend.Repo
 
-  import Backend.AccountsFixtures
-
   describe "StaleUserJanitor" do
     setup do
       # Start the janitor process for this test

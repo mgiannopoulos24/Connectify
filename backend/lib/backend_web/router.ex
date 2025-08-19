@@ -3,7 +3,7 @@ defmodule BackendWeb.Router do
 
   defmodule Plugs.EnsureConfirmed do
     import Plug.Conn
-    import Phoenix.Controller, only: [json: 2, halt: 1]
+    # import Phoenix.Controller, only: [json: 2, halt: 1]
 
     def init(opts), do: opts
 

@@ -20,9 +20,8 @@ defmodule BackendWeb.JobApplicationController do
     else
       conn
       |> put_status(:forbidden)
-      |> render(BackendWeb.ErrorJSON, "403.json",
-        detail: "You are not the owner of this job posting."
-      )
+      |> put_view(BackendWeb.ErrorJSON)
+      |> render("403.json", %{detail: "You are not the owner of this job posting."})
     end
   end
 end

@@ -19,8 +19,9 @@ defmodule BackendWeb.ChatChannel do
 
       {:ok, socket}
     else
-      Logger.warn(
-        "ChatChannel: Unauthorized attempt by user #{current_user_id} to join chat room #{chat_room_id}."
+      Logger.warning(
+        "ChatChannel: Unauthorized attempt by user #{current_user_id} to join chat room #{chat_room_id}.",
+        []
       )
 
       {:error, %{reason: "unauthorized"}}

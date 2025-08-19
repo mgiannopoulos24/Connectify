@@ -1,5 +1,5 @@
 defmodule Backend.Accounts do
-  @modledoc """
+  @moduledoc """
   The Accounts context.
   """
 

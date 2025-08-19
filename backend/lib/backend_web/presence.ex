@@ -1,5 +1,5 @@
 defmodule BackendWeb.Presence do
-  @modledoc """
+  @moduledoc """
   The Presence module.
   """
   use Phoenix.Presence,

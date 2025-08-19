@@ -1,8 +1,6 @@
-# backend/lib/backend_web/controllers/post_json.ex
 defmodule BackendWeb.PostJSON do
   alias Backend.Posts.Post
   alias Backend.Posts.Reaction
-  alias Backend.Posts.Comment
   alias Backend.Accounts.User
 
   def index(%{posts: posts, current_user: current_user}) do

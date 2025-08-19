@@ -8,12 +8,18 @@ defmodule BackendWeb.JobPostingController do
   def index(conn, _params) do
     current_user = conn.assigns.current_user
     job_postings = Jobs.list_job_postings_for_user_feed(current_user)
-    render(conn, JobPostingJSON, :index, job_postings: job_postings)
+
+    conn
+    |> put_view(JobPostingJSON)
+    |> render("index.json", job_postings: job_postings)
   end
 
   def show(conn, %{"id" => id}) do
     job_posting = Jobs.get_job_posting!(id)
-    render(conn, JobPostingJSON, :show, job_posting: job_posting)
+
+    conn
+    |> put_view(JobPostingJSON)
+    |> render("show.json", job_posting: job_posting)
   end
 
   def create(conn, %{"job_posting" => job_posting_params}) do
@@ -23,7 +29,8 @@ defmodule BackendWeb.JobPostingController do
            Jobs.create_job_posting(current_user, job_posting_params) do
       conn
       |> put_status(:created)
-      |> render(JobPostingJSON, :show, job_posting: Jobs.get_job_posting!(job_posting.id))
+      |> put_view(JobPostingJSON)
+      |> render("show.json", job_posting: Jobs.get_job_posting!(job_posting.id))
     end
   end
 
@@ -34,7 +41,9 @@ defmodule BackendWeb.JobPostingController do
     if job_posting.user_id == current_user.id do
       with {:ok, %JobPosting{} = job_posting} <-
              Jobs.update_job_posting(job_posting, job_posting_params) do
-        render(conn, JobPostingJSON, :show, job_posting: Jobs.get_job_posting!(job_posting.id))
+        conn
+        |> put_view(JobPostingJSON)
+        |> render("show.json", job_posting: Jobs.get_job_posting!(job_posting.id))
       end
     else
       conn |> put_status(:forbidden) |> json(%{errors: %{detail: "Forbidden"}})
@@ -89,7 +98,9 @@ defmodule BackendWeb.JobPostingController do
     job_posting = Jobs.get_job_posting!(id)
 
     if job_posting.user_id == current_user.id do
-      render(conn, JobPostingJSON, :show, job_posting: job_posting)
+      conn
+      |> put_view(JobPostingJSON)
+      |> render("show.json", job_posting: job_posting)
     else
       conn |> put_status(:forbidden) |> json(%{errors: %{detail: "Forbidden"}})
     end

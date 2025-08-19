@@ -8,6 +8,9 @@ defmodule BackendWeb.CompanyController do
 
   def index(conn, %{"search" => search_term}) do
     companies = Companies.search_companies(search_term)
-    render(conn, CompanyJSON, :search, companies: companies)
+
+    conn
+    |> put_view(CompanyJSON)
+    |> render("search.json", companies: companies)
   end
 end

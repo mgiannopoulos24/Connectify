@@ -1,5 +1,5 @@
 defmodule Backend.CareersFixtures do
-  @modledoc """
+  @moduledoc """
   This module defines test helpers for creating
   entities via the `Backend.Careers` and related contexts.
   """

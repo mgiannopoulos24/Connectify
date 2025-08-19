@@ -18,7 +18,8 @@ defmodule BackendWeb.SessionController do
             max_age: Auth.token_lifespan()
           )
           # Also return the user and the token in the JSON body
-          |> render(UserJSON, :show, user: user, token: token)
+          |> put_view(UserJSON)
+          |> render("show.json", user: user, token: token)
         else
           {:error, reason} ->
             conn

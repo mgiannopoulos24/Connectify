@@ -9,7 +9,10 @@ defmodule BackendWeb.NotificationController do
   def index(conn, _params) do
     current_user = conn.assigns.current_user
     notifications = Notifications.list_user_notifications(current_user.id)
-    render(conn, NotificationJSON, :index, notifications: notifications)
+
+    conn
+    |> put_view(NotificationJSON)
+    |> render("index.json", notifications: notifications)
   end
 
   def mark_as_read(conn, %{"ids" => ids}) do

@@ -9,7 +9,10 @@ defmodule BackendWeb.Admin.CompanyController do
 
   def index(conn, _params) do
     companies = Companies.list_companies()
-    render(conn, CompanyJSON, :index, companies: companies)
+
+    conn
+    |> put_view(CompanyJSON)
+    |> render("index.json", companies: companies)
   end
 
   def create(conn, %{"company" => company_params}) do
@@ -17,20 +20,26 @@ defmodule BackendWeb.Admin.CompanyController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", ~p"/api/admin/companies/#{company}")
-      |> render(CompanyJSON, :show, company: company)
+      |> put_view(CompanyJSON)
+      |> render("show.json", company: company)
     end
   end
 
   def show(conn, %{"id" => id}) do
     company = Companies.get_company!(id)
-    render(conn, CompanyJSON, :show, company: company)
+
+    conn
+    |> put_view(CompanyJSON)
+    |> render("show.json", company: company)
   end
 
   def update(conn, %{"id" => id, "company" => company_params}) do
     company = Companies.get_company!(id)
 
     with {:ok, %Company{} = company} <- Companies.update_company(company, company_params) do
-      render(conn, CompanyJSON, :show, company: company)
+      conn
+      |> put_view(CompanyJSON)
+      |> render("show.json", company: company)
     end
   end
 

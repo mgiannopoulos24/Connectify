@@ -1,5 +1,5 @@
 defmodule Backend.Posts do
-  @modledoc """
+  @moduledoc """
   The Posts context.
   """
   import Ecto.Query, warn: false

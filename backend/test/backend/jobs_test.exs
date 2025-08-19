@@ -107,10 +107,10 @@ defmodule Backend.JobsTest do
         "job_type" => "Full-time"
       }
 
-      {:ok, p1} = Jobs.create_job_posting(attrs1)
+      {:ok, _p1} = Jobs.create_job_posting(attrs1)
       # ensure ordering is deterministic even when DB timestamps have second precision
       :timer.sleep(1100)
-      {:ok, p2} = Jobs.create_job_posting(attrs2)
+      {:ok, _p2} = Jobs.create_job_posting(attrs2)
 
       postings = Jobs.list_all_job_postings()
 

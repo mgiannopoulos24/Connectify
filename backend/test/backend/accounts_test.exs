@@ -3,6 +3,8 @@ defmodule Backend.AccountsTest do
 
   alias Backend.Accounts
   alias Backend.Accounts.User
+  alias Backend.Repo
+  alias Backend.Connections.Connection
 
   import Backend.AccountsFixtures
 
@@ -98,7 +100,6 @@ defmodule Backend.AccountsTest do
     end
   end
 
-  # --- ΝΕΑ ΕΝΟΤΗΤΑ ΓΙΑ EDGE CASES ---
   describe "users edge cases" do
     test "cannot create user with a duplicate email" do
       existing_user = user_fixture()
@@ -107,7 +108,6 @@ defmodule Backend.AccountsTest do
         name: "Another Name",
         surname: "Another Surname",
         password: "password123",
-        # Χρήση του ίδιου email
         email: existing_user.email
       }
 
@@ -131,11 +131,9 @@ defmodule Backend.AccountsTest do
     end
 
     test "authenticate_user/2 is case-sensitive for email" do
-      user = user_fixture(%{email: "my.email@example.com", password: "password123"})
+      _user = user_fixture(%{email: "my.email@example.com", password: "password123"})
 
-      # Η Repo.get_by είναι case-sensitive από προεπιλογή, οπότε αυτό πρέπει να αποτύχει
       assert :error = Accounts.authenticate_user("My.Email@example.com", "password123")
-      # Επιβεβαίωση ότι με το σωστό email λειτουργεί
       assert {:ok, _user} = Accounts.authenticate_user("my.email@example.com", "password123")
     end
 
@@ -144,17 +142,13 @@ defmodule Backend.AccountsTest do
     end
 
     test "confirm_user_email/1 fails if token is used twice" do
-      # H user_fixture καλεί την create_user, η οποία στέλνει το email
-      # και αποθηκεύει το token στη βάση. Πρέπει να το ανακτήσουμε.
       user_from_fixture = user_fixture()
       user_from_db = Accounts.get_user!(user_from_fixture.id)
       token = user_from_db.email_confirmation_token
 
-      # Πρώτη, επιτυχημένη προσπάθεια
       assert {:ok, %User{email_confirmed_at: confirmed_at}} = Accounts.confirm_user_email(token)
       assert not is_nil(confirmed_at)
 
-      # Δεύτερη, αποτυχημένη προσπάθεια (το token έχει γίνει nil)
       assert {:error, :not_found} = Accounts.confirm_user_email(token)
     end
 
@@ -166,8 +160,6 @@ defmodule Backend.AccountsTest do
 
       assert errors_on(changeset).role == ["is invalid"]
     end
-
-    # New tests for recent Accounts changes
 
     test "get_users_for_export/1 with nil returns all users" do
       u1 = user_fixture()
@@ -192,7 +184,7 @@ defmodule Backend.AccountsTest do
 
     test "update_user_status/2 updates status and last_seen_at for a valid status" do
       user = user_fixture()
-      # use a status that is allowed by the schema (e.g. "active")
+
       assert {:ok, updated} = Accounts.update_user_status(user, "active")
       assert updated.status == "active"
       assert not is_nil(updated.last_seen_at)
@@ -201,8 +193,117 @@ defmodule Backend.AccountsTest do
     test "update_user_status/2 returns an error changeset for invalid status" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{} = changeset} = Accounts.update_user_status(user, "online")
-      # the schema validates inclusion, so status should be invalid
       assert errors_on(changeset).status == ["is invalid"]
+    end
+
+    test "search_users/2 finds users by name and excludes the current user" do
+      u_alice = user_fixture(%{name: "Alice", surname: "Johnson", email: "alice@example.com"})
+      u_bob = user_fixture(%{name: "Bob", surname: "Smith", email: "bob@example.com"})
+
+      results = Accounts.search_users("Alice", u_bob.id)
+      assert Enum.any?(results, &(&1.id == u_alice.id))
+      refute Enum.any?(results, &(&1.id == u_bob.id))
+
+      results2 = Accounts.search_users("Alice Johnson", u_bob.id)
+      assert Enum.any?(results2, &(&1.id == u_alice.id))
+    end
+
+    test "get_user_profile!/2 respects profile_visibility and connections" do
+      u1 =
+        %User{
+          name: "Private",
+          surname: "User",
+          email: "private@example.com",
+          profile_visibility: "connections_only",
+          status: "active",
+          photo_url: "p.jpg"
+        }
+        |> Repo.insert!()
+
+      u2 = user_fixture(%{name: "Viewer", email: "viewer@example.com"})
+
+      profile = Accounts.get_user_profile!(u1.id, u2)
+      assert profile.email == nil
+      assert profile.status == "offline"
+      assert profile.photo_url == "p.jpg"
+
+      %Connection{
+        user_id: u1.id,
+        connected_user_id: u2.id,
+        status: "accepted"
+      }
+      |> Repo.insert!()
+
+      profile_connected = Accounts.get_user_profile!(u1.id, u2)
+      assert profile_connected.email == "private@example.com"
+      assert profile_connected.status == "active"
+    end
+
+    test "delete_stale_pending_users/0 deletes only pending users older than 24h and returns count" do
+      old_dt =
+        DateTime.add(DateTime.utc_now(), -25 * 3600, :second)
+        |> DateTime.truncate(:second)
+
+      recent_dt =
+        DateTime.utc_now()
+        |> DateTime.truncate(:second)
+
+      old_user =
+        %User{
+          name: "Old",
+          surname: "Pending",
+          email: "old_pending@example.com",
+          status: "pending_confirmation",
+          email_confirmation_token: "oldtoken",
+          inserted_at: old_dt,
+          updated_at: old_dt
+        }
+        |> Repo.insert!()
+
+      recent_user =
+        %User{
+          name: "Recent",
+          surname: "Pending",
+          email: "recent_pending@example.com",
+          status: "pending_confirmation",
+          email_confirmation_token: "recenttoken",
+          inserted_at: recent_dt,
+          updated_at: recent_dt
+        }
+        |> Repo.insert!()
+
+      assert {:ok, count} = Accounts.delete_stale_pending_users()
+      assert count >= 1
+      refute Repo.get(User, old_user.id)
+      assert Repo.get(User, recent_user.id)
+    end
+
+    test "cancel_registration/1 deletes pending registration and rejects non-pending" do
+      _pending_user =
+        %User{
+          name: "ToCancel",
+          surname: "User",
+          email: "tocancel@example.com",
+          status: "pending_confirmation",
+          email_confirmation_token: "canceltoken"
+        }
+        |> Repo.insert!()
+
+      assert {:ok, %User{}} = Accounts.cancel_registration("canceltoken")
+      refute Repo.get_by(User, email_confirmation_token: "canceltoken")
+
+      _confirmed_user =
+        %User{
+          name: "Confirmed",
+          surname: "User",
+          email: "confirmed@example.com",
+          status: "active",
+          email_confirmation_token: "cannotcancel"
+        }
+        |> Repo.insert!()
+
+      assert {:error, :cannot_cancel} = Accounts.cancel_registration("cannotcancel")
+      assert Repo.get_by(User, email_confirmation_token: "cannotcancel")
     end
   end
 end

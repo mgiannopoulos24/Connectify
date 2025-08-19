@@ -11,13 +11,19 @@ defmodule BackendWeb.ConnectionController do
   def index(conn, _params) do
     current_user = conn.assigns.current_user
     connections = Connections.list_user_connections(current_user.id)
-    render(conn, ConnectionJSON, :index, connections: connections, current_user: current_user)
+
+    conn
+    |> put_view(ConnectionJSON)
+    |> render(:index, connections: connections, current_user: current_user)
   end
 
   def pending(conn, _params) do
     current_user = conn.assigns.current_user
     pending_requests = Connections.list_pending_requests(current_user.id)
-    render(conn, ConnectionJSON, :pending, pending_requests: pending_requests)
+
+    conn
+    |> put_view(ConnectionJSON)
+    |> render(:pending, pending_requests: pending_requests)
   end
 
   def create(conn, %{"recipient_id" => recipient_id}) do
@@ -31,8 +37,8 @@ defmodule BackendWeb.ConnectionController do
 
       conn
       |> put_status(:created)
-      # Pass both the preloaded connection and the current user to the view
-      |> render(ConnectionJSON, :show,
+      |> put_view(ConnectionJSON)
+      |> render(:show,
         connection: preloaded_connection,
         current_user: current_user
       )
@@ -55,7 +61,9 @@ defmodule BackendWeb.ConnectionController do
             connected_user: [:job_experiences]
           )
 
-        render(conn, ConnectionJSON, :show,
+        conn
+        |> put_view(ConnectionJSON)
+        |> render(:show,
           connection: preloaded_connection,
           current_user: current_user
         )

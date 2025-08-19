@@ -67,7 +67,7 @@ defmodule Backend.Skills do
 
       # This case handles when the user tries to add a skill they already have.
       # We treat it as a success and return the existing skill.
-      {:error, :user_skill, %Ecto.Changeset{errors: [user_skill_unique_index: _]} = changeset, _} ->
+      {:error, :user_skill, %Ecto.Changeset{errors: [user_skill_unique_index: _]} = _changeset, _} ->
         {:ok, Repo.get_by!(Skill, name: skill_name, user_id: user.id)}
 
       {:error, :user_skill, changeset, _} ->
