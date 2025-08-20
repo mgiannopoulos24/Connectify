@@ -42,3 +42,17 @@ export const updateSecuritySettings = async (securityData: any): Promise<User> =
   });
   return response.data.data;
 };
+
+/**
+ * Follows a user for the current user.
+ */
+export const followUser = async (userId: string): Promise<void> => {
+  await axios.post(`/api/users/${userId}/follow`);
+};
+
+/**
+ * Unfollows a user for the current user.
+ */
+export const unfollowUser = async (userId: string): Promise<void> => {
+  await axios.delete(`/api/users/${userId}/follow`);
+};

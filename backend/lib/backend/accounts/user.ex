@@ -35,9 +35,11 @@ defmodule Backend.Accounts.User do
     field :profile_visibility, :string, default: "public"
 
     field :current_password, :string, virtual: true, redact: true
+
     field :password, :string,
       virtual: true,
       redact: true
+
     field :password_confirmation, :string, virtual: true, redact: true
 
     has_many :job_experiences, JobExperience, on_delete: :delete_all
@@ -114,8 +116,12 @@ defmodule Backend.Accounts.User do
   defp validate_password_if_changed(changeset, attrs) do
     # Only validate password fields if a new password is being provided.
     case Map.get(attrs, "password") do
-      nil -> changeset
-      "" -> changeset
+      nil ->
+        changeset
+
+      "" ->
+        changeset
+
       _password ->
         changeset
         |> validate_required([:password, :password_confirmation])
@@ -124,7 +130,7 @@ defmodule Backend.Accounts.User do
         |> put_password_hash()
     end
   end
-  
+
   def role_changeset(user, attrs) do
     user
     |> cast(attrs, [:role])

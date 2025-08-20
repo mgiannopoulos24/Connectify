@@ -4,7 +4,7 @@ import ReactionIcon from './ReactionIcon';
 
 interface ReactionSummaryProps {
   post: Post;
-  onOpenReactionsModal: () => void; 
+  onOpenReactionsModal: () => void;
 }
 
 const ReactionSummary: React.FC<ReactionSummaryProps> = ({ post, onOpenReactionsModal }) => {

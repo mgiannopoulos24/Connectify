@@ -13,6 +13,8 @@ import {
   PlusCircle,
   Edit,
   Trash2,
+  Building,
+  Heart,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -37,12 +39,22 @@ import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '@/components/common/StatusIndicator';
 import CompanyAutocomplete from '@/components/common/CompanyAutocomplete';
 import { CompanySummary } from '@/types/company';
-import { searchCompanies } from '@/services/companyService';
+import { searchCompanies, unfollowCompany } from '@/services/companyService';
 import debounce from 'lodash.debounce';
 import { Skill } from '@/types/skill';
 import { searchSkills, addUserSkill } from '@/services/skillService';
 import SkillAutocomplete from '@/components/common/SkillAutocomplete';
-import { JobExperience, Education } from '@/types/user'; // Import types for JobExperience and Education
+import { JobExperience, Education } from '@/types/user';
+import { Link } from 'react-router-dom';
+import { unfollowUser } from '@/services/userService';
+import { toast } from 'sonner';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 const ProfilePage: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -56,6 +68,11 @@ const ProfilePage: React.FC = () => {
   }
 
   const userStatus = getUserStatus(user.id);
+
+  const interests = [
+    ...(user.followed_companies?.map((c) => ({ ...c, type: 'company' as const })) || []),
+    ...(user.followed_users?.map((u) => ({ ...u, type: 'user' as const })) || []),
+  ];
 
   const handleOpenModal = (
     type: 'experience' | 'education' | 'skill',
@@ -167,6 +184,32 @@ const ProfilePage: React.FC = () => {
     } catch (error) {
       console.error(`Failed to save skill`, error);
       alert(`Error: Could not save skill.`);
+    }
+  };
+
+  const handleUnfollowCompany = async (companyId: string, companyName: string) => {
+    try {
+      await unfollowCompany(companyId);
+      setUser((prev) => ({
+        ...prev!,
+        followed_companies: prev!.followed_companies.filter((c) => c.id !== companyId),
+      }));
+      toast.success(`You unfollowed ${companyName}.`);
+    } catch (error) {
+      toast.error('Failed to unfollow company.');
+    }
+  };
+
+  const handleUnfollowUser = async (userId: string, userName: string) => {
+    try {
+      await unfollowUser(userId);
+      setUser((prev) => ({
+        ...prev!,
+        followed_users: prev!.followed_users.filter((u) => u.id !== userId),
+      }));
+      toast.success(`You unfollowed ${userName}.`);
+    } catch (error) {
+      toast.error('Failed to unfollow user.');
     }
   };
 
@@ -357,7 +400,91 @@ const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* --- CUD Modal --- */}
+      {/* --- Interests (Following) Card --- */}
+      <Card className="w-full shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <Heart className="text-blue-600" />
+            Interests
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {interests.length > 0 ? (
+            <Carousel
+              opts={{
+                align: 'start',
+                loop: interests.length > 3,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {interests.map((item) => (
+                  <CarouselItem key={item.id} className="basis-full md:basis-1/2 lg:basis-1/3">
+                    <div className="p-1">
+                      <Card className="h-full">
+                        <CardContent className="flex flex-col items-center text-center p-6 aspect-square justify-between">
+                          <Link
+                            to={
+                              item.type === 'company'
+                                ? `/companies/${item.id}`
+                                : `/profile/${item.id}`
+                            }
+                            className="flex-grow flex flex-col items-center"
+                          >
+                            {item.type === 'company' &&
+                              (item.logo_url ? (
+                                <img
+                                  src={item.logo_url}
+                                  alt={item.name}
+                                  className="h-20 w-20 rounded-lg object-contain bg-white mb-4"
+                                />
+                              ) : (
+                                <Building className="h-20 w-20 text-gray-400 mb-4" />
+                              ))}
+                            {item.type === 'user' &&
+                              (item.photo_url ? (
+                                <img
+                                  src={item.photo_url}
+                                  alt={item.name}
+                                  className="h-20 w-20 rounded-full object-cover mb-4"
+                                />
+                              ) : (
+                                <UserCircle className="h-20 w-20 text-gray-400 mb-4" />
+                              ))}
+                            <p className="font-semibold">
+                              {item.name} {item.type === 'user' && item.surname}
+                            </p>
+                          </Link>
+                          <Button
+                            variant="outline"
+                            className="w-full mt-4"
+                            onClick={() =>
+                              item.type === 'company'
+                                ? handleUnfollowCompany(item.id, item.name)
+                                : handleUnfollowUser(item.id, `${item.name} ${item.surname}`)
+                            }
+                          >
+                            Unfollow
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {interests.length > 3 && (
+                <>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </>
+              )}
+            </Carousel>
+          ) : (
+            <p className="text-gray-500">Not following any companies or people yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
       <EditModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

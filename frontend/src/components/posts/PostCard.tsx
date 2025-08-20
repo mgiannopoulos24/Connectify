@@ -254,11 +254,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
             onSendClick={() => setIsSendModalOpen(true)}
           />
           {showComments && (
-            <CommentSection
-              post={post}
-              onCommentAdded={handleNewComment}
-              onPostUpdate={onUpdate}
-            />
+            <CommentSection post={post} onCommentAdded={handleNewComment} onPostUpdate={onUpdate} />
           )}
         </CardContent>
       </Card>

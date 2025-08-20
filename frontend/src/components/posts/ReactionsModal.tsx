@@ -50,9 +50,7 @@ const ReactionsModal: React.FC<ReactionsModalProps> = ({ isOpen, onClose, post }
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Reactions</DialogTitle>
-          <DialogDescription>
-            People who reacted to {post.user.name}'s post.
-          </DialogDescription>
+          <DialogDescription>People who reacted to {post.user.name}'s post.</DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-72 pr-6">
           <div className="space-y-4">

@@ -1,5 +1,6 @@
 import { Post } from './post';
 import { CompanySummary } from './company';
+import { UserSummary } from './connections';
 import { Skill } from './skill'; // Import the new Skill type
 
 export type UserStatus = 'active' | 'idle' | 'offline';
@@ -16,12 +17,6 @@ export interface Education {
   school_name: string;
   degree: string;
   field_of_study: string;
-}
-
-interface Interest {
-  id: string;
-  name: string;
-  type: string;
 }
 
 interface ConnectionInfo {
@@ -47,8 +42,9 @@ export interface User {
   job_experiences: JobExperience[];
   educations: Education[];
   skills: Skill[];
-  interests: Interest[];
   sent_connections: ConnectionInfo[];
   received_connections: ConnectionInfo[];
+  followed_companies: CompanySummary[];
+  followed_users: UserSummary[];
   posts?: Post[];
 }

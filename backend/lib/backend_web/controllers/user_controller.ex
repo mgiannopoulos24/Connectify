@@ -4,6 +4,7 @@ defmodule BackendWeb.UserController do
   alias Backend.Accounts
   alias Backend.Accounts.User
   alias Backend.Auth
+  alias Backend.Interests
   alias BackendWeb.UserJSON
 
   def me(conn, _params) do
@@ -114,7 +115,35 @@ defmodule BackendWeb.UserController do
         |> render(BackendWeb.ChangesetJSON, :error, changeset: changeset)
     end
   end
-  
+
+  def follow(conn, %{"user_id" => user_id}) do
+    current_user = conn.assigns.current_user
+
+    # Prevent user from following themselves
+    if current_user.id == user_id do
+      conn
+      |> put_status(:unprocessable_entity)
+      |> json(%{errors: %{detail: "You cannot follow yourself."}})
+    else
+      # Ensure user to be followed exists
+      _user_to_follow = Accounts.get_user!(user_id)
+
+      with {:ok, _} <- Interests.follow_entity(current_user.id, user_id, "user") do
+        send_resp(conn, :no_content, "")
+      end
+    end
+  end
+
+  def unfollow(conn, %{"user_id" => user_id}) do
+    current_user = conn.assigns.current_user
+    # Ensure user exists, for consistency
+    _user_to_unfollow = Accounts.get_user!(user_id)
+
+    with {:ok, _} <- Interests.unfollow_entity(current_user.id, user_id, "user") do
+      send_resp(conn, :no_content, "")
+    end
+  end
+
   def delete(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     {:ok, _user} = Accounts.delete_user(user)

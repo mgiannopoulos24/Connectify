@@ -301,7 +301,7 @@ defmodule Backend.Accounts do
       {:error, changeset}
     end
   end
-  
+
   @doc """
   Deletes a user.
 

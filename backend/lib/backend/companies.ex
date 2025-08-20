@@ -1,5 +1,5 @@
 defmodule Backend.Companies do
-  @moduledoc """
+  @modledoc """
   The Companies context.
   """
   import Ecto.Query, warn: false
@@ -32,7 +32,7 @@ defmodule Backend.Companies do
 
   Raises `Ecto.NoResultsError` if the Company does not exist.
   """
-  def get_company!(id), do: Repo.get!(Company, id)
+  def get_company!(id), do: Repo.get!(Company, id) |> Repo.preload(:job_postings)
 
   @doc """
   Creates a company.

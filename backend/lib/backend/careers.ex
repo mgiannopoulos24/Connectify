@@ -9,11 +9,32 @@ defmodule Backend.Careers do
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
   alias Backend.Companies
+  alias Backend.Interests
 
   def get_job_experience!(id), do: Repo.get!(JobExperience, id) |> Repo.preload(:company)
 
   def create_job_experience(attrs \\ %{}) do
-    handle_job_experience_transaction(attrs, %JobExperience{})
+    user_id = attrs["user_id"]
+    result = handle_job_experience_transaction(attrs, %JobExperience{})
+
+    # After creating the job experience, handle the auto-follow logic
+    case result do
+      {:ok, job_experience} ->
+        # Check if this is the user's first job experience
+        query = from(je in JobExperience, where: je.user_id == ^user_id, select: count(je.id))
+        count = Repo.one(query)
+
+        if count == 1 do
+          # This is their first job, auto-follow the company.
+          # We can ignore the result here, it's a "best effort" side-effect.
+          Interests.follow_entity(user_id, job_experience.company_id, "company")
+        end
+
+        {:ok, job_experience}
+
+      error ->
+        error
+    end
   end
 
   def update_job_experience(%JobExperience{} = job_experience, attrs) do

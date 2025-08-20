@@ -16,7 +16,7 @@ import {
   HelpCircle,
   Languages,
   Newspaper,
-  ChevronDown, 
+  ChevronDown,
 } from 'lucide-react';
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '../common/StatusIndicator';

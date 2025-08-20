@@ -99,7 +99,7 @@ defmodule Backend.Posts do
     )
     |> Repo.all()
   end
-  
+
   def remove_reaction(user, post) do
     Repo.delete_all(from(r in Reaction, where: r.user_id == ^user.id and r.post_id == ^post.id))
   end

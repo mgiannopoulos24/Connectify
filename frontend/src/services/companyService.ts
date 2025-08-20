@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Company } from '@/types/company';
+import { Company, CompanySummary } from '@/types/company';
 
 // --- For Admin Panel ---
 
@@ -46,8 +46,32 @@ export const deleteCompany = async (id: string): Promise<void> => {
 /**
  * Searches for companies by name for autocomplete functionality.
  */
-export const searchCompanies = async (searchTerm: string): Promise<Company[]> => {
+export const searchCompanies = async (searchTerm: string): Promise<CompanySummary[]> => {
   if (!searchTerm) return [];
-  const response = await axios.get<{ data: Company[] }>(`/api/companies?search=${searchTerm}`);
+  const response = await axios.get<{ data: CompanySummary[] }>(
+    `/api/companies?search=${searchTerm}`,
+  );
   return response.data.data;
+};
+
+/**
+ * Fetches a single company by its ID.
+ */
+export const getCompanyById = async (id: string): Promise<Company> => {
+  const response = await axios.get<{ data: Company }>(`/api/companies/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Follows a company for the current user.
+ */
+export const followCompany = async (id: string): Promise<void> => {
+  await axios.post(`/api/companies/${id}/follow`);
+};
+
+/**
+ * Unfollows a company for the current user.
+ */
+export const unfollowCompany = async (id: string): Promise<void> => {
+  await axios.delete(`/api/companies/${id}/follow`);
 };

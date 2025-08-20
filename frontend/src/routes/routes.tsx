@@ -31,6 +31,7 @@ import AdminExportPage from '@/pages/admin/ExportPage';
 import VisibilitySettingsPage from '@/pages/settings/VisibilitySettingsPage';
 import CreateArticlePage from '@/pages/CreateArticle';
 import SecuritySettingsPage from '@/pages/settings/SecuritySettingsPage';
+import CompanyPage from '@/pages/CompanyPage';
 
 type RouteConfig = {
   path: string;
@@ -126,6 +127,16 @@ const routes: RouteConfig[] = [
     element: (
       <AppLayout>
         <JobDetailsPage />
+      </AppLayout>
+    ),
+    protected: true,
+    roles: ['professional', 'admin'],
+  },
+  {
+    path: '/companies/:companyId',
+    element: (
+      <AppLayout>
+        <CompanyPage />
       </AppLayout>
     ),
     protected: true,

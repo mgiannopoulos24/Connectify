@@ -59,18 +59,11 @@ const PostPreviewCard: React.FC<PostPreviewCardProps> = ({ post, isSender }) => 
       </div>
 
       <div
-        className={cn(
-          'prose prose-sm max-w-none',
-          isSender ? 'text-blue-100' : 'text-gray-600',
-        )}
+        className={cn('prose prose-sm max-w-none', isSender ? 'text-blue-100' : 'text-gray-600')}
         dangerouslySetInnerHTML={contentSnippet}
       />
 
-      {post.link_url && (
-        <p className="text-xs text-blue-300 mt-2 truncate">
-          {post.link_url}
-        </p>
-      )}
+      {post.link_url && <p className="text-xs text-blue-300 mt-2 truncate">{post.link_url}</p>}
     </Link>
   );
 };

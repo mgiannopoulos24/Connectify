@@ -16,7 +16,7 @@ import {
 import { Loader2, CheckCircle, Upload, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CompanySummary } from '@/types/company';
-import { searchCompanies } from '@/services/companyService';
+import { getCompanies, searchCompanies, followCompany } from '@/services/companyService';
 import CompanyAutocomplete from '@/components/common/CompanyAutocomplete';
 import debounce from 'lodash.debounce';
 
@@ -29,14 +29,6 @@ const employmentTypes = [
   'Internship',
   'Apprenticeship',
   'Seasonal',
-];
-
-const topCompanies = [
-  { id: 'google', name: 'Google', logo: 'https://logo.clearbit.com/google.com' },
-  { id: 'meta', name: 'Meta', logo: 'https://logo.clearbit.com/meta.com' },
-  { id: 'amazon', name: 'Amazon', logo: 'https://logo.clearbit.com/amazon.com' },
-  { id: 'microsoft', name: 'Microsoft', logo: 'https://logo.clearbit.com/microsoft.com' },
-  { id: 'apple', name: 'Apple', logo: 'https://logo.clearbit.com/apple.com' },
 ];
 
 const Onboarding = () => {
@@ -55,9 +47,9 @@ const Onboarding = () => {
   const [companySearch, setCompanySearch] = useState('');
   const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isLookingForJob, setIsLookingForJob] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [topCompanies, setTopCompanies] = useState<CompanySummary[]>([]);
   const [followedCompanies, setFollowedCompanies] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [verificationCode, setVerificationCode] = useState('');
@@ -78,6 +70,18 @@ const Onboarding = () => {
   );
 
   useEffect(() => {
+    const fetchTopCompanies = async () => {
+      try {
+        const allCompanies = await getCompanies();
+        setTopCompanies(allCompanies.slice(0, 5));
+      } catch (error) {
+        console.error('Could not fetch companies for onboarding', error);
+      }
+    };
+    fetchTopCompanies();
+  }, []);
+
+  useEffect(() => {
     debouncedSearch(companySearch);
     return () => debouncedSearch.cancel();
   }, [companySearch, debouncedSearch]);
@@ -85,7 +89,7 @@ const Onboarding = () => {
   const handleCompanySelect = (company: CompanySummary | null, name: string) => {
     setCompanyName(name);
     setSelectedCompanyId(company ? company.id : null);
-    setCompanySearch(''); // Clear search to hide dropdown
+    setCompanySearch('');
     setCompanyResults([]);
   };
 
@@ -97,12 +101,12 @@ const Onboarding = () => {
     }
   };
 
-  const toggleCompanyFollow = (companyName: string) => {
+  const toggleCompanyFollow = (companyId: string) => {
     const newSet = new Set(followedCompanies);
-    if (newSet.has(companyName)) {
-      newSet.delete(companyName);
+    if (newSet.has(companyId)) {
+      newSet.delete(companyId);
     } else {
-      newSet.add(companyName);
+      newSet.add(companyId);
     }
     setFollowedCompanies(newSet);
   };
@@ -112,14 +116,12 @@ const Onboarding = () => {
     setIsLoading(true);
 
     try {
-      // Step 1: Location
       if (step === 1) {
         if (!location) throw new Error('Location is required.');
         const response = await axios.put(`/api/users/${user?.id}`, { user: { location } });
         if (setUser) setUser(response.data.data);
       }
 
-      // Step 2: Job Experience
       if (step === 2) {
         if (!jobTitle || !employmentType || !companyName)
           throw new Error('All job fields are required.');
@@ -135,12 +137,8 @@ const Onboarding = () => {
         await axios.post('/api/job_experiences', {
           job_experience: jobExperiencePayload,
         });
-        if (!selectedCompanyId) {
-          await axios.post('/api/interests', { interest: { name: companyName, type: 'company' } });
-        }
       }
 
-      // Step 3: Email Confirmation
       if (step === 3) {
         if (!verificationCode || verificationCode.length !== 6) {
           throw new Error('Please enter a valid 6-digit verification code.');
@@ -148,22 +146,17 @@ const Onboarding = () => {
         await axios.post('/api/email/confirm', { token: verificationCode });
       }
 
-      // Step 4: Looking for a job (This step is now removed but logic is kept in case you want to re-add)
-      // Step 5 -> 4: Photo Upload
       if (step === 4 && photoFile) {
-        // This is a placeholder as backend doesn't support photo uploads yet
         console.log('Photo would be uploaded here.');
       }
 
-      // Step 6 -> 5: Follow Companies
       if (step === 5) {
-        const followPromises = Array.from(followedCompanies).map((company) =>
-          axios.post('/api/interests', { interest: { name: company, type: 'company' } }),
+        const followPromises = Array.from(followedCompanies).map((companyId) =>
+          followCompany(companyId),
         );
         await Promise.all(followPromises);
       }
 
-      // Step 7 -> 6: Complete Onboarding
       if (step === 6) {
         const { data } = await axios.put(`/api/users/${user?.id}`, {
           user: { onboarding_completed: true },
@@ -171,7 +164,7 @@ const Onboarding = () => {
         if (setUser) {
           setUser(data.data);
         }
-        navigate('/homepage'); // Go to homepage
+        navigate('/homepage');
         return;
       }
 
@@ -336,21 +329,21 @@ const Onboarding = () => {
               {topCompanies.map((company) => (
                 <button
                   key={company.id}
-                  onClick={() => toggleCompanyFollow(company.name)}
+                  onClick={() => toggleCompanyFollow(company.id)}
                   className={cn(
                     'flex items-center gap-4 p-3 border rounded-lg transition-all',
-                    followedCompanies.has(company.name)
+                    followedCompanies.has(company.id)
                       ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
                       : 'border-gray-300 hover:bg-gray-50',
                   )}
                 >
                   <img
-                    src={company.logo}
+                    src={company.logo_url || ''}
                     alt={`${company.name} Logo`}
-                    className="w-10 h-10 rounded-full bg-white"
+                    className="w-10 h-10 rounded-full bg-white object-contain"
                   />
                   <span className="font-semibold">{company.name}</span>
-                  {followedCompanies.has(company.name) && (
+                  {followedCompanies.has(company.id) && (
                     <CheckCircle className="w-5 h-5 text-blue-600 ml-auto" />
                   )}
                 </button>

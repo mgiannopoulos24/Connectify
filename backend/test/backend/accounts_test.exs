@@ -185,7 +185,14 @@ defmodule Backend.AccountsTest do
     test "update_user_status/2 updates status and last_seen_at for a valid status" do
       user = user_fixture()
 
-      assert {:ok, updated} = Accounts.update_user_status(user, "active")
+      # Ensure the user's email is confirmed so we can set status to "active"
+      confirmed_user =
+        Ecto.Changeset.change(user,
+          email_confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+        )
+        |> Repo.update!()
+
+      assert {:ok, updated} = Accounts.update_user_status(confirmed_user, "active")
       assert updated.status == "active"
       assert not is_nil(updated.last_seen_at)
     end

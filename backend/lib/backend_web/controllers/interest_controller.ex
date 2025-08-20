@@ -1,16 +1,6 @@
 defmodule BackendWeb.InterestController do
   use BackendWeb, :controller
 
-  alias Backend.Interests
-
-  action_fallback BackendWeb.FallbackController
-
-  def create(conn, %{"interest" => interest_params}) do
-    current_user = conn.assigns.current_user
-
-    with {:ok, _interest} <-
-           Interests.create_interest(Map.put(interest_params, "user_id", current_user.id)) do
-      send_resp(conn, :created, "")
-    end
-  end
+  # This controller is now obsolete and its routes have been removed.
+  # The "follow" functionality is handled by UserController and CompanyController.
 end

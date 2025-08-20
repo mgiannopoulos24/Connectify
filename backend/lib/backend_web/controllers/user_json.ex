@@ -3,7 +3,7 @@ defmodule BackendWeb.UserJSON do
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
   alias Backend.Skills.Skill
-  alias Backend.Interests.Interest
+  alias Backend.Interests
   alias Backend.Connections.Connection
   alias Backend.Companies.Company
   alias BackendWeb.PostJSON
@@ -41,6 +41,9 @@ defmodule BackendWeb.UserJSON do
 
   # --- FIX APPLIED HERE: Changed defp to def ---
   def data(%User{} = user) do
+    followed_companies = Interests.list_followed_companies(user.id)
+    followed_users = Interests.list_followed_users(user.id)
+
     data = %{
       id: user.id,
       name: user.name,
@@ -59,9 +62,10 @@ defmodule BackendWeb.UserJSON do
       job_experiences: Enum.map(user.job_experiences, &job_experience_data/1),
       educations: Enum.map(user.educations, &education_data/1),
       skills: Enum.map(user.skills, &skill_data/1),
-      interests: Enum.map(user.interests, &interest_data/1),
       sent_connections: Enum.map(user.sent_connections, &connection_info_data/1),
-      received_connections: Enum.map(user.received_connections, &connection_info_data/1)
+      received_connections: Enum.map(user.received_connections, &connection_info_data/1),
+      followed_companies: Enum.map(followed_companies, &followed_company_data/1),
+      followed_users: Enum.map(followed_users, &followed_user_data/1)
     }
 
     data_with_posts =
@@ -120,11 +124,20 @@ defmodule BackendWeb.UserJSON do
     }
   end
 
-  defp interest_data(%Interest{} = interest) do
+  defp followed_company_data(%Company{} = company) do
     %{
-      id: interest.id,
-      name: interest.name,
-      type: interest.type
+      id: company.id,
+      name: company.name,
+      logo_url: company.logo_url
+    }
+  end
+
+  defp followed_user_data(%User{} = user) do
+    %{
+      id: user.id,
+      name: user.name,
+      surname: user.surname,
+      photo_url: user.photo_url
     }
   end
 

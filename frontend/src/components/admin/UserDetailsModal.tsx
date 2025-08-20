@@ -105,6 +105,11 @@ const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, stat
     }
   };
 
+  const interests = [
+    ...(user.followed_companies?.map((c) => ({ ...c, type: 'company' })) || []),
+    ...(user.followed_users?.map((u) => ({ ...u, type: 'user' })) || []),
+  ];
+
   return (
     <div className="space-y-6">
       {/* Basic Info */}
@@ -185,10 +190,10 @@ const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, stat
         <InfoSection
           icon={Heart}
           title="Interests"
-          items={user.interests}
+          items={interests}
           renderItem={(item: any) => (
             <Badge key={item.id} variant="outline">
-              {item.name}
+              {item.type === 'company' ? item.name : `${item.name} ${item.surname}`}
             </Badge>
           )}
           isBadgeList

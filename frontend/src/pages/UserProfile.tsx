@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getUserById } from '@/services/userService';
+import { getUserById, followUser, unfollowUser } from '@/services/userService';
 import { User } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,18 +15,22 @@ import {
   MessageSquare,
   UserPlus,
   Lock,
+  UserCheck,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { sendConnectionRequest } from '@/services/connectionService';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, setUser: setCurrentUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
   const isOwnProfile = currentUser?.id === userId;
 
   useEffect(() => {
@@ -51,17 +55,61 @@ const UserProfilePage: React.FC = () => {
     fetchUser();
   }, [userId, isOwnProfile, navigate]);
 
+  useEffect(() => {
+    if (currentUser && user) {
+      setIsFollowing(currentUser.followed_users.some((u) => u.id === user.id));
+    }
+  }, [currentUser, user]);
+
   const handleConnect = async () => {
     if (!userId) return;
     setIsConnecting(true);
     try {
       await sendConnectionRequest(userId);
-      alert('Connection request sent!');
+      toast.success('Connection request sent!');
     } catch (error) {
       console.error('Failed to send connection request:', error);
-      alert('Failed to send connection request.');
+      toast.error('Failed to send connection request.');
     } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!userId || !currentUser || !setCurrentUser || !user) return;
+    setIsFollowLoading(true);
+
+    const originalFollowingState = isFollowing;
+    setIsFollowing(!originalFollowingState);
+
+    try {
+      if (originalFollowingState) {
+        await unfollowUser(userId);
+        setCurrentUser((prev) => ({
+          ...prev!,
+          followed_users: prev!.followed_users.filter((u) => u.id !== userId),
+        }));
+        toast.success(`You unfollowed ${user.name}.`);
+      } else {
+        await followUser(userId);
+        const userSummary = {
+          id: user.id,
+          name: user.name,
+          surname: user.surname,
+          photo_url: user.photo_url,
+          job_title: user.job_experiences?.[0]?.job_title,
+        };
+        setCurrentUser((prev) => ({
+          ...prev!,
+          followed_users: [...prev!.followed_users, userSummary],
+        }));
+        toast.success(`You are now following ${user.name}.`);
+      }
+    } catch (error) {
+      setIsFollowing(originalFollowingState);
+      toast.error('An error occurred while trying to follow.');
+    } finally {
+      setIsFollowLoading(false);
     }
   };
 
@@ -127,10 +175,20 @@ const UserProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="mt-8 flex gap-4 justify-center">
+            <div className="mt-8 flex flex-wrap gap-4 justify-center">
               <Button onClick={handleConnect} disabled={isConnecting}>
                 <UserPlus className="mr-2 h-4 w-4" />
                 {isConnecting ? 'Sending...' : 'Connect'}
+              </Button>
+              <Button onClick={handleFollowToggle} variant="outline" disabled={isFollowLoading}>
+                {isFollowLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : isFollowing ? (
+                  <UserCheck className="mr-2 h-4 w-4" />
+                ) : (
+                  <UserPlus className="mr-2 h-4 w-4" />
+                )}
+                {isFollowing ? 'Following' : 'Follow'}
               </Button>
               <Button onClick={handleMessage} variant="outline">
                 <MessageSquare className="mr-2 h-4 w-4" />

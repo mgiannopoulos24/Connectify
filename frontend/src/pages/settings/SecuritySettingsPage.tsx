@@ -141,11 +141,7 @@ const SecuritySettingsPage: React.FC = () => {
                   <FormItem>
                     <FormLabel>Current Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter your current password"
-                        {...field}
-                      />
+                      <Input type="password" placeholder="Enter your current password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

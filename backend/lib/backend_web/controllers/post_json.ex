@@ -16,6 +16,7 @@ defmodule BackendWeb.PostJSON do
   def reactions_index(%{reactions: reactions}) do
     %{data: Enum.map(reactions, &reaction_with_user_data/1)}
   end
+
   # --- NEW FUNCTION END ---
 
   def show(%{post: post, current_user: current_user}) do
@@ -148,6 +149,7 @@ defmodule BackendWeb.PostJSON do
       user: user_data(reaction.user)
     }
   end
+
   # --- NEW HELPER FUNCTION END ---
 
   def comment_data(comment, current_user \\ nil) do

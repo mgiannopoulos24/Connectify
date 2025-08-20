@@ -193,6 +193,7 @@ defmodule BackendWeb.PostController do
         "chat:#{message.chat_room_id}",
         {"new_msg", %{message: MessageJSON.data(message)}}
       )
+
       # --- FIX ENDS HERE ---
 
       conn

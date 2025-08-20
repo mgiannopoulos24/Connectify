@@ -1,9 +1,20 @@
+import { JobPosting } from './job';
+
 export interface CompanySummary {
   id: string;
   name: string;
   logo_url: string | null;
 }
 
+// A lightweight summary of a job for the company page
+export interface JobSummary {
+  id: string;
+  title: string;
+  location: string | null;
+  job_type: JobPosting['job_type'];
+}
+
 export interface Company extends CompanySummary {
   description: string | null;
+  job_postings?: JobSummary[];
 }

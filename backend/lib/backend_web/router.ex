@@ -61,7 +61,11 @@ defmodule BackendWeb.Router do
     get "/users/me", UserController, :me
     put "/users/me/security", UserController, :update_security
     get "/users/search", UserController, :search
-    resources "/users", UserController, except: [:new, :edit, :create]
+
+    resources "/users", UserController, except: [:new, :edit, :create] do
+      post "/follow", UserController, :follow
+      delete "/follow", UserController, :unfollow
+    end
 
     # Other resources
     resources "/job_experiences", JobExperienceController, except: [:new, :edit]
@@ -69,7 +73,9 @@ defmodule BackendWeb.Router do
     resources "/skills", SkillController, except: [:new, :edit]
     resources "/interests", InterestController, only: [:create], as: :interest
     # Company search for autocomplete
-    resources "/companies", CompanyController, only: [:index], as: :company
+    resources "/companies", CompanyController, only: [:index, :show], as: :company
+    post "/companies/:id/follow", CompanyController, :follow
+    delete "/companies/:id/follow", CompanyController, :unfollow
 
     # Posts
     resources "/posts", PostController, except: [:new, :edit]
