@@ -11,6 +11,13 @@ defmodule BackendWeb.PostJSON do
     %{data: Enum.map(posts, &data(&1, nil))}
   end
 
+  # --- NEW FUNCTION START ---
+  # This function specifically handles rendering the list for the reactions modal.
+  def reactions_index(%{reactions: reactions}) do
+    %{data: Enum.map(reactions, &reaction_with_user_data/1)}
+  end
+  # --- NEW FUNCTION END ---
+
   def show(%{post: post, current_user: current_user}) do
     %{data: data(post, current_user)}
   end
@@ -132,6 +139,16 @@ defmodule BackendWeb.PostJSON do
   end
 
   defp reaction_data(%Reaction{} = reaction), do: %{id: reaction.id, type: reaction.type}
+
+  # --- NEW HELPER FUNCTION START ---
+  # Renders a reaction with full user data for the modal.
+  defp reaction_with_user_data(%Reaction{} = reaction) do
+    %{
+      type: reaction.type,
+      user: user_data(reaction.user)
+    }
+  end
+  # --- NEW HELPER FUNCTION END ---
 
   def comment_data(comment, current_user \\ nil) do
     # Safely get the list of replies, whether it was pre-processed by build_comment_tree or not.

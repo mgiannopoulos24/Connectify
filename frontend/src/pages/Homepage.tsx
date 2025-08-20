@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getPosts } from '@/services/postService';
 import { Post } from '@/types/post';
 import { Loader2 } from 'lucide-react';
@@ -9,6 +10,7 @@ const Homepage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -24,6 +26,23 @@ const Homepage: React.FC = () => {
     };
     fetchPosts();
   }, []);
+
+  // --- FIX: Add useEffect to scroll to a post from a hash link ---
+  useEffect(() => {
+    if (!isLoading && location.hash) {
+      const postId = location.hash.substring(1); // Remove the '#'
+      const postElement = document.getElementById(postId);
+      if (postElement) {
+        setTimeout(() => {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          postElement.classList.add('post-highlight');
+          setTimeout(() => {
+            postElement.classList.remove('post-highlight');
+          }, 2000); // Highlight duration
+        }, 100); // Small delay to ensure rendering
+      }
+    }
+  }, [isLoading, location.hash, posts]);
 
   const handlePostCreated = (newPost: Post) => {
     setPosts([newPost, ...posts]);

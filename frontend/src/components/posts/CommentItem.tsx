@@ -15,7 +15,7 @@ interface CommentItemProps {
   postId: string;
   postAuthorId: string;
   onReplyAdded: (newReply: CommentType) => void;
-  onPostUpdate: (updatedPost: Post) => void; // For likes, which returns the whole post
+  onPostUpdate: (updatedPost: Post) => void; 
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -154,7 +154,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         )}
 
         {comment.replies && comment.replies.length > 0 && (
-          // ... replies section remains the same
+
           <div className="mt-3 space-y-3 pl-5 relative">
             <div className="absolute left-[-15px] top-4 h-[calc(100%-1rem)] w-0.5 bg-gray-200" />
             {comment.replies.map((reply) => (
@@ -165,7 +165,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   postId={postId}
                   postAuthorId={postAuthorId}
                   onReplyAdded={onReplyAdded}
-                  onPostUpdate={onPostUpdate} // Pass the prop down
+                  onPostUpdate={onPostUpdate} 
                 />
               </div>
             ))}

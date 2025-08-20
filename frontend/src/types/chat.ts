@@ -1,3 +1,5 @@
+import { PostPreview } from './post';
+
 /**
  * Represents a single chat message.
  */
@@ -12,6 +14,7 @@ export interface Message {
     surname: string;
     photo_url: string | null;
   };
+  post?: PostPreview;
 }
 
 /**

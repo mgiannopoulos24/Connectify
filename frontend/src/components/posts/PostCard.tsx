@@ -20,6 +20,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import ReactionsModal from './ReactionsModal';
+import SendPostModal from './SendPostModal';
 
 interface PostCardProps {
   post: Post;
@@ -33,6 +35,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
 
   const isArticle = /<[a-z][\s\S]*>/i.test(post.content || '');
 
@@ -133,125 +137,144 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start gap-4 p-4">
-        <Link to={`/profile/${post.user.id}`}>
-          {post.user.photo_url ? (
-            <img
-              src={post.user.photo_url}
-              alt={post.user.name}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <UserCircle className="w-12 h-12 text-gray-400" />
-          )}
-        </Link>
-        <div className="flex-grow">
-          <Link to={`/profile/${post.user.id}`} className="hover:underline">
-            <p className="font-semibold">
-              {post.user.name} {post.user.surname}
-            </p>
-          </Link>
-          <p className="text-sm text-gray-500">{post.user.job_title || 'Professional'}</p>
-          <p className="text-xs text-gray-400 flex items-center gap-1">
-            {formatDistanceToNow(new Date(post.inserted_at), { addSuffix: true })}
-            <Globe className="w-3 h-3" />
-          </p>
-        </div>
-        {user?.id === post.user.id && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Post
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Post
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </CardHeader>
-
-      <CardContent className="p-4 pt-0">
-        {isEditing ? (
-          <div className="space-y-2 mb-4">
-            {isArticle ? (
-              <ReactQuill
-                theme="snow"
-                value={editedContent}
-                onChange={setEditedContent}
-                modules={quillModules}
+    <>
+      {/* --- FIX: Add an ID to the card for hash linking --- */}
+      <Card id={`post-${post.id}`}>
+        <CardHeader className="flex flex-row items-start gap-4 p-4">
+          <Link to={`/profile/${post.user.id}`}>
+            {post.user.photo_url ? (
+              <img
+                src={post.user.photo_url}
+                alt={post.user.name}
+                className="w-12 h-12 rounded-full object-cover"
               />
             ) : (
-              <Textarea
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="min-h-[120px] text-base"
-                autoFocus
-              />
+              <UserCircle className="w-12 h-12 text-gray-400" />
             )}
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={isSaving}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save
-              </Button>
-            </div>
+          </Link>
+          <div className="flex-grow">
+            <Link to={`/profile/${post.user.id}`} className="hover:underline">
+              <p className="font-semibold">
+                {post.user.name} {post.user.surname}
+              </p>
+            </Link>
+            <p className="text-sm text-gray-500">{post.user.job_title || 'Professional'}</p>
+            <p className="text-xs text-gray-400 flex items-center gap-1">
+              {formatDistanceToNow(new Date(post.inserted_at), { addSuffix: true })}
+              <Globe className="w-3 h-3" />
+            </p>
           </div>
-        ) : (
-          <>
-            {post.content && (
-              <div
-                className="prose max-w-none mb-4"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
-            )}
-            {post.image_url && (
-              <img src={post.image_url} alt="Post content" className="rounded-lg mb-4 w-full" />
-            )}
-            {post.video_url && (
-              <video src={post.video_url} controls className="rounded-lg mb-4 w-full" />
-            )}
-            {post.link_url && (
-              <a
-                href={post.link_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                {post.link_url}
-              </a>
-            )}
-          </>
-        )}
+          {user?.id === post.user.id && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Post
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Post
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </CardHeader>
 
-        <div className="space-y-2 mt-2 mb-2">
-          <ReactionSummary post={post} />
-        </div>
+        <CardContent className="p-4 pt-0">
+          {isEditing ? (
+            <div className="space-y-2 mb-4">
+              {isArticle ? (
+                <ReactQuill
+                  theme="snow"
+                  value={editedContent}
+                  onChange={setEditedContent}
+                  modules={quillModules}
+                />
+              ) : (
+                <Textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="min-h-[120px] text-base"
+                  autoFocus
+                />
+              )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={isSaving}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {post.content && (
+                <div
+                  className="prose max-w-none mb-4"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+              )}
+              {post.image_url && (
+                <img src={post.image_url} alt="Post content" className="rounded-lg mb-4 w-full" />
+              )}
+              {post.video_url && (
+                <video src={post.video_url} controls className="rounded-lg mb-4 w-full" />
+              )}
+              {post.link_url && (
+                <a
+                  href={post.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {post.link_url}
+                </a>
+              )}
+            </>
+          )}
 
-        <ReactionTray
-          post={post}
-          onUpdate={onUpdate}
-          onCommentClick={() => setShowComments(!showComments)}
-        />
-        {showComments && (
-          <CommentSection
+          <div className="space-y-2 mt-2 mb-2">
+            <ReactionSummary
+              post={post}
+              onOpenReactionsModal={() => setIsReactionsModalOpen(true)}
+            />
+          </div>
+
+          <ReactionTray
             post={post}
-            onCommentAdded={handleNewComment}
-            onPostUpdate={onUpdate} // <-- PASS THE onUpdate PROP HERE
+            onUpdate={onUpdate}
+            onCommentClick={() => setShowComments(!showComments)}
+            onSendClick={() => setIsSendModalOpen(true)}
           />
-        )}
-      </CardContent>
-    </Card>
+          {showComments && (
+            <CommentSection
+              post={post}
+              onCommentAdded={handleNewComment}
+              onPostUpdate={onUpdate}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <ReactionsModal
+        isOpen={isReactionsModalOpen}
+        onClose={() => setIsReactionsModalOpen(false)}
+        post={post}
+      />
+
+      <SendPostModal
+        isOpen={isSendModalOpen}
+        onClose={() => setIsSendModalOpen(false)}
+        post={post}
+      />
+    </>
   );
 };
 

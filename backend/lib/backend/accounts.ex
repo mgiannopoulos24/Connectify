@@ -280,6 +280,29 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Updates a user's security settings (email and/or password).
+  Requires the current password to authorize any changes.
+  """
+  def update_security_settings(%User{} = user, attrs) do
+    current_password = attrs["current_password"]
+
+    # 1. First, verify the current password provided by the user.
+    if current_password && Argon2.verify_pass(current_password, user.password_hash) do
+      # 2. If correct, proceed with validating and applying the new settings.
+      user
+      |> User.security_changeset(attrs)
+      |> Repo.update()
+    else
+      # 3. If the password is nil or incorrect, return an error changeset.
+      changeset =
+        Ecto.Changeset.change(user)
+        |> Ecto.Changeset.add_error(:current_password, "is incorrect")
+
+      {:error, changeset}
+    end
+  end
+  
+  @doc """
   Deletes a user.
 
   ## Examples
@@ -300,13 +323,18 @@ defmodule Backend.Accounts do
   This is intended to be called by a periodic cleanup task.
   """
   def delete_stale_pending_users do
-    # Calculate the timestamp for 24 hours ago
-    cutoff_datetime = DateTime.add(DateTime.utc_now(), -24, :hour)
+    # Use NaiveDateTime to match the schema timestamps and calculate 24 hours ago.
+    cutoff_datetime =
+      NaiveDateTime.utc_now()
+      |> NaiveDateTime.add(-24 * 60 * 60, :second)
+      |> NaiveDateTime.truncate(:second)
 
-    # --- FIX: Match on the return value of Repo.delete_all and return {:ok, count} ---
-    {count, nil} =
+    {count, _} =
       from(u in User,
-        where: u.status == "pending_confirmation" and u.inserted_at < ^cutoff_datetime
+        where:
+          u.status == "pending_confirmation" and
+            is_nil(u.email_confirmed_at) and
+            u.inserted_at < ^cutoff_datetime
       )
       |> Repo.delete_all()
 
@@ -362,12 +390,21 @@ defmodule Backend.Accounts do
   Updates a user's status and last_seen_at timestamp.
   """
   def update_user_status(%User{} = user, new_status) do
-    user
-    |> User.changeset(%{
-      "status" => new_status,
-      "last_seen_at" => NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    })
-    |> Repo.update()
+    # Prevent promoting unconfirmed users to "active".
+    if new_status == "active" and is_nil(user.email_confirmed_at) do
+      changeset =
+        Ecto.Changeset.change(user)
+        |> Ecto.Changeset.add_error(:status, "cannot set active before email confirmation")
+
+      {:error, changeset}
+    else
+      user
+      |> User.changeset(%{
+        "status" => new_status,
+        "last_seen_at" => NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      })
+      |> Repo.update()
+    end
   end
 
   @doc """

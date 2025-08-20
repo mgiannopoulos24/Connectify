@@ -6,6 +6,8 @@ defmodule BackendWeb.PostController do
   alias Backend.Posts.Comment
   alias Backend.Repo
   alias BackendWeb.PostJSON
+  alias Backend.Chat
+  alias BackendWeb.MessageJSON
   require Logger
 
   action_fallback BackendWeb.FallbackController
@@ -122,6 +124,11 @@ defmodule BackendWeb.PostController do
     end
   end
 
+  def reactions(conn, %{"id" => id}) do
+    reactions = Posts.list_reactions_for_post(id)
+    json(conn, PostJSON.reactions_index(%{reactions: reactions}))
+  end
+
   def remove_reaction(conn, %{"id" => id}) do
     current_user = conn.assigns.current_user
     post = Posts.get_post!(id)
@@ -170,6 +177,37 @@ defmodule BackendWeb.PostController do
     with {:ok, _} <- Posts.unlike_comment(current_user, comment) do
       updated_post = Posts.get_post!(post_id)
       render(conn, PostJSON, :show, post: updated_post, current_user: current_user)
+    end
+  end
+
+  def send_post(conn, %{"id" => post_id, "recipient_id" => recipient_id}) do
+    current_user = conn.assigns.current_user
+    post = Posts.get_post!(post_id)
+
+    with {:ok, message} <- Chat.send_post_as_message(current_user, recipient_id, post) do
+      # --- FIX STARTS HERE ---
+      # The broadcast function is in `Phoenix.PubSub`, not `Backend.PubSub`.
+      # The message should be a tuple of `{event_name, payload}`.
+      Phoenix.PubSub.broadcast(
+        Backend.PubSub,
+        "chat:#{message.chat_room_id}",
+        {"new_msg", %{message: MessageJSON.data(message)}}
+      )
+      # --- FIX ENDS HERE ---
+
+      conn
+      |> put_status(:created)
+      |> render(MessageJSON, :show, message: message)
+    else
+      {:error, :not_connected} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{errors: %{detail: "You can only send posts to your connections."}})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(BackendWeb.ChangesetJSON, :error, changeset: changeset)
     end
   end
 end

@@ -34,9 +34,11 @@ defmodule Backend.Accounts.User do
     field :last_seen_at, :naive_datetime
     field :profile_visibility, :string, default: "public"
 
+    field :current_password, :string, virtual: true, redact: true
     field :password, :string,
       virtual: true,
       redact: true
+    field :password_confirmation, :string, virtual: true, redact: true
 
     has_many :job_experiences, JobExperience, on_delete: :delete_all
     has_many :educations, Education, on_delete: :delete_all
@@ -85,6 +87,44 @@ defmodule Backend.Accounts.User do
     |> put_password_hash()
   end
 
+  @doc """
+  A changeset for updating a user's security settings (email and password).
+  It handles validation for email uniqueness and password confirmation.
+  """
+  def security_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :password, :password_confirmation])
+    |> validate_email_if_changed()
+    |> validate_password_if_changed(attrs)
+  end
+
+  defp validate_email_if_changed(changeset) do
+    if get_change(changeset, :email) do
+      changeset
+      |> validate_required([:email])
+      |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/,
+        message: "must have the @ sign and no spaces"
+      )
+      |> unique_constraint(:email)
+    else
+      changeset
+    end
+  end
+
+  defp validate_password_if_changed(changeset, attrs) do
+    # Only validate password fields if a new password is being provided.
+    case Map.get(attrs, "password") do
+      nil -> changeset
+      "" -> changeset
+      _password ->
+        changeset
+        |> validate_required([:password, :password_confirmation])
+        |> validate_length(:password, min: 8, message: "should be at least 8 character(s)")
+        |> validate_confirmation(:password, message: "does not match password")
+        |> put_password_hash()
+    end
+  end
+  
   def role_changeset(user, attrs) do
     user
     |> cast(attrs, [:role])

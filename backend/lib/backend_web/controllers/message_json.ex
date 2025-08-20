@@ -1,5 +1,6 @@
 defmodule BackendWeb.MessageJSON do
   alias Backend.Chat.Message
+  alias Backend.Posts.Post
 
   def index(%{messages: messages}) do
     %{data: Enum.map(messages, &data/1)}
@@ -20,7 +21,43 @@ defmodule BackendWeb.MessageJSON do
         name: message.user.name,
         surname: message.user.surname,
         photo_url: message.user.photo_url
-      }
+      },
+      post:
+        if Ecto.assoc_loaded?(message.post) and message.post do
+          # MODIFIED: Call the new private function for the post preview.
+          post_preview_data(message.post)
+        else
+          nil
+        end
+    }
+  end
+
+  # --- NEW FUNCTION ---
+  @doc """
+  Renders a lightweight preview of a post for sharing in messages.
+  """
+  defp post_preview_data(%Post{} = post) do
+    # Safely get author data.
+    user_data =
+      if Ecto.assoc_loaded?(post.user) and post.user do
+        %{
+          id: post.user.id,
+          name: post.user.name,
+          surname: post.user.surname,
+          photo_url: post.user.photo_url
+        }
+      else
+        nil
+      end
+
+    %{
+      id: post.id,
+      # Truncate content to 150 characters for a preview.
+      content: String.slice(post.content || "", 0, 150),
+      image_url: post.image_url,
+      video_url: post.video_url,
+      link_url: post.link_url,
+      user: user_data
     }
   end
 end

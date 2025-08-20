@@ -30,3 +30,15 @@ export const getUserById = async (userId: string): Promise<User> => {
   const response = await axios.get<{ data: User }>(`/api/users/${userId}`);
   return response.data.data;
 };
+
+/**
+ * Updates the current user's security settings (email or password).
+ * @param securityData The data including current password and new values.
+ * @returns The updated user object.
+ */
+export const updateSecuritySettings = async (securityData: any): Promise<User> => {
+  const response = await axios.put<{ data: User }>(`/api/users/me/security`, {
+    user: securityData,
+  });
+  return response.data.data;
+};

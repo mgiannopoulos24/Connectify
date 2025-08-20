@@ -101,6 +101,20 @@ defmodule BackendWeb.UserController do
     end
   end
 
+  def update_security(conn, %{"user" => security_params}) do
+    current_user = conn.assigns.current_user
+
+    case Accounts.update_security_settings(current_user, security_params) do
+      {:ok, user} ->
+        render(conn, UserJSON, :show, user: user)
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(BackendWeb.ChangesetJSON, :error, changeset: changeset)
+    end
+  end
+  
   def delete(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     {:ok, _user} = Accounts.delete_user(user)

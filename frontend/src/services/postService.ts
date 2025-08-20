@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Post, Comment, Reaction } from '@/types/post';
+import { Post, Comment, Reaction, ReactionWithUser } from '@/types/post';
 
 export const getPosts = async (): Promise<Post[]> => {
   const response = await axios.get<{ data: Post[] }>('/api/posts');
@@ -76,6 +76,16 @@ export const removeReaction = async (postId: string): Promise<Post> => {
   return response.data.data;
 };
 
+/**
+ * Fetches all reactions for a specific post.
+ * @param postId The ID of the post.
+ * @returns A list of reactions with user details.
+ */
+export const getPostReactions = async (postId: string): Promise<ReactionWithUser[]> => {
+  const response = await axios.get<{ data: ReactionWithUser[] }>(`/api/posts/${postId}/reactions`);
+  return response.data.data;
+};
+
 export const addComment = async (
   postId: string,
   content: string,
@@ -108,4 +118,13 @@ export const unlikeComment = async (postId: string, commentId: string): Promise<
     `/api/posts/${postId}/comments/${commentId}/like`,
   );
   return response.data.data;
+};
+
+/**
+ * Sends a post as a private message to a connection.
+ * @param postId The ID of the post to send.
+ * @param recipientId The ID of the user to send the post to.
+ */
+export const sendPostToConnection = async (postId: string, recipientId: string): Promise<void> => {
+  await axios.post(`/api/posts/${postId}/send`, { recipient_id: recipientId });
 };

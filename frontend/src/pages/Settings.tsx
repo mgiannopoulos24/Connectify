@@ -30,7 +30,7 @@ const settingsOptions = [
         icon: Lock,
         title: 'Security',
         description: 'Change your password and secure your account.',
-        to: '#',
+        to: '/settings/security', // --- THIS LINE IS UPDATED ---
       },
       {
         icon: Eye,

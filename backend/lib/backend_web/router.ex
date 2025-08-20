@@ -59,6 +59,7 @@ defmodule BackendWeb.Router do
     pipe_through :api_confirmed
 
     get "/users/me", UserController, :me
+    put "/users/me/security", UserController, :update_security
     get "/users/search", UserController, :search
     resources "/users", UserController, except: [:new, :edit, :create]
 
@@ -76,9 +77,11 @@ defmodule BackendWeb.Router do
     post "/posts/upload_video", PostController, :upload_video
     post "/posts/:id/react", PostController, :react
     delete "/posts/:id/react", PostController, :remove_reaction
+    get "/posts/:id/reactions", PostController, :reactions
     post "/posts/:id/comments", PostController, :create_comment
     post "/posts/:post_id/comments/:comment_id/like", PostController, :like_comment
     delete "/posts/:post_id/comments/:comment_id/like", PostController, :unlike_comment
+    post "/posts/:id/send", PostController, :send_post
 
     # Connections
     get "/connections", ConnectionController, :index

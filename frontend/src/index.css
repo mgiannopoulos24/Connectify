@@ -148,3 +148,16 @@
 .prose img {
   @apply my-1;
 }
+
+@keyframes highlight-post {
+  0% {
+    background-color: #e0f2fe; /* light-blue-100 */
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.post-highlight {
+  animation: highlight-post 2s ease-out forwards;
+}

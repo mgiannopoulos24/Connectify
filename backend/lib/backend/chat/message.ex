@@ -3,6 +3,8 @@ defmodule Backend.Chat.Message do
   import Ecto.Changeset
   alias Backend.Accounts.User
   alias Backend.Chat.ChatRoom
+  alias Backend.Posts.Post
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "messages" do
@@ -10,6 +12,7 @@ defmodule Backend.Chat.Message do
     field :image_url, :string
     belongs_to :user, User
     belongs_to :chat_room, ChatRoom
+    belongs_to :post, Post
 
     timestamps(type: :utc_datetime)
   end
@@ -17,17 +20,18 @@ defmodule Backend.Chat.Message do
   @doc false
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:content, :image_url, :user_id, :chat_room_id])
+    |> cast(attrs, [:content, :image_url, :user_id, :chat_room_id, :post_id])
     |> validate_required([:user_id, :chat_room_id])
-    |> validate_content_or_image()
+    |> validate_content_or_image_or_post()
   end
 
-  defp validate_content_or_image(changeset) do
+  defp validate_content_or_image_or_post(changeset) do
     content = get_field(changeset, :content)
     image_url = get_field(changeset, :image_url)
+    post_id = get_field(changeset, :post_id)
 
-    if (is_nil(content) || content == "") && is_nil(image_url) do
-      add_error(changeset, :content, "message must have either content or an image")
+    if (is_nil(content) || content == "") && is_nil(image_url) && is_nil(post_id) do
+      add_error(changeset, :base, "Message must have content, an image, or a shared post.")
     else
       changeset
     end

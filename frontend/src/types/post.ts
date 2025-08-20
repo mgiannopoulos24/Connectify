@@ -5,6 +5,11 @@ export interface Reaction {
   user: UserSummary;
 }
 
+export interface ReactionWithUser {
+  type: 'like' | 'support' | 'congrats' | 'awesome' | 'funny' | 'constructive';
+  user: UserSummary;
+}
+
 export interface Comment {
   id: string;
   content: string;
@@ -12,8 +17,8 @@ export interface Comment {
   user: UserSummary;
   replies: Comment[];
   parent_comment_id?: string | null;
-  likes_count: number; // <-- ADD THIS
-  current_user_liked: boolean; // <-- ADD THIS
+  likes_count: number;
+  current_user_liked: boolean;
 }
 
 export type ReactionCounts = {
@@ -36,4 +41,13 @@ export interface Post {
   latest_comment: Comment | null;
   top_reactions: Reaction['type'][];
   last_connection_reaction: Reaction | null;
+}
+
+export interface PostPreview {
+  id: string;
+  content: string | null;
+  image_url: string | null;
+  video_url: string | null;
+  link_url: string | null;
+  user: UserSummary;
 }

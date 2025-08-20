@@ -51,7 +51,6 @@ defmodule Backend.Posts do
     ])
   end
 
-  # ... (create_post, update_post, delete_post, react_to_post, remove_reaction remain the same) ...
   def create_post(user, attrs \\ %{}) do
     attrs = Map.put(attrs, "user_id", user.id)
 
@@ -92,6 +91,15 @@ defmodule Backend.Posts do
     end
   end
 
+  def list_reactions_for_post(post_id) do
+    from(r in Reaction,
+      where: r.post_id == ^post_id,
+      preload: [:user],
+      order_by: [desc: r.inserted_at]
+    )
+    |> Repo.all()
+  end
+  
   def remove_reaction(user, post) do
     Repo.delete_all(from(r in Reaction, where: r.user_id == ^user.id and r.post_id == ^post.id))
   end

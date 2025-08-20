@@ -8,17 +8,29 @@ import {
   LogOut,
   MessageSquare,
   Network as NetworkIcon,
-  User,
   Settings,
   Users,
   ShieldUser,
   Building,
   UserCircle,
+  HelpCircle,
+  Languages,
+  Newspaper,
+  ChevronDown, 
 } from 'lucide-react';
 import { usePresence } from '@/contexts/PresenceContext';
 import StatusIndicator from '../common/StatusIndicator';
 import NotificationBell from '../notifications/NotificationBell';
 import UserSearchBar from '../common/UserSearchBar';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
@@ -90,13 +102,6 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <span className="text-xs">Messaging</span>
                 </Link>
                 <NotificationBell />
-                <Link
-                  to="/profile"
-                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-                >
-                  <User className="w-6 h-6" />
-                  <span className="text-xs">Me</span>
-                </Link>
                 {user?.role === 'admin' && (
                   <Link
                     to="/admin/dashboard"
@@ -106,17 +111,83 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <span className="text-xs">Admin</span>
                   </Link>
                 )}
-                <Link
-                  to="/settings"
-                  className="flex flex-col items-center text-gray-600 hover:text-blue-600"
-                >
-                  <Settings className="w-6 h-6" />
-                  <span className="text-xs">Settings</span>
-                </Link>
-                <Button onClick={logout} variant="destructive" size="sm">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
+                {/* --- UPDATED DROPDOWN MENU --- */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex flex-col items-center text-gray-600 hover:text-blue-600 focus:outline-none">
+                      {user?.photo_url ? (
+                        <img
+                          src={user.photo_url}
+                          alt="Me"
+                          className="h-6 w-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <UserCircle className="w-6 h-6" />
+                      )}
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs">Me</span>
+                        <ChevronDown className="h-3 w-3" />
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-64" align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer p-2">
+                        <div className="flex items-center gap-3">
+                          {user?.photo_url ? (
+                            <img
+                              src={user.photo_url}
+                              alt="User"
+                              className="h-12 w-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <UserCircle className="h-12 w-12 text-gray-400" />
+                          )}
+                          <div>
+                            <p className="font-semibold">{`${user?.name} ${user?.surname}`}</p>
+                            <p className="text-sm text-gray-500">
+                              {user?.job_experiences?.[0]?.job_title || 'Professional'}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Account</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings" className="cursor-pointer flex items-center">
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Settings</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer flex items-center">
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        <span>Help</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer flex items-center">
+                        <Languages className="mr-2 h-4 w-4" />
+                        <span>Language</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Management</DropdownMenuLabel>
+                      <DropdownMenuItem className="cursor-pointer flex items-center">
+                        <Newspaper className="mr-2 h-4 w-4" />
+                        <span>Posts & Activity</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={logout}
+                      className="cursor-pointer flex items-center text-red-600 focus:text-red-600 focus:bg-red-50"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </nav>
             </div>
           </div>

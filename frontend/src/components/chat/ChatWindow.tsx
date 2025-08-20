@@ -9,6 +9,7 @@ import { Send, UserCircle, Loader2, Paperclip, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import TypingIndicator from './TypingIndicator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import PostPreviewCard from './PostPreviewCard';
 
 interface ChatWindowProps {
   chatRoomId: string;
@@ -48,12 +49,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
       const tempId = payload.temp_id;
 
       setMessages((prev) => {
-        // If a tempId was broadcasted (meaning it's our own message)
-        // find and replace the optimistic message with the real one.
         if (tempId && prev.some((m) => m.id === tempId)) {
           return prev.map((m) => (m.id === tempId ? realMessage : m));
         }
-        // Otherwise (it's a message from the other user), just append it.
         return [...prev, realMessage];
       });
       setIsTyping(false);
@@ -208,6 +206,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
                   : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
             >
+              {msg.post && <PostPreviewCard post={msg.post} isSender={msg.user.id === user?.id} />}
               {msg.image_url && (
                 <Dialog>
                   <DialogTrigger asChild>
@@ -232,7 +231,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
                 </Dialog>
               )}
               {msg.content && (
-                <p className={`text-sm p-1 ${msg.image_url ? 'mt-1' : ''}`}>{msg.content}</p>
+                <p className={`text-sm p-1 ${msg.image_url || msg.post ? 'mt-2' : ''}`}>
+                  {msg.content}
+                </p>
               )}
               <p
                 className={`text-xs mt-1 text-right ${

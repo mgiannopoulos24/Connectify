@@ -12,6 +12,7 @@ interface ReactionTrayProps {
   post: Post;
   onUpdate: (updatedPost: Post) => void;
   onCommentClick: () => void;
+  onSendClick: () => void;
 }
 
 const Reactions: Reaction['type'][] = [
@@ -32,7 +33,12 @@ const reactionColors: Record<Reaction['type'], string> = {
   constructive: 'bg-green-100 text-green-700',
 };
 
-const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentClick }) => {
+const ReactionTray: React.FC<ReactionTrayProps> = ({
+  post,
+  onUpdate,
+  onCommentClick,
+  onSendClick,
+}) => {
   const { user } = useAuth();
   const [isReacting, setIsReacting] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
@@ -170,7 +176,7 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({ post, onUpdate, onCommentCl
         <Share2 className="w-5 h-5" />
         Share
       </Button>
-      <Button variant="ghost" className="flex items-center gap-2 w-full">
+      <Button variant="ghost" className="flex items-center gap-2 w-full" onClick={onSendClick}>
         <Send className="w-5 h-5" />
         Send
       </Button>
