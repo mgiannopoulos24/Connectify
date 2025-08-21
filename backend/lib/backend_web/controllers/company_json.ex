@@ -1,6 +1,7 @@
 defmodule BackendWeb.CompanyJSON do
   alias Backend.Companies.Company
   alias Backend.Jobs.JobPosting
+  alias Backend.Interests
 
   def search(%{companies: companies}) do
     %{data: Enum.map(companies, &search_data/1)}
@@ -11,11 +12,14 @@ defmodule BackendWeb.CompanyJSON do
   end
 
   defp detail_data(%Company{} = company) do
+    followers_count = Interests.count_followers_for_entity(company.id, "company")
+    
     base_data = %{
       id: company.id,
       name: company.name,
       logo_url: company.logo_url,
-      description: company.description
+      description: company.description,
+      followers_count: followers_count
     }
 
     if Ecto.assoc_loaded?(company.job_postings) do

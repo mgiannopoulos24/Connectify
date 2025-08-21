@@ -21,6 +21,7 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   Loader2,
+  Users as FollowersIcon,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -138,6 +139,10 @@ const ModalContent: React.FC<{ user: User; status: UserStatus }> = ({ user, stat
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4 text-gray-500" />
               <span>{totalConnections} Connections</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <FollowersIcon className="w-4 h-4 text-gray-500" />
+              <span>{user.followers_count} Followers</span>
             </div>
             <Badge variant={getStatusBadgeVariant(status)} className={getStatusBadgeClass(status)}>
               Status: {status}

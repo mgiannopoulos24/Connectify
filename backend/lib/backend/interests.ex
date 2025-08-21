@@ -10,6 +10,17 @@ defmodule Backend.Interests do
   alias Backend.Companies.Company
 
   @doc """
+  Counts the number of followers for a given entity (user or company).
+  """
+  def count_followers_for_entity(followed_id, type) do
+    from(i in Interest,
+      where: i.followed_id == ^followed_id and i.type == ^type,
+      select: count(i.id)
+    )
+    |> Repo.one()
+  end
+  
+  @doc """
   Follows an entity (user or company).
   """
   def follow_entity(follower_user_id, followed_id, type) do

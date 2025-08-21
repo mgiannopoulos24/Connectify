@@ -16,6 +16,7 @@ import {
   UserPlus,
   Lock,
   UserCheck,
+  Users as FollowersIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { sendConnectionRequest } from '@/services/connectionService';
@@ -168,6 +169,10 @@ const UserProfilePage: React.FC = () => {
                   <span className="text-gray-700">{user.location}</span>
                 </div>
               )}
+              <div className="flex items-center justify-center gap-4">
+                <FollowersIcon className="h-5 w-5 text-gray-500" />
+                <span className="text-gray-700">{user.followers_count} followers</span>
+              </div>
               {user.email && (
                 <div className="flex items-center justify-center gap-4">
                   <Mail className="h-5 w-5 text-gray-500" />

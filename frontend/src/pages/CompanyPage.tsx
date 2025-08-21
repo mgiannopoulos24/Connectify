@@ -14,6 +14,7 @@ import {
   Briefcase,
   MapPin,
   ChevronRight,
+  Users as FollowersIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -122,6 +123,10 @@ const CompanyPage: React.FC = () => {
           <div className="text-center md:text-left">
             <CardTitle className="text-3xl font-bold">{company.name}</CardTitle>
             <CardDescription className="text-md mt-1">Company profile and updates.</CardDescription>
+            <div className="flex items-center justify-center md:justify-start gap-2 mt-2 text-gray-600">
+              <FollowersIcon className="h-4 w-4" />
+              <span>{company.followers_count} followers</span>
+            </div>
             <div className="mt-4">
               <Button onClick={handleFollowToggle} disabled={isFollowLoading}>
                 {isFollowLoading ? (

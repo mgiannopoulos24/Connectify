@@ -35,6 +35,7 @@ export interface User {
   phone_number: string | null;
   photo_url: string;
   location: string | null;
+  followers_count: number;
   onboarding_completed: boolean;
   status: UserStatus;
   last_seen_at: string | null;

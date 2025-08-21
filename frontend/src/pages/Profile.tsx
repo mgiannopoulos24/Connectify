@@ -15,6 +15,7 @@ import {
   Trash2,
   Building,
   Heart,
+  Users as FollowersIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -55,6 +56,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ProfilePage: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -68,11 +70,6 @@ const ProfilePage: React.FC = () => {
   }
 
   const userStatus = getUserStatus(user.id);
-
-  const interests = [
-    ...(user.followed_companies?.map((c) => ({ ...c, type: 'company' as const })) || []),
-    ...(user.followed_users?.map((u) => ({ ...u, type: 'user' as const })) || []),
-  ];
 
   const handleOpenModal = (
     type: 'experience' | 'education' | 'skill',
@@ -253,6 +250,10 @@ const ProfilePage: React.FC = () => {
                 <span className="text-gray-700">{user.location}</span>
               </div>
             )}
+            <div className="flex items-center justify-center gap-4">
+              <FollowersIcon className="h-5 w-5 text-gray-500" />
+              <span className="text-gray-700">{user.followers_count} followers</span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -409,79 +410,139 @@ const ProfilePage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {interests.length > 0 ? (
-            <Carousel
-              opts={{
-                align: 'start',
-                loop: interests.length > 3,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {interests.map((item) => (
-                  <CarouselItem key={item.id} className="basis-full md:basis-1/2 lg:basis-1/3">
-                    <div className="p-1">
-                      <Card className="h-full">
-                        <CardContent className="flex flex-col items-center text-center p-6 aspect-square justify-between">
-                          <Link
-                            to={
-                              item.type === 'company'
-                                ? `/companies/${item.id}`
-                                : `/profile/${item.id}`
-                            }
-                            className="flex-grow flex flex-col items-center"
-                          >
-                            {item.type === 'company' &&
-                              (item.logo_url ? (
-                                <img
-                                  src={item.logo_url}
-                                  alt={item.name}
-                                  className="h-20 w-20 rounded-lg object-contain bg-white mb-4"
-                                />
-                              ) : (
-                                <Building className="h-20 w-20 text-gray-400 mb-4" />
-                              ))}
-                            {item.type === 'user' &&
-                              (item.photo_url ? (
-                                <img
-                                  src={item.photo_url}
-                                  alt={item.name}
-                                  className="h-20 w-20 rounded-full object-cover mb-4"
-                                />
-                              ) : (
-                                <UserCircle className="h-20 w-20 text-gray-400 mb-4" />
-                              ))}
-                            <p className="font-semibold">
-                              {item.name} {item.type === 'user' && item.surname}
-                            </p>
-                          </Link>
-                          <Button
-                            variant="outline"
-                            className="w-full mt-4"
-                            onClick={() =>
-                              item.type === 'company'
-                                ? handleUnfollowCompany(item.id, item.name)
-                                : handleUnfollowUser(item.id, `${item.name} ${item.surname}`)
-                            }
-                          >
-                            Unfollow
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {interests.length > 3 && (
-                <>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </>
+          <Tabs defaultValue="companies" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="companies">Companies</TabsTrigger>
+              <TabsTrigger value="people">People</TabsTrigger>
+            </TabsList>
+
+            {/* Companies Tab */}
+            <TabsContent value="companies" className="mt-4">
+              {user.followed_companies && user.followed_companies.length > 0 ? (
+                <Carousel
+                  opts={{
+                    align: 'start',
+                    loop: user.followed_companies.length > 3,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {user.followed_companies.map((company) => (
+                      <CarouselItem
+                        key={company.id}
+                        className="basis-full md:basis-1/2 lg:basis-1/3"
+                      >
+                        <div className="p-1">
+                          <Card className="h-full">
+                            <CardContent className="flex flex-col items-center text-center p-6 aspect-square justify-between">
+                              <Link
+                                to={`/companies/${company.id}`}
+                                className="flex-grow flex flex-col items-center"
+                              >
+                                {company.logo_url ? (
+                                  <img
+                                    src={company.logo_url}
+                                    alt={company.name}
+                                    className="h-20 w-20 rounded-lg object-contain bg-white mb-4"
+                                  />
+                                ) : (
+                                  <Building className="h-20 w-20 text-gray-400 mb-4" />
+                                )}
+                                <p className="font-semibold">{company.name}</p>
+                              </Link>
+                              <Button
+                                variant="outline"
+                                className="w-full mt-4"
+                                onClick={() => handleUnfollowCompany(company.id, company.name)}
+                              >
+                                Unfollow
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {user.followed_companies.length > 3 && (
+                    <>
+                      <CarouselPrevious />
+                      <CarouselNext />
+                    </>
+                  )}
+                </Carousel>
+              ) : (
+                <p className="text-gray-500 text-center pt-8">
+                  Not following any companies yet.
+                </p>
               )}
-            </Carousel>
-          ) : (
-            <p className="text-gray-500">Not following any companies or people yet.</p>
-          )}
+            </TabsContent>
+
+            {/* People Tab */}
+            <TabsContent value="people" className="mt-4">
+              {user.followed_users && user.followed_users.length > 0 ? (
+                <Carousel
+                  opts={{
+                    align: 'start',
+                    loop: user.followed_users.length > 3,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {user.followed_users.map((followedUser) => (
+                      <CarouselItem
+                        key={followedUser.id}
+                        className="basis-full md:basis-1/2 lg:basis-1/3"
+                      >
+                        <div className="p-1">
+                          <Card className="h-full">
+                            <CardContent className="flex flex-col items-center text-center p-6 aspect-square justify-between">
+                              <Link
+                                to={`/profile/${followedUser.id}`}
+                                className="flex-grow flex flex-col items-center"
+                              >
+                                {followedUser.photo_url ? (
+                                  <img
+                                    src={followedUser.photo_url}
+                                    alt={followedUser.name}
+                                    className="h-20 w-20 rounded-full object-cover mb-4"
+                                  />
+                                ) : (
+                                  <UserCircle className="h-20 w-20 text-gray-400 mb-4" />
+                                )}
+                                <p className="font-semibold">
+                                  {followedUser.name} {followedUser.surname}
+                                </p>
+                              </Link>
+                              <Button
+                                variant="outline"
+                                className="w-full mt-4"
+                                onClick={() =>
+                                  handleUnfollowUser(
+                                    followedUser.id,
+                                    `${followedUser.name} ${followedUser.surname}`,
+                                  )
+                                }
+                              >
+                                Unfollow
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {user.followed_users.length > 3 && (
+                    <>
+                      <CarouselPrevious />
+                      <CarouselNext />
+                    </>
+                  )}
+                </Carousel>
+              ) : (
+                <p className="text-gray-500 text-center pt-8">Not following any people yet.</p>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

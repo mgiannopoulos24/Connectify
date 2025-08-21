@@ -16,5 +16,6 @@ export interface JobSummary {
 
 export interface Company extends CompanySummary {
   description: string | null;
+  followers_count: number;
   job_postings?: JobSummary[];
 }

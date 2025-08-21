@@ -43,6 +43,7 @@ defmodule BackendWeb.UserJSON do
   def data(%User{} = user) do
     followed_companies = Interests.list_followed_companies(user.id)
     followed_users = Interests.list_followed_users(user.id)
+    followers_count = Interests.count_followers_for_entity(user.id, "user")
 
     data = %{
       id: user.id,
@@ -53,6 +54,7 @@ defmodule BackendWeb.UserJSON do
       photo_url: user.photo_url,
       role: user.role,
       location: user.location,
+      followers_count: followers_count,
       onboarding_completed: user.onboarding_completed,
       email_confirmed_at: user.email_confirmed_at,
       status: user.status,
