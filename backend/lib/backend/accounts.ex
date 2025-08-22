@@ -35,6 +35,7 @@ defmodule Backend.Accounts do
         :interests,
         :sent_connections,
         :received_connections,
+        job_experiences: :company,
         posts: [user: [], comments: [:user], reactions: [:user]],
         job_postings: [:company, :skills, job_applications: :user]
       ])
