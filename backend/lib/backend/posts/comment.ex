@@ -16,8 +16,8 @@ defmodule Backend.Posts.Comment do
     belongs_to :parent_comment, __MODULE__, foreign_key: :parent_comment_id
     has_many :replies, __MODULE__, foreign_key: :parent_comment_id, on_delete: :delete_all
 
-    # NEW: Association for likes
-    has_many :likes, Backend.Posts.CommentLike, on_delete: :delete_all
+    # --- MODIFIED: Association for reactions, replacing likes ---
+    has_many :reactions, Backend.Posts.CommentReaction, on_delete: :delete_all
 
     timestamps(type: :utc_datetime)
   end

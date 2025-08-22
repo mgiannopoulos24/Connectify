@@ -85,8 +85,12 @@ defmodule BackendWeb.Router do
     delete "/posts/:id/react", PostController, :remove_reaction
     get "/posts/:id/reactions", PostController, :reactions
     post "/posts/:id/comments", PostController, :create_comment
-    post "/posts/:post_id/comments/:comment_id/like", PostController, :like_comment
-    delete "/posts/:post_id/comments/:comment_id/like", PostController, :unlike_comment
+    post "/posts/:post_id/comments/:comment_id/react", PostController, :react_to_comment
+
+    delete "/posts/:post_id/comments/:comment_id/react",
+           PostController,
+           :remove_reaction_from_comment
+
     post "/posts/:id/send", PostController, :send_post
 
     # Connections
@@ -99,6 +103,10 @@ defmodule BackendWeb.Router do
     # Chat
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index
+    post "/chat/:chat_room_id/messages/:message_id/react", ChatController, :react_to_message
+    delete "/chat/:chat_room_id/messages/:message_id/react",
+           ChatController,
+           :remove_reaction_from_message
     post "/chat/upload_image", ChatController, :upload_image
 
     # Notifications

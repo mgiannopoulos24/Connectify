@@ -4,6 +4,7 @@ defmodule Backend.Chat.Message do
   alias Backend.Accounts.User
   alias Backend.Chat.ChatRoom
   alias Backend.Posts.Post
+  alias Backend.Chat.MessageReaction
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -13,6 +14,7 @@ defmodule Backend.Chat.Message do
     belongs_to :user, User
     belongs_to :chat_room, ChatRoom
     belongs_to :post, Post
+    has_many :reactions, MessageReaction, on_delete: :delete_all
 
     timestamps(type: :utc_datetime)
   end

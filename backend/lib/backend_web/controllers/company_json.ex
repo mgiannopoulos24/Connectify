@@ -13,7 +13,7 @@ defmodule BackendWeb.CompanyJSON do
 
   defp detail_data(%Company{} = company) do
     followers_count = Interests.count_followers_for_entity(company.id, "company")
-    
+
     base_data = %{
       id: company.id,
       name: company.name,

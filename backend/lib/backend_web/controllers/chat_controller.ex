@@ -53,4 +53,56 @@ defmodule BackendWeb.ChatController do
     |> put_status(:bad_request)
     |> json(%{errors: %{detail: "Image not provided."}})
   end
+
+  def react_to_message(
+        conn,
+        %{"chat_room_id" => chat_room_id, "message_id" => message_id, "type" => type}
+      ) do
+    current_user = conn.assigns.current_user
+    message = Chat.get_message!(message_id)
+
+    if message.chat_room_id != chat_room_id do
+      conn
+      |> put_status(:bad_request)
+      |> json(%{errors: %{detail: "Message does not belong to the specified chat room."}})
+    else
+      with {:ok, _reaction} <- Chat.react_to_message(current_user, message, type) do
+        updated_message = Chat.get_message!(message.id)
+
+        Phoenix.PubSub.broadcast(
+          Backend.PubSub,
+          "chat:#{chat_room_id}",
+          {"msg_updated", %{message: MessageJSON.data(updated_message)}}
+        )
+
+        render(conn, MessageJSON, :show, message: updated_message)
+      end
+    end
+  end
+
+  def remove_reaction_from_message(conn, %{
+        "chat_room_id" => chat_room_id,
+        "message_id" => message_id
+      }) do
+    current_user = conn.assigns.current_user
+    message = Chat.get_message!(message_id)
+
+    if message.chat_room_id != chat_room_id do
+      conn
+      |> put_status(:bad_request)
+      |> json(%{errors: %{detail: "Message does not belong to the specified chat room."}})
+    else
+      with {:ok, _} <- Chat.remove_reaction_from_message(current_user, message) do
+        updated_message = Chat.get_message!(message.id)
+
+        Phoenix.PubSub.broadcast(
+          Backend.PubSub,
+          "chat:#{chat_room_id}",
+          {"msg_updated", %{message: MessageJSON.data(updated_message)}}
+        )
+
+        render(conn, MessageJSON, :show, message: updated_message)
+      end
+    end
+  end
 end

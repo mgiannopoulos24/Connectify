@@ -40,3 +40,40 @@ export const uploadChatImage = async (imageFile: File): Promise<string> => {
   );
   return response.data.data.image_url;
 };
+
+// --- NEW FUNCTIONS START HERE ---
+
+/**
+ * Reacts to a specific message in a chat room.
+ * @param chatRoomId The ID of the chat room.
+ * @param messageId The ID of the message to react to.
+ * @param type The emoji to react with.
+ * @returns The updated message object with the new reaction.
+ */
+export const reactToMessage = async (
+  chatRoomId: string,
+  messageId: string,
+  type: string,
+): Promise<Message> => {
+  const response = await axios.post<{ data: Message }>(
+    `/api/chat/${chatRoomId}/messages/${messageId}/react`,
+    { type },
+  );
+  return response.data.data;
+};
+
+/**
+ * Removes the current user's reaction from a specific message.
+ * @param chatRoomId The ID of the chat room.
+ * @param messageId The ID of the message to remove the reaction from.
+ * @returns The updated message object without the reaction.
+ */
+export const removeReactionFromMessage = async (
+  chatRoomId: string,
+  messageId: string,
+): Promise<Message> => {
+  const response = await axios.delete<{ data: Message }>(
+    `/api/chat/${chatRoomId}/messages/${messageId}/react`,
+  );
+  return response.data.data;
+};

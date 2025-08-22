@@ -8,7 +8,8 @@ defmodule Backend.Posts do
   alias Backend.Posts.Post
   alias Backend.Posts.Reaction
   alias Backend.Posts.Comment
-  alias Backend.Posts.CommentLike
+  # --- MODIFIED: Replaced CommentLike with CommentReaction ---
+  alias Backend.Posts.CommentReaction
   alias Backend.Notifications
   alias Backend.Connections
 
@@ -16,7 +17,8 @@ defmodule Backend.Posts do
     preload(query, [
       :user,
       reactions: [:user],
-      comments: [:user, :likes, replies: [:user, :likes]]
+      # --- MODIFIED: Preload reactions instead of likes for comments and replies ---
+      comments: [:user, :reactions, replies: [:user, :reactions]]
     ])
   end
 
@@ -47,7 +49,8 @@ defmodule Backend.Posts do
     |> Repo.preload([
       :user,
       reactions: [:user],
-      comments: [:user, :likes, replies: [:user, :likes]]
+      # --- MODIFIED: Preload reactions instead of likes for comments and replies ---
+      comments: [:user, :reactions, replies: [:user, :reactions]]
     ])
   end
 
@@ -143,18 +146,25 @@ defmodule Backend.Posts do
 
   # --- NEW FUNCTIONS START HERE ---
 
-  @doc "Likes a comment for a given user."
-  def like_comment(user, comment) do
-    with {:ok, _like} <-
-           %CommentLike{}
-           |> CommentLike.changeset(%{user_id: user.id, comment_id: comment.id})
-           |> Repo.insert(on_conflict: :nothing) do
-      # Notify the comment's author, unless they are liking their own comment.
+  @doc "Reacts to a comment for a given user."
+  def react_to_comment(user, comment, type) do
+    with {:ok, _reaction} <-
+           %CommentReaction{}
+           |> CommentReaction.changeset(%{
+             user_id: user.id,
+             comment_id: comment.id,
+             type: type
+           })
+           |> Repo.insert(
+             on_conflict: [set: [type: type, updated_at: DateTime.utc_now()]],
+             conflict_target: [:user_id, :comment_id]
+           ) do
+      # Notify the comment's author, unless they are reacting to their own comment.
       if comment.user_id != user.id do
         Notifications.create_notification(%{
           user_id: comment.user_id,
           notifier_id: user.id,
-          type: "new_comment_like",
+          type: "new_comment_reaction",
           # Link back to the post
           resource_id: comment.post_id,
           resource_type: "post"
@@ -165,9 +175,9 @@ defmodule Backend.Posts do
     end
   end
 
-  @doc "Removes a like from a comment for a given user."
-  def unlike_comment(user, comment) do
-    from(cl in CommentLike, where: cl.user_id == ^user.id and cl.comment_id == ^comment.id)
+  @doc "Removes a reaction from a comment for a given user."
+  def remove_reaction_from_comment(user, comment) do
+    from(cr in CommentReaction, where: cr.user_id == ^user.id and cr.comment_id == ^comment.id)
     |> Repo.delete_all()
 
     {:ok, comment}

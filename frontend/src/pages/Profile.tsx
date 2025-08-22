@@ -471,9 +471,7 @@ const ProfilePage: React.FC = () => {
                   )}
                 </Carousel>
               ) : (
-                <p className="text-gray-500 text-center pt-8">
-                  Not following any companies yet.
-                </p>
+                <p className="text-gray-500 text-center pt-8">Not following any companies yet.</p>
               )}
             </TabsContent>
 

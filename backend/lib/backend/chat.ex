@@ -1,5 +1,5 @@
 defmodule Backend.Chat do
-  @moduledoc """
+  @modledoc """
   The Chat context.
   """
   import Ecto.Query, warn: false
@@ -7,6 +7,7 @@ defmodule Backend.Chat do
 
   alias Backend.Chat.ChatRoom
   alias Backend.Chat.Message
+  alias Backend.Chat.MessageReaction
   # --- FIX: Alias the correct context ---
   alias Backend.Accounts
   alias Backend.Posts.Post
@@ -34,8 +35,8 @@ defmodule Backend.Chat do
     |> Repo.insert()
     |> case do
       {:ok, message} ->
-        # OPTIMIZED: Preload only the post and its author, not comments/reactions.
-        {:ok, Repo.preload(message, [:user, post: [:user]])}
+        # OPTIMIZED: Preload user and post, plus an empty reactions list for the new message.
+        {:ok, Repo.preload(message, [:user, post: [:user], reactions: []])}
 
       error ->
         error
@@ -61,12 +62,40 @@ defmodule Backend.Chat do
     Message
     |> where(chat_room_id: ^chat_room_id)
     |> order_by(asc: :inserted_at)
-    # OPTIMIZED: Preload only the post and its author for the message list.
-    |> preload([:user, post: [:user]])
+    # Preload reactions and their users as well.
+    |> preload([:user, post: [:user], reactions: [:user]])
     |> Repo.all()
   end
 
   def get_chat_room!(id) do
     Repo.get!(ChatRoom, id)
+  end
+
+  def get_message!(id) do
+    Message
+    |> Repo.get!(id)
+    |> Repo.preload([:user, post: [:user], reactions: [:user]])
+  end
+
+  @doc """
+  Reacts to a message for a given user. Creates or updates the reaction.
+  """
+  def react_to_message(user, message, type) do
+    %MessageReaction{}
+    |> MessageReaction.changeset(%{user_id: user.id, message_id: message.id, type: type})
+    |> Repo.insert(
+      on_conflict: [set: [type: type, updated_at: DateTime.utc_now()]],
+      conflict_target: [:user_id, :message_id]
+    )
+  end
+
+  @doc """
+  Removes a reaction from a message for a given user.
+  """
+  def remove_reaction_from_message(user, message) do
+    from(mr in MessageReaction, where: mr.user_id == ^user.id and mr.message_id == ^message.id)
+    |> Repo.delete_all()
+
+    {:ok, message}
   end
 end

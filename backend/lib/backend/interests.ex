@@ -19,7 +19,7 @@ defmodule Backend.Interests do
     )
     |> Repo.one()
   end
-  
+
   @doc """
   Follows an entity (user or company).
   """

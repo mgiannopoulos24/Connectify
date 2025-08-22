@@ -16,7 +16,7 @@ import { useNotifications } from '@/contexts/NotificationsContext';
 
 interface NotificationItemProps {
   notification: Notification;
-  onItemClick: () => void;
+  onItemClick?: () => void;
 }
 
 const getNotificationDetails = (notification: Notification) => {
@@ -42,7 +42,18 @@ const getNotificationDetails = (notification: Notification) => {
             <strong>{notifierName}</strong> reacted to your post.
           </>
         ),
-        link: '/homepage',
+        // --- FIX: Link directly to the post ---
+        link: `/homepage#post-${resource_id}`,
+      };
+    case 'new_comment_reaction': // <-- NEW CASE
+      return {
+        icon: ThumbsUp,
+        text: (
+          <>
+            <strong>{notifierName}</strong> reacted to your comment.
+          </>
+        ),
+        link: `/homepage#post-${resource_id}`,
       };
     case 'new_comment':
       return {
@@ -52,7 +63,7 @@ const getNotificationDetails = (notification: Notification) => {
             <strong>{notifierName}</strong> commented on your post.
           </>
         ),
-        link: '/homepage',
+        link: `/homepage#post-${resource_id}`,
       };
     case 'application_accepted':
       return {
@@ -90,16 +101,16 @@ const getNotificationDetails = (notification: Notification) => {
 };
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onItemClick }) => {
-  const { markAsRead } = useNotifications(); // Get the context function
+  const { markAsRead } = useNotifications();
   const { text, link } = getNotificationDetails(notification);
 
   const handleClick = () => {
-    // If the notification hasn't been read yet, mark it as read
     if (!notification.read_at) {
       markAsRead([notification.id]);
     }
-    // Close the popover
-    onItemClick();
+    if (onItemClick) {
+      onItemClick();
+    }
   };
 
   return (
@@ -109,7 +120,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onIte
         'flex items-start gap-4 p-3 hover:bg-gray-100 rounded-lg transition-colors w-full text-left',
         !notification.read_at && 'bg-blue-50',
       )}
-      onClick={handleClick} // Add the click handler
+      onClick={handleClick}
     >
       <div className="flex-shrink-0">
         {notification.notifier.photo_url ? (

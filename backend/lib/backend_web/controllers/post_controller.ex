@@ -151,7 +151,7 @@ defmodule BackendWeb.PostController do
 
     with {:ok, comment} <- Posts.create_comment(current_user, post, comment_params) do
       # Preload all associations needed for the JSON response
-      preloaded_comment = Repo.preload(comment, [:user, :likes, :replies])
+      preloaded_comment = Repo.preload(comment, [:user, :reactions, :replies])
 
       conn
       |> put_status(:created)
@@ -159,22 +159,24 @@ defmodule BackendWeb.PostController do
     end
   end
 
-  def like_comment(conn, %{"post_id" => post_id, "comment_id" => comment_id}) do
+  # --- MODIFIED: Renamed from like_comment and now accepts a type ---
+  def react_to_comment(conn, %{"post_id" => post_id, "comment_id" => comment_id, "type" => type}) do
     current_user = conn.assigns.current_user
     comment = Repo.get!(Comment, comment_id)
 
-    with {:ok, _} <- Posts.like_comment(current_user, comment) do
+    with {:ok, _} <- Posts.react_to_comment(current_user, comment, type) do
       # Refetch the entire post to return a consistent, updated state
       updated_post = Posts.get_post!(post_id)
       render(conn, PostJSON, :show, post: updated_post, current_user: current_user)
     end
   end
 
-  def unlike_comment(conn, %{"post_id" => post_id, "comment_id" => comment_id}) do
+  # --- MODIFIED: Renamed from unlike_comment ---
+  def remove_reaction_from_comment(conn, %{"post_id" => post_id, "comment_id" => comment_id}) do
     current_user = conn.assigns.current_user
     comment = Repo.get!(Comment, comment_id)
 
-    with {:ok, _} <- Posts.unlike_comment(current_user, comment) do
+    with {:ok, _} <- Posts.remove_reaction_from_comment(current_user, comment) do
       updated_post = Posts.get_post!(post_id)
       render(conn, PostJSON, :show, post: updated_post, current_user: current_user)
     end
@@ -185,16 +187,11 @@ defmodule BackendWeb.PostController do
     post = Posts.get_post!(post_id)
 
     with {:ok, message} <- Chat.send_post_as_message(current_user, recipient_id, post) do
-      # --- FIX STARTS HERE ---
-      # The broadcast function is in `Phoenix.PubSub`, not `Backend.PubSub`.
-      # The message should be a tuple of `{event_name, payload}`.
       Phoenix.PubSub.broadcast(
         Backend.PubSub,
         "chat:#{message.chat_room_id}",
         {"new_msg", %{message: MessageJSON.data(message)}}
       )
-
-      # --- FIX ENDS HERE ---
 
       conn
       |> put_status(:created)

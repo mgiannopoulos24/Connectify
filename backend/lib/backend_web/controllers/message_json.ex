@@ -1,6 +1,7 @@
 defmodule BackendWeb.MessageJSON do
   alias Backend.Chat.Message
   alias Backend.Posts.Post
+  alias Backend.Chat.MessageReaction
 
   def index(%{messages: messages}) do
     %{data: Enum.map(messages, &data/1)}
@@ -28,7 +29,32 @@ defmodule BackendWeb.MessageJSON do
           post_preview_data(message.post)
         else
           nil
+        end,
+      reactions:
+        if Ecto.assoc_loaded?(message.reactions) do
+          Enum.map(message.reactions, &reaction_data/1)
+        else
+          []
         end
+    }
+  end
+
+  defp reaction_data(%MessageReaction{} = reaction) do
+    user_data =
+      if Ecto.assoc_loaded?(reaction.user) and reaction.user do
+        %{
+          id: reaction.user.id,
+          name: reaction.user.name,
+          surname: reaction.user.surname
+        }
+      else
+        nil
+      end
+
+    %{
+      id: reaction.id,
+      type: reaction.type,
+      user: user_data
     }
   end
 

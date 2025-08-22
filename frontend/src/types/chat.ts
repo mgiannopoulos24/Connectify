@@ -1,6 +1,19 @@
 import { PostPreview } from './post';
 
 /**
+ * NEW: Represents a single emoji reaction on a message.
+ */
+export interface MessageReaction {
+  id: string;
+  type: string; // The emoji character itself
+  user: {
+    id: string;
+    name: string;
+    surname: string;
+  };
+}
+
+/**
  * Represents a single chat message.
  */
 export interface Message {
@@ -15,6 +28,7 @@ export interface Message {
     photo_url: string | null;
   };
   post?: PostPreview;
+  reactions?: MessageReaction[]; // ADDED: Array of reactions
 }
 
 /**

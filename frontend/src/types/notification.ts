@@ -4,6 +4,7 @@ export type NotificationType =
   | 'new_connection_request'
   | 'new_reaction'
   | 'new_comment'
+  | 'new_comment_reaction'
   | 'application_accepted'
   | 'application_rejected'
   | 'new_application';

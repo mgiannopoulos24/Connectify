@@ -17,8 +17,9 @@ export interface Comment {
   user: UserSummary;
   replies: Comment[];
   parent_comment_id?: string | null;
-  likes_count: number;
-  current_user_liked: boolean;
+  reactions_count: number;
+  reaction_counts: ReactionCounts;
+  current_user_reaction: Reaction['type'] | null;
 }
 
 export type ReactionCounts = {

@@ -1,15 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Socket, Channel } from 'phoenix';
 import { useAuth } from '@/contexts/AuthContext';
-import { getMessageHistory, uploadChatImage } from '@/services/chatService';
+import {
+  getMessageHistory,
+  uploadChatImage,
+  reactToMessage,
+  removeReactionFromMessage,
+} from '@/services/chatService';
 import { Message } from '@/types/chat';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, UserCircle, Loader2, Paperclip, XCircle } from 'lucide-react';
+import { Send, UserCircle, Loader2, Paperclip, XCircle, Smile } from 'lucide-react';
 import { format } from 'date-fns';
 import TypingIndicator from './TypingIndicator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import PostPreviewCard from './PostPreviewCard';
+import { EmojiClickData } from 'emoji-picker-react';
+import EmojiPickerPopover from './EmojiPickerPopover';
+import MessageReactions from './MessageReactions';
 
 interface ChatWindowProps {
   chatRoomId: string;
@@ -29,6 +37,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -55,6 +64,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
         return [...prev, realMessage];
       });
       setIsTyping(false);
+    });
+
+    // Add listener for message updates (like reactions)
+    ch.on('msg_updated', (payload) => {
+      const updatedMessage = payload.message;
+      setMessages((prev) => prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m)));
     });
 
     ch.on('typing', (payload) => {
@@ -167,6 +182,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     if (channel) channel.push('typing', { user_id: user?.id });
   };
 
+  // Handlers for reactions
+  const handleReact = async (messageId: string, emoji: string) => {
+    try {
+      const updatedMessage = await reactToMessage(chatRoomId, messageId, emoji);
+      setMessages((prev) => prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m)));
+    } catch (error) {
+      console.error('Failed to react to message:', error);
+    }
+  };
+
+  const handleRemoveReaction = async (messageId: string) => {
+    try {
+      const updatedMessage = await removeReactionFromMessage(chatRoomId, messageId);
+      setMessages((prev) => prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m)));
+    } catch (error) {
+      console.error('Failed to remove reaction:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-grow flex items-center justify-center h-full">
@@ -187,7 +221,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex items-end gap-3 my-3 ${msg.user.id === user?.id ? 'justify-end' : ''}`}
+            className={`flex items-end gap-3 my-3 group relative ${
+              msg.user.id === user?.id ? 'justify-end' : ''
+            }`}
+            onMouseEnter={() => setHoveredMessageId(msg.id)}
+            onMouseLeave={() => setHoveredMessageId(null)}
           >
             {msg.user.id !== user?.id &&
               (msg.user.photo_url ? (
@@ -200,12 +238,30 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
                 <UserCircle className="w-8 h-8 text-gray-400" />
               ))}
             <div
-              className={`max-w-xs md:max-w-md p-2 rounded-2xl ${
+              className={`max-w-xs md:max-w-md p-2 rounded-2xl relative ${
                 msg.user.id === user?.id
                   ? 'bg-blue-600 text-white rounded-br-none'
                   : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
             >
+              {hoveredMessageId === msg.id && (
+                <div
+                  className={`absolute top-0 transform -translate-y-1/2 p-1 bg-white border rounded-full shadow-md ${
+                    msg.user.id === user?.id ? '-left-4' : '-right-4'
+                  }`}
+                >
+                  <EmojiPickerPopover
+                    onEmojiSelect={(emojiData: EmojiClickData) =>
+                      handleReact(msg.id, emojiData.emoji)
+                    }
+                  >
+                    <button className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-200">
+                      <Smile className="w-4 h-4 text-gray-600" />
+                    </button>
+                  </EmojiPickerPopover>
+                </div>
+              )}
+
               {msg.post && <PostPreviewCard post={msg.post} isSender={msg.user.id === user?.id} />}
               {msg.image_url && (
                 <Dialog>
@@ -242,6 +298,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
               >
                 {format(new Date(msg.inserted_at), 'p')}
               </p>
+
+              <MessageReactions
+                reactions={msg.reactions || []}
+                onReact={(emoji) => handleReact(msg.id, emoji)}
+                onRemoveReaction={() => handleRemoveReaction(msg.id)}
+              />
             </div>
           </div>
         ))}

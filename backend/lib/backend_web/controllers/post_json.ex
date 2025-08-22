@@ -11,13 +11,9 @@ defmodule BackendWeb.PostJSON do
     %{data: Enum.map(posts, &data(&1, nil))}
   end
 
-  # --- NEW FUNCTION START ---
-  # This function specifically handles rendering the list for the reactions modal.
   def reactions_index(%{reactions: reactions}) do
     %{data: Enum.map(reactions, &reaction_with_user_data/1)}
   end
-
-  # --- NEW FUNCTION END ---
 
   def show(%{post: post, current_user: current_user}) do
     %{data: data(post, current_user)}
@@ -141,8 +137,6 @@ defmodule BackendWeb.PostJSON do
 
   defp reaction_data(%Reaction{} = reaction), do: %{id: reaction.id, type: reaction.type}
 
-  # --- NEW HELPER FUNCTION START ---
-  # Renders a reaction with full user data for the modal.
   defp reaction_with_user_data(%Reaction{} = reaction) do
     %{
       type: reaction.type,
@@ -150,10 +144,8 @@ defmodule BackendWeb.PostJSON do
     }
   end
 
-  # --- NEW HELPER FUNCTION END ---
-
+  # --- MODIFIED: This function now renders reaction data instead of like data ---
   def comment_data(comment, current_user \\ nil) do
-    # Safely get the list of replies, whether it was pre-processed by build_comment_tree or not.
     replies_to_render =
       case Map.get(comment, :replies) do
         %Ecto.Association.NotLoaded{} ->
@@ -166,12 +158,18 @@ defmodule BackendWeb.PostJSON do
           Enum.map(replies_list, &comment_data(&1, current_user))
       end
 
-    # Safely get the list of likes, which might not be loaded.
-    likes_list =
-      case comment.likes do
+    reactions_list =
+      case comment.reactions do
         %Ecto.Association.NotLoaded{} -> []
         nil -> []
-        likes -> likes
+        reactions -> reactions
+      end
+
+    current_user_reaction =
+      if current_user do
+        Enum.find(reactions_list, &(&1.user_id == current_user.id))
+      else
+        nil
       end
 
     %{
@@ -180,13 +178,9 @@ defmodule BackendWeb.PostJSON do
       inserted_at: comment.inserted_at,
       user: user_data(comment.user),
       replies: replies_to_render,
-      likes_count: Enum.count(likes_list),
-      current_user_liked:
-        if current_user do
-          Enum.any?(likes_list, &(&1.user_id == current_user.id))
-        else
-          false
-        end
+      reactions_count: Enum.count(reactions_list),
+      reaction_counts: reaction_counts(reactions_list),
+      current_user_reaction: if(current_user_reaction, do: current_user_reaction.type, else: nil)
     }
   end
 
