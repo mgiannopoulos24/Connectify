@@ -5,143 +5,114 @@ defmodule Backend.InterestsTest do
   alias Backend.Interests.Interest
 
   import Backend.AccountsFixtures
+  import Backend.CompaniesFixtures
 
-  describe "interests" do
-    test "create_interest/1 with valid data creates an interest" do
+  describe "interests (follow/unfollow) API" do
+    test "follow_entity/3 with valid data creates an interest for company" do
       user = user_fixture()
+      company = company_fixture(%{name: "Microsoft"})
 
       assert {:ok, %Interest{} = interest} =
-               Interests.create_interest(%{
-                 "name" => "Microsoft",
-                 "type" => "company",
-                 "user_id" => user.id
-               })
+               Interests.follow_entity(user.id, company.id, "company")
 
-      assert interest.name == "Microsoft"
-      assert interest.type == "company"
       assert interest.user_id == user.id
+      assert interest.followed_id == company.id
+      assert interest.type == "company"
     end
 
-    test "create_interest/1 with missing name returns error changeset" do
+    test "follow_entity/3 rejects duplicate follow (unique constraint)" do
       user = user_fixture()
+      company = company_fixture(%{name: "Acme Corp"})
+
+      {:ok, _} = Interests.follow_entity(user.id, company.id, "company")
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Interests.create_interest(%{"type" => "company", "user_id" => user.id})
-
-      assert "can't be blank" in errors_on(changeset).name
-    end
-
-    test "create_interest/1 rejects duplicate name (unique constraint)" do
-      user = user_fixture()
-
-      {:ok, _} =
-        Interests.create_interest(%{
-          "name" => "Microsoft",
-          "type" => "company",
-          "user_id" => user.id
-        })
-
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Interests.create_interest(%{
-                 "name" => "Microsoft",
-                 "type" => "company",
-                 "user_id" => user.id
-               })
+               Interests.follow_entity(user.id, company.id, "company")
 
       errors = errors_on(changeset)
-      # composite unique constraint may attach the error to any of the indexed fields;
-      # assert that at least one field contains the "has already been taken" message
       assert Enum.any?(Map.values(errors), fn vals -> "has already been taken" in vals end)
     end
 
-    test "create_interest/1 accepts atom keys" do
-      user = user_fixture()
+    test "unfollow_entity/3 removes the follow and following?/3 reflects it" do
+      follower = user_fixture()
+      followed = user_fixture()
 
-      assert {:ok, %Interest{} = interest} =
-               Interests.create_interest(%{name: "Apple", type: "company", user_id: user.id})
+      {:ok, _} = Interests.follow_entity(follower.id, followed.id, "user")
+      assert Interests.following?(follower.id, followed.id, "user")
 
-      assert interest.name == "Apple"
+      assert {1, _} = Interests.unfollow_entity(follower.id, followed.id, "user")
+      refute Interests.following?(follower.id, followed.id, "user")
     end
 
-    test "create_interest/1 ignores unexpected attrs" do
-      user = user_fixture()
-
-      {:ok, interest} =
-        Interests.create_interest(%{
-          "name" => "CENSUS",
-          "unexpected" => "value",
-          "type" => "company",
-          "user_id" => user.id
-        })
-
-      refute Map.has_key?(interest, :unexpected)
-      assert interest.name == "CENSUS"
-    end
-
-    test "interests support type 'people' and 'company'" do
-      user = user_fixture()
-
-      assert {:ok, %Interest{}} =
-               Interests.create_interest(%{
-                 "name" => "Alice",
-                 "type" => "people",
-                 "user_id" => user.id
-               })
-
-      assert {:ok, %Interest{}} =
-               Interests.create_interest(%{
-                 "name" => "Acme Corp",
-                 "type" => "company",
-                 "user_id" => user.id
-               })
-    end
-
-    # --- added tests for people ---
-    test "people interest preserves name case and can be retrieved" do
-      user = user_fixture()
-
-      {:ok, interest} =
-        Interests.create_interest(%{
-          "name" => "AlIce Johnson",
-          "type" => "people",
-          "user_id" => user.id
-        })
-
-      assert interest.name == "AlIce Johnson"
-      assert interest.type == "people"
-    end
-
-    test "same person name allowed for different users" do
+    test "count_followers_for_entity/2 counts followers correctly" do
+      company = company_fixture(%{name: "CountCo"})
       u1 = user_fixture()
       u2 = user_fixture()
 
-      {:ok, _} =
-        Interests.create_interest(%{"name" => "Jordan", "type" => "people", "user_id" => u1.id})
+      {:ok, _} = Interests.follow_entity(u1.id, company.id, "company")
+      {:ok, _} = Interests.follow_entity(u2.id, company.id, "company")
 
-      # different user — should succeed
-      assert {:ok, %Interest{}} =
-               Interests.create_interest(%{
-                 "name" => "Jordan",
-                 "type" => "people",
-                 "user_id" => u2.id
-               })
+      assert 2 == Interests.count_followers_for_entity(company.id, "company")
     end
 
-    test "duplicate people interest for same user and type is rejected" do
-      user = user_fixture()
+    test "list_followed_companies/1 returns companies ordered by name" do
+      follower = user_fixture()
+      c_a = company_fixture(%{name: "Alpha"})
+      c_b = company_fixture(%{name: "Beta"})
 
-      {:ok, _} =
-        Interests.create_interest(%{"name" => "Taylor", "type" => "people", "user_id" => user.id})
+      {:ok, _} = Interests.follow_entity(follower.id, c_b.id, "company")
+      {:ok, _} = Interests.follow_entity(follower.id, c_a.id, "company")
 
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Interests.create_interest(%{
-                 "name" => "Taylor",
-                 "type" => "people",
-                 "user_id" => user.id
-               })
+      companies = Interests.list_followed_companies(follower.id)
+      assert Enum.map(companies, & &1.name) == ["Alpha", "Beta"]
+    end
 
-      errors = errors_on(changeset)
-      assert Enum.any?(Map.values(errors), fn vals -> "has already been taken" in vals end)
+    test "list_followed_users/1 returns users ordered by name" do
+      follower = user_fixture()
+      u_a = user_fixture(%{name: "Aaron"})
+      u_b = user_fixture(%{name: "Zoe"})
+
+      {:ok, _} = Interests.follow_entity(follower.id, u_b.id, "user")
+      {:ok, _} = Interests.follow_entity(follower.id, u_a.id, "user")
+
+      users = Interests.list_followed_users(follower.id)
+      assert Enum.map(users, & &1.name) == ["Aaron", "Zoe"]
+    end
+
+    test "following?/3 returns true only when a follow exists" do
+      follower = user_fixture()
+      followed = user_fixture()
+
+      refute Interests.following?(follower.id, followed.id, "user")
+      {:ok, _} = Interests.follow_entity(follower.id, followed.id, "user")
+      assert Interests.following?(follower.id, followed.id, "user")
+    end
+
+    # Edge case tests
+    test "unfollow_entity/3 on non-existent follow returns {0, _}" do
+      follower = user_fixture()
+      followed = user_fixture()
+
+      assert {0, _} = Interests.unfollow_entity(follower.id, followed.id, "user")
+    end
+
+    test "count_followers_for_entity/2 returns 0 for entity with no followers" do
+      company = company_fixture(%{name: "NobodyCo"})
+      assert 0 == Interests.count_followers_for_entity(company.id, "company")
+    end
+
+    test "list_followed_companies/1 returns empty list when user follows none" do
+      follower = user_fixture()
+      assert [] == Interests.list_followed_companies(follower.id)
+    end
+
+    test "follow_entity/3 with non-existent ids returns an error changeset" do
+      # Use ids that should not exist in the database
+      nonexistent_user_id = -1
+      nonexistent_followed_id = -999
+
+      assert {:error, %Ecto.Changeset{}} =
+               Interests.follow_entity(nonexistent_user_id, nonexistent_followed_id, "company")
     end
   end
 end
