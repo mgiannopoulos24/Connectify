@@ -84,11 +84,16 @@ The backend will be available at `https://localhost:4000`.
 ```bash
 cd frontend
 ```
-2. Install dependencies:
+2. Create a `.env` file inside the `frontend` directory and add your Giphy API key. You can copy the structure from `.env.example`, or create it with the following content:
+```bash
+VITE_GIPHY_API_KEY=your_giphy_api_key
+# You can get a Giphy API key by signing up at https://developers.giphy.com/
+```
+3. Install dependencies:
 ```bash
 npm install
 ```
-3. Start the development server:
+4. Start the development server:
 ```bash
 npm run dev
 ```
