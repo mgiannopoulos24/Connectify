@@ -51,8 +51,36 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textInputRef = useRef<HTMLInputElement>(null); // NEW: Ref for text input
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [isGiphyPickerOpen, setIsGiphyPickerOpen] = useState(false);
+
+  // --- Emoji & Input Logic ---
+
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+    const emoji = emojiData.emoji;
+    const input = textInputRef.current;
+    if (!input) {
+      setNewMessage(newMessage + emoji);
+      return;
+    }
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+
+    const newText = newMessage.substring(0, start) + emoji + newMessage.substring(end);
+    setNewMessage(newText);
+
+    // After setting the new message, move the cursor to the end of the inserted emoji
+    // Use a small timeout to ensure the state update is reflected before setting selection
+    setTimeout(() => {
+      const newCursorPos = start + emoji.length;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+      input.focus();
+    }, 0);
+  };
+
+  // --- End Emoji & Input Logic ---
 
   useEffect(() => {
     setIsLoading(true);
@@ -441,11 +469,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
             size="icon"
             variant="ghost"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isSending}
+            disabled={isSending || attachment !== null} // Disable file/media when one is attached
             aria-label="Attach file"
           >
             <Paperclip className="w-5 h-5" />
           </Button>
+
+          {/* NEW: Emoji Picker Popover */}
+          <EmojiPickerPopover onEmojiSelect={handleEmojiSelect}>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              disabled={isSending || attachment !== null} // Disable when media is attached
+              aria-label="Insert emoji"
+            >
+              <Smile className="w-5 h-5" />
+            </Button>
+          </EmojiPickerPopover>
+
           <Popover open={isGiphyPickerOpen} onOpenChange={setIsGiphyPickerOpen}>
             <PopoverTrigger asChild>
               <Button type="button" size="icon" variant="ghost" disabled={isSending}>
@@ -458,6 +500,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
           </Popover>
           <Input
             type="text"
+            ref={textInputRef} // NEW: Attach ref here
             placeholder="Type a message or paste a file..."
             value={newMessage}
             onChange={handleTyping}
