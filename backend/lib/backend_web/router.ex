@@ -108,6 +108,7 @@ defmodule BackendWeb.Router do
            ChatController,
            :remove_reaction_from_message
     post "/chat/upload_image", ChatController, :upload_image
+    post "/chat/upload_file", ChatController, :upload_file
 
     # Notifications
     get "/notifications", NotificationController, :index

@@ -34,7 +34,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadType, setUploadType] = useState<'image' | 'video' | null>(null);
+  const [uploadType, setUploadType] = useState<'image' | 'video' | 'text' | null>(null);
 
   const [content, setContent] = useState('');
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -51,7 +51,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
     setIsLoading(false);
   };
 
-  const handleOpenModal = (type: 'image' | 'video') => {
+  const handleOpenModal = (type: 'image' | 'video' | 'text') => {
     resetForm();
     setUploadType(type);
     setIsModalOpen(true);
@@ -82,7 +82,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
 
     try {
       let finalMediaUrl: string | undefined = undefined;
-      let postData: any = {
+      const postData: any = {
         content: content.trim() || undefined,
         link_url: linkUrl.trim() || undefined,
       };
@@ -108,10 +108,17 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
     }
   };
 
-  const fileInputAccept =
-    uploadType === 'image'
-      ? 'image/png, image/jpeg, image/gif'
-      : 'video/mp4, video/webm, image/gif';
+  const handleMediaIconClick = (type: 'image' | 'video') => {
+    if (fileInputRef.current) {
+      setUploadType(type);
+      const accept =
+        type === 'image'
+          ? 'image/png, image/jpeg, image/gif'
+          : 'video/mp4, video/webm, image/gif';
+      fileInputRef.current.accept = accept;
+      fileInputRef.current.click();
+    }
+  };
 
   return (
     <>
@@ -124,7 +131,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
               <UserCircle className="w-12 h-12 text-gray-400" />
             )}
             <button
-              onClick={() => navigate('/create-article')}
+              onClick={() => handleOpenModal('text')}
               className="w-full text-left p-3 border rounded-full text-gray-500 hover:bg-gray-100 transition"
             >
               Start a post
@@ -224,24 +231,30 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
-                accept={fileInputAccept}
               />
             </div>
             <DialogFooter className="border-t pt-4">
               <div className="flex items-center justify-between w-full">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                >
-                  {uploadType === 'image' ? (
+                <div className="flex items-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleMediaIconClick('image')}
+                    disabled={isLoading}
+                  >
                     <ImageIcon className="w-6 h-6 text-blue-500" />
-                  ) : (
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleMediaIconClick('video')}
+                    disabled={isLoading}
+                  >
                     <Video className="w-6 h-6 text-green-500" />
-                  )}
-                </Button>
+                  </Button>
+                </div>
                 <Button type="submit" disabled={isLoading || (!content && !mediaFile && !linkUrl)}>
                   {isLoading ? (
                     <>

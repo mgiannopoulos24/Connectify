@@ -16,6 +16,8 @@ defmodule BackendWeb.MessageJSON do
       id: message.id,
       content: message.content,
       image_url: message.image_url,
+      file_url: message.file_url,
+      file_name: message.file_name,
       inserted_at: message.inserted_at,
       user: %{
         id: message.user.id,

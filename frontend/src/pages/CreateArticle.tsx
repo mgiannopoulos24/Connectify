@@ -94,16 +94,14 @@ const CreateArticlePage: React.FC = () => {
           <p className="font-semibold">New Article</p>
         </div>
         <div>
-          <Button variant="outline" className="mr-2">
-            Manage
+          <Button variant="outline" className="mr-2" onClick={() => navigate('/homepage')}>
+            Cancel
           </Button>
-          {/* This button now triggers the preview */}
           <Button onClick={validateAndOpenPreview}>Publish</Button>
         </div>
       </div>
 
       <div className="p-8 md:p-12">
-        {/* ... (Cover Image Upload, Title Input, and Quill Editor are unchanged) ... */}
         <div className="mb-8">
           {coverImagePreview ? (
             <img
@@ -149,7 +147,6 @@ const CreateArticlePage: React.FC = () => {
         />
       </div>
 
-      {/* --- NEW: Preview Modal --- */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
           <DialogHeader>
@@ -165,7 +162,6 @@ const CreateArticlePage: React.FC = () => {
                   className="w-full rounded-lg object-cover"
                 />
               )}
-              {/* Render the formatted content */}
               <div
                 className="prose max-w-none"
                 dangerouslySetInnerHTML={{ __html: `<h1>${title}</h1>${content}` }}

@@ -8,6 +8,7 @@ defmodule BackendWeb.ChatController do
   action_fallback BackendWeb.FallbackController
 
   @upload_dir "priv/static/uploads/chat_images"
+  @file_upload_dir "priv/static/uploads/chat_files"
 
   def create(conn, %{"user_id" => other_user_id}) do
     current_user = conn.assigns.current_user
@@ -52,6 +53,36 @@ defmodule BackendWeb.ChatController do
     conn
     |> put_status(:bad_request)
     |> json(%{errors: %{detail: "Image not provided."}})
+  end
+
+  def upload_file(conn, %{"file" => %Plug.Upload{} = file}) do
+    File.mkdir_p!(@file_upload_dir)
+
+    extension = Path.extname(file.filename)
+    unique_filename = "#{Ecto.UUID.generate()}#{extension}"
+    upload_path = Path.join(@file_upload_dir, unique_filename)
+
+    case File.cp(file.path, upload_path) do
+      :ok ->
+        file_url = ~p"/uploads/chat_files/#{unique_filename}"
+
+        conn
+        |> put_status(:created)
+        |> json(%{data: %{file_url: file_url, file_name: file.filename}})
+
+      {:error, reason} ->
+        Logger.error("Failed to upload chat file: #{inspect(reason)}")
+
+        conn
+        |> put_status(:internal_server_error)
+        |> json(%{errors: %{detail: "Failed to save file."}})
+    end
+  end
+
+  def upload_file(conn, _params) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{errors: %{detail: "File not provided."}})
   end
 
   def react_to_message(

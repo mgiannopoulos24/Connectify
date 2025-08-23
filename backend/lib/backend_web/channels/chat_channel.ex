@@ -39,7 +39,9 @@ defmodule BackendWeb.ChatChannel do
     # The payload can also contain an "image_url". Both are optional.
     attrs = %{
       "content" => payload["body"],
-      "image_url" => payload["image_url"]
+      "image_url" => payload["image_url"],
+      "file_url" => payload["file_url"],
+      "file_name" => payload["file_name"]
     }
 
     case Chat.create_message(chat_room, user, attrs) do

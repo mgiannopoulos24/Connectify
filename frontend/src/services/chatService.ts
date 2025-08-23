@@ -41,7 +41,27 @@ export const uploadChatImage = async (imageFile: File): Promise<string> => {
   return response.data.data.image_url;
 };
 
-// --- NEW FUNCTIONS START HERE ---
+/**
+ * Uploads a file for the chat.
+ * @param file The file to upload.
+ * @returns An object containing the URL and name of the uploaded file.
+ */
+export const uploadChatFile = async (
+  file: File,
+): Promise<{ file_url: string; file_name: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axios.post<{ data: { file_url: string; file_name: string } }>(
+    '/api/chat/upload_file',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+  return response.data.data;
+};
 
 /**
  * Reacts to a specific message in a chat room.

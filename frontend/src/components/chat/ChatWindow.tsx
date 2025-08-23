@@ -4,13 +4,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   getMessageHistory,
   uploadChatImage,
+  uploadChatFile,
   reactToMessage,
   removeReactionFromMessage,
 } from '@/services/chatService';
 import { Message } from '@/types/chat';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, UserCircle, Loader2, Paperclip, XCircle, Smile } from 'lucide-react';
+import {
+  Send,
+  UserCircle,
+  Loader2,
+  Paperclip,
+  XCircle,
+  Smile,
+  FileText,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import TypingIndicator from './TypingIndicator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -18,6 +27,7 @@ import PostPreviewCard from './PostPreviewCard';
 import { EmojiClickData } from 'emoji-picker-react';
 import EmojiPickerPopover from './EmojiPickerPopover';
 import MessageReactions from './MessageReactions';
+import { toast } from 'sonner';
 
 interface ChatWindowProps {
   chatRoomId: string;
@@ -31,9 +41,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +52,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   useEffect(() => {
     setIsLoading(true);
     setMessages([]);
-    removeImagePreview();
+    removeAttachment();
 
     if (!chatRoomId || !token) {
       setIsLoading(false);
@@ -66,7 +76,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
       setIsTyping(false);
     });
 
-    // Add listener for message updates (like reactions)
     ch.on('msg_updated', (payload) => {
       const updatedMessage = payload.message;
       setMessages((prev) => prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m)));
@@ -106,74 +115,94 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   };
   useEffect(scrollToBottom, [messages]);
 
-  const handleFileSelect = (file: File | null) => {
-    if (file && file.type.startsWith('image/')) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+  const handleAttachmentSelect = (file: File | null) => {
+    if (attachmentPreview) {
+      URL.revokeObjectURL(attachmentPreview);
+    }
+    setAttachment(file);
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        setAttachmentPreview(URL.createObjectURL(file));
+      } else {
+        setAttachmentPreview(null);
+      }
     } else {
-      setImageFile(null);
-      setImagePreview(null);
+      setAttachmentPreview(null);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFileSelect(e.target.files?.[0] || null);
+    handleAttachmentSelect(e.target.files?.[0] || null);
     if (e.target) e.target.value = '';
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const file = e.clipboardData.files[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file) {
       e.preventDefault();
-      handleFileSelect(file);
+      handleAttachmentSelect(file);
     }
   };
 
-  const removeImagePreview = () => {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImageFile(null);
-    setImagePreview(null);
+  const removeAttachment = () => {
+    if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
+    setAttachment(null);
+    setAttachmentPreview(null);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && !imageFile) || !channel || !user) return;
+    if ((!newMessage.trim() && !attachment) || !channel || !user) return;
 
-    setIsUploading(true);
+    setIsSending(true);
     const textToSend = newMessage.trim();
-    const fileToSend = imageFile;
+    const fileToSend = attachment;
     const tempId = `temp-${Date.now()}`;
 
     const optimisticMessage: Message = {
       id: tempId,
       content: textToSend || null,
-      image_url: fileToSend ? URL.createObjectURL(fileToSend) : undefined,
+      image_url: fileToSend?.type.startsWith('image/')
+        ? URL.createObjectURL(fileToSend)
+        : undefined,
+      file_url: fileToSend && !fileToSend.type.startsWith('image/') ? '#' : undefined,
+      file_name: fileToSend && !fileToSend.type.startsWith('image/') ? fileToSend.name : undefined,
       inserted_at: new Date().toISOString(),
       user: { id: user.id, name: user.name, surname: user.surname, photo_url: user.photo_url },
+      reactions: [],
     };
     setMessages((prev) => [...prev, optimisticMessage]);
 
     setNewMessage('');
-    removeImagePreview();
+    removeAttachment();
 
     try {
-      let finalImageUrl: string | undefined;
+      const payload: {
+        body: string | null;
+        image_url?: string;
+        file_url?: string;
+        file_name?: string;
+        temp_id: string;
+      } = { body: textToSend || null, temp_id: tempId };
+
       if (fileToSend) {
-        finalImageUrl = await uploadChatImage(fileToSend);
+        if (fileToSend.type.startsWith('image/')) {
+          payload.image_url = await uploadChatImage(fileToSend);
+        } else {
+          const { file_url, file_name } = await uploadChatFile(fileToSend);
+          payload.file_url = file_url;
+          payload.file_name = file_name;
+        }
       }
 
-      channel.push('new_msg', {
-        body: textToSend || null,
-        image_url: finalImageUrl,
-        temp_id: tempId,
-      });
+      channel.push('new_msg', payload);
     } catch (error) {
-      console.error('Failed to upload image or send message:', error);
+      console.error('Failed to upload attachment or send message:', error);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setNewMessage(textToSend);
-      alert('Failed to send message. Please try again.');
+      toast.error('Failed to send message. Please try again.');
     } finally {
-      setIsUploading(false);
+      setIsSending(false);
     }
   };
 
@@ -182,7 +211,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     if (channel) channel.push('typing', { user_id: user?.id });
   };
 
-  // Handlers for reactions
   const handleReact = async (messageId: string, emoji: string) => {
     try {
       const updatedMessage = await reactToMessage(chatRoomId, messageId, emoji);
@@ -286,8 +314,32 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
                   </DialogContent>
                 </Dialog>
               )}
+              {msg.file_url && msg.file_name && (
+                <a
+                  href={msg.file_url}
+                  download={msg.file_name}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                    msg.user.id === user?.id
+                      ? 'bg-blue-500 hover:bg-blue-400'
+                      : 'bg-gray-100 hover:bg-gray-300'
+                  }`}
+                >
+                  <div className="flex-shrink-0 p-2 bg-white/20 rounded-full">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="flex-grow overflow-hidden">
+                    <p className="font-semibold text-sm truncate">{msg.file_name}</p>
+                  </div>
+                </a>
+              )}
               {msg.content && (
-                <p className={`text-sm p-1 ${msg.image_url || msg.post ? 'mt-2' : ''}`}>
+                <p
+                  className={`text-sm p-1 ${
+                    msg.image_url || msg.post || msg.file_url ? 'mt-2' : ''
+                  }`}
+                >
                   {msg.content}
                 </p>
               )}
@@ -317,15 +369,29 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
       </div>
 
       <footer className="p-4 border-t bg-white">
-        {imagePreview && (
-          <div className="mb-2 relative w-24 h-24 p-1 border rounded-md">
-            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded" />
+        {attachment && (
+          <div className="mb-2 relative w-full p-2 border rounded-md flex items-center gap-3 bg-gray-50">
+            {attachmentPreview ? (
+              <img
+                src={attachmentPreview}
+                alt="Preview"
+                className="w-16 h-16 object-cover rounded"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                <FileText className="w-8 h-8 text-gray-600" />
+              </div>
+            )}
+            <div className="flex-grow text-sm overflow-hidden">
+              <p className="font-semibold truncate">{attachment.name}</p>
+              <p className="text-gray-500">{(attachment.size / 1024).toFixed(2)} KB</p>
+            </div>
             <Button
-              onClick={removeImagePreview}
-              variant="destructive"
+              onClick={removeAttachment}
+              variant="ghost"
               size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-              aria-label="Remove image"
+              className="absolute top-1 right-1 h-6 w-6 rounded-full flex-shrink-0"
+              aria-label="Remove attachment"
             >
               <XCircle className="w-4 h-4" />
             </Button>
@@ -337,35 +403,35 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
             ref={fileInputRef}
             onChange={handleFileChange}
             className="hidden"
-            accept="image/*"
+            accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.gif"
           />
           <Button
             type="button"
             size="icon"
             variant="ghost"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            aria-label="Attach image"
+            disabled={isSending}
+            aria-label="Attach file"
           >
             <Paperclip className="w-5 h-5" />
           </Button>
           <Input
             type="text"
-            placeholder="Type a message or paste an image..."
+            placeholder="Type a message or paste a file..."
             value={newMessage}
             onChange={handleTyping}
             onPaste={handlePaste}
             className="flex-grow"
             autoComplete="off"
-            disabled={isUploading}
+            disabled={isSending}
           />
           <Button
             type="submit"
             size="icon"
-            disabled={isUploading || (!newMessage.trim() && !imageFile)}
+            disabled={isSending || (!newMessage.trim() && !attachment)}
             aria-label="Send message"
           >
-            {isUploading ? (
+            {isSending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Send className="w-5 h-5" />

@@ -20,6 +20,8 @@ export interface Message {
   id: string;
   content: string | null; // Can be null if it's an image-only message
   image_url?: string; // The optional URL for the message's image
+  file_url?: string;
+  file_name?: string;
   inserted_at: string;
   user: {
     id: string;
