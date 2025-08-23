@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getUserById, followUser, unfollowUser } from '@/services/userService';
 import { User } from '@/types/user';
@@ -17,9 +17,11 @@ import {
   Lock,
   UserCheck,
   Users as FollowersIcon,
+  Send,
+  UserX,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { sendConnectionRequest } from '@/services/connectionService';
+import { sendConnectionRequest, removeConnection } from '@/services/connectionService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -30,6 +32,7 @@ const UserProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const isOwnProfile = currentUser?.id === userId;
@@ -62,17 +65,75 @@ const UserProfilePage: React.FC = () => {
     }
   }, [currentUser, user]);
 
+  const isConnected = useMemo(() => {
+    if (!currentUser || !user) return false;
+    return (
+      currentUser.sent_connections.some(
+        (c) => c.connected_user_id === user.id && c.status === 'accepted',
+      ) ||
+      currentUser.received_connections.some((c) => c.user_id === user.id && c.status === 'accepted')
+    );
+  }, [currentUser, user]);
+
+  const isPending = useMemo(() => {
+    if (!currentUser || !user) return false;
+    return currentUser.sent_connections.some(
+      (c) => c.connected_user_id === user.id && c.status === 'pending',
+    );
+  }, [currentUser, user]);
+
   const handleConnect = async () => {
     if (!userId) return;
     setIsConnecting(true);
     try {
       await sendConnectionRequest(userId);
+      setCurrentUser((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sent_connections: [
+            ...prev.sent_connections,
+            {
+              id: `temp-${Date.now()}`,
+              status: 'pending',
+              user_id: prev.id,
+              connected_user_id: userId,
+            },
+          ],
+        };
+      });
       toast.success('Connection request sent!');
     } catch (error) {
       console.error('Failed to send connection request:', error);
       toast.error('Failed to send connection request.');
     } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!userId || !confirm('Are you sure you want to remove this connection?')) return;
+    setIsDisconnecting(true);
+    try {
+      await removeConnection(userId);
+      setCurrentUser((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sent_connections: prev.sent_connections.filter(
+            (c) => c.connected_user_id !== userId,
+          ),
+          received_connections: prev.received_connections.filter(
+            (c) => c.user_id !== userId,
+          ),
+        };
+      });
+      toast.success('Connection removed.');
+    } catch (error) {
+      console.error('Failed to remove connection:', error);
+      toast.error('Failed to remove connection.');
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -181,10 +242,22 @@ const UserProfilePage: React.FC = () => {
               )}
             </div>
             <div className="mt-8 flex flex-wrap gap-4 justify-center">
-              <Button onClick={handleConnect} disabled={isConnecting}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                {isConnecting ? 'Sending...' : 'Connect'}
-              </Button>
+              {isConnected ? (
+                <Button variant="destructive" onClick={handleDisconnect} disabled={isDisconnecting}>
+                  <UserX className="mr-2 h-4 w-4" />
+                  {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                </Button>
+              ) : isPending ? (
+                <Button disabled>
+                  <Send className="mr-2 h-4 w-4" /> Pending
+                </Button>
+              ) : (
+                <Button onClick={handleConnect} disabled={isConnecting}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {isConnecting ? 'Sending...' : 'Connect'}
+                </Button>
+              )}
+
               <Button onClick={handleFollowToggle} variant="outline" disabled={isFollowLoading}>
                 {isFollowLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -195,6 +268,7 @@ const UserProfilePage: React.FC = () => {
                 )}
                 {isFollowing ? 'Following' : 'Follow'}
               </Button>
+
               <Button onClick={handleMessage} variant="outline">
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Message

@@ -10,6 +10,17 @@ defmodule Backend.Connections do
 
   def get_connection!(id), do: Repo.get!(Connection, id)
 
+  # --- NEW: Function to find an existing connection between two users ---
+  def get_connection_between_users(user1_id, user2_id) do
+    from(c in Connection,
+      where:
+        ((c.user_id == ^user1_id and c.connected_user_id == ^user2_id) or
+           (c.user_id == ^user2_id and c.connected_user_id == ^user1_id)) and
+          c.status == "accepted"
+    )
+    |> Repo.one()
+  end
+
   def send_connection_request(requester_id, recipient_id) do
     with {:ok, connection} <-
            %Connection{}
@@ -38,26 +49,23 @@ defmodule Backend.Connections do
     Repo.delete(connection)
   end
 
+  # --- NEW: Deletes a connection record ---
+  def delete_connection(%Connection{} = connection) do
+    Repo.delete(connection)
+  end
+
   def list_pending_requests(user_id) do
-    # --- FIX STARTS HERE ---
-    # Build the full query with preloads first, then execute Repo.all() at the end.
     Connection
     |> where(connected_user_id: ^user_id, status: "pending")
-    # Preload the user (the requester) and their job experiences with the company
     |> preload(user: [job_experiences: :company])
     |> Repo.all()
-
-    # --- FIX ENDS HERE ---
   end
 
   def list_user_connections(user_id) do
-    # Find connections where the user is either the requester or the recipient
-    # and the status is 'accepted'
     query =
       from c in Connection,
         where:
           (c.user_id == ^user_id or c.connected_user_id == ^user_id) and c.status == "accepted",
-        # Preload the nested data for both users in the connection
         preload: [
           user: [job_experiences: [:company]],
           connected_user: [job_experiences: [:company]]

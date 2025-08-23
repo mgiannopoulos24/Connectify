@@ -12,6 +12,7 @@ import {
   Clock,
   Sparkles,
   Users,
+  UserCircle,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -71,9 +72,10 @@ const ApplicationStatusIndicator: React.FC<{ status: JobPosting['application_sta
 };
 
 const JobCard: React.FC<JobCardProps> = ({ job, matchingSkillsCount }) => {
+  const count: number = matchingSkillsCount ?? (job as any).matching_skills_count ?? 0;
+
   return (
     <Card className="hover:shadow-lg transition-shadow relative flex flex-col">
-      {/* --- THIS LINE IS NOW RESTORED --- */}
       <ApplicationStatusIndicator status={job.application_status} />
 
       <div className="flex-grow flex flex-col">
@@ -117,12 +119,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, matchingSkillsCount }) => {
               )}
             </div>
             <div className="flex-grow" />
-            {matchingSkillsCount && matchingSkillsCount > 0 && (
+            {/* Only render matching skills when count > 0 (hide when 0 or undefined) */}
+            {count > 0 && (
               <div className="flex items-center gap-2 text-sm text-blue-600 font-semibold mb-3">
                 <Sparkles className="h-4 w-4" />
-                <span>
-                  {matchingSkillsCount} Matching Skill{matchingSkillsCount > 1 ? 's' : ''}
-                </span>
+                <span>{count} Matching Skill{count > 1 ? 's' : ''}</span>
               </div>
             )}
             <p className="text-xs text-gray-400">
@@ -140,11 +141,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, matchingSkillsCount }) => {
                     <Tooltip key={conn.id}>
                       <TooltipTrigger asChild>
                         <Link to={`/profile/${conn.id}`}>
-                          <img
-                            src={conn.photo_url || ''}
-                            alt={`${conn.name} ${conn.surname}`}
-                            className="h-6 w-6 rounded-full object-cover border-2 border-white -ml-2 first:ml-0"
-                          />
+                          {conn.photo_url ? (
+                            <img
+                              src={conn.photo_url}
+                              alt={`${conn.name} ${conn.surname}`}
+                              className="h-6 w-6 rounded-full object-cover border-2 border-white -ml-2 first:ml-0"
+                            />
+                          ) : (
+                            <div className="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center border-2 border-white -ml-2 first:ml-0">
+                              <UserCircle className="h-5 w-5 text-white" />
+                            </div>
+                          )}
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent>

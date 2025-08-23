@@ -6,75 +6,57 @@ defmodule Backend.Skills do
   alias Backend.Repo
 
   alias Backend.Skills.Skill
+  alias Backend.Accounts.User
 
-  @doc """
-  Returns a list of all master skills (not assigned to a specific user).
-  """
+  # --- FIX: Renamed for clarity ---
   def list_master_skills do
-    from(s in Skill, where: is_nil(s.user_id), order_by: [asc: s.name])
+    from(s in Skill, order_by: [asc: s.name])
     |> Repo.all()
   end
 
-  @doc """
-  Searches for master skills by name for autocomplete functionality.
-  Limits results to 10 for performance.
-  """
   def search_skills(search_term) when is_binary(search_term) do
     Skill
-    |> where([s], is_nil(s.user_id) and ilike(s.name, ^"#{search_term}%"))
+    |> where([s], ilike(s.name, ^"#{search_term}%"))
     |> limit(10)
     |> Repo.all()
   end
 
   def get_skill!(id), do: Repo.get!(Skill, id)
 
-  @doc """
-  Creates a master skill, intended for admin use.
-  It ensures the user_id is nil.
-  """
+  # --- FIX: Renamed for clarity ---
   def create_master_skill(attrs \\ %{}) do
     %Skill{}
-    |> Skill.changeset(Map.put(attrs, "user_id", nil))
+    |> Skill.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Adds a skill to a specific user.
-  If the skill doesn't exist in the master list, it creates it there first.
-  """
   def add_skill_for_user(user, attrs) do
     skill_name = attrs["name"]
+    user = Repo.preload(user, :skills)
+    existing_skill_names = Enum.map(user.skills, & &1.name)
 
-    # Use a transaction to ensure both operations succeed or fail together
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:ensure_master, fn repo, _ ->
-      # Find or create the master skill with a case-insensitive check
-      case repo.one(from s in Skill, where: ilike(s.name, ^skill_name) and is_nil(s.user_id)) do
-        nil -> create_master_skill(%{"name" => skill_name})
-        master_skill -> {:ok, master_skill}
+    if skill_name in existing_skill_names do
+      skill = Enum.find(user.skills, &(&1.name == skill_name))
+      {:ok, skill}
+    else
+      master_skill =
+        case Repo.get_by(Skill, name: skill_name) do
+          nil ->
+            {:ok, skill} = create_master_skill(%{"name" => skill_name})
+            skill
+
+          existing ->
+            existing
+        end
+
+      user
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:skills, [master_skill | user.skills])
+      |> Repo.update()
+      |> case do
+        {:ok, _user} -> {:ok, master_skill}
+        {:error, changeset} -> {:error, changeset}
       end
-    end)
-    |> Ecto.Multi.insert(:user_skill, fn _ ->
-      # Now, create the user's specific skill record.
-      # The unique constraint will prevent duplicates for the same user.
-      %Skill{}
-      |> Skill.changeset(Map.put(attrs, "user_id", user.id))
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{user_skill: user_skill}} ->
-        {:ok, user_skill}
-
-      # This case handles when the user tries to add a skill they already have.
-      # We treat it as a success and return the existing skill.
-      {:error, :user_skill, %Ecto.Changeset{errors: [user_skill_unique_index: _]} = _changeset, _} ->
-        {:ok, Repo.get_by!(Skill, name: skill_name, user_id: user.id)}
-
-      {:error, :user_skill, changeset, _} ->
-        {:error, changeset}
-
-      {:error, _, reason, _} ->
-        {:error, reason}
     end
   end
 
@@ -84,7 +66,17 @@ defmodule Backend.Skills do
     |> Repo.update()
   end
 
-  def delete_skill(%Skill{} = skill) do
+  # --- NEW: Function to remove a skill association from a user ---
+  def delete_skill_from_user(%User{} = user, %Skill{} = skill) do
+    user
+    |> Repo.preload(:skills)
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(:skills, Enum.reject(user.skills, &(&1.id == skill.id)))
+    |> Repo.update()
+  end
+
+  # --- FIX: Renamed for clarity (Admin use only) ---
+  def delete_master_skill(%Skill{} = skill) do
     Repo.delete(skill)
   end
 end

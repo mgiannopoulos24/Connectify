@@ -30,14 +30,15 @@ defmodule BackendWeb.Admin.SkillController do
     skill = Skills.get_skill!(id)
 
     with {:ok, %Skill{} = skill} <- Skills.update_skill(skill, skill_params) do
-      render(conn, SkillJSON, :show, skill: skill)
+      render(SkillJSON, :show, skill: skill)
     end
   end
 
   def delete(conn, %{"id" => id}) do
     skill = Skills.get_skill!(id)
 
-    with {:ok, %Skill{}} <- Skills.delete_skill(skill) do
+    # --- FIX: Use the renamed, more descriptive function name ---
+    with {:ok, %Skill{}} <- Skills.delete_master_skill(skill) do
       send_resp(conn, :no_content, "")
     end
   end

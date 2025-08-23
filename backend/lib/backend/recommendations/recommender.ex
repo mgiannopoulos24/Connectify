@@ -16,7 +16,7 @@ defmodule Backend.Recommendations.Recommender do
   # Helps prevent overfitting by penalizing large feature values.
   @beta 0.02
   # The number of times to iterate over the training data.
-  @iterations 20
+  @iterations 50
   # The number of recommendations to return for a user.
   @recommendations_count 10
 

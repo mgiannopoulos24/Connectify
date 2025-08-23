@@ -61,7 +61,7 @@ defmodule Backend.Jobs do
 
     all_postings = Repo.all(base_query)
 
-    # Find and attach relevant connections
+    # --- NEW: Find and attach relevant connections ---
     user_connections = Connections.list_user_connections(user.id)
 
     connection_ids =
@@ -107,9 +107,15 @@ defmodule Backend.Jobs do
             }
           end)
 
+        # compute matching skills count and attach it
+        post_skill_ids = MapSet.new(Enum.map(post.skills, & &1.id))
+        user_skill_ids_set = MapSet.new(user_skill_ids)
+        matching_skills_count = MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size()
+
         post
         |> Map.put(:application_status, status)
         |> Map.put(:relevant_connections, relevant_connections_data)
+        |> Map.put(:matching_skills_count, matching_skills_count)
       end)
 
     # Sort by recommendation, then skill relevance, and then by date

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { getJobFeed } from '@/services/jobService';
-import { getRecommendedJobs } from '@/services/recommendationService'; // Import recommendation service
+import { getRecommendedJobs } from '@/services/recommendationService';
 import { JobPosting } from '@/types/job';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Star } from 'lucide-react';
 import JobCard from '@/components/jobs/JobCard';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth to access user skills
+import { useAuth } from '@/contexts/AuthContext';
 
 const JobsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -15,16 +15,19 @@ const JobsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // --- FIX: Do not fetch jobs until the current user's data is loaded ---
+    if (!currentUser) {
+      return;
+    }
+
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        // --- MODIFIED: Fetch both feeds in parallel ---
         const [feedData, recommendedData] = await Promise.all([
           getJobFeed(),
           getRecommendedJobs(),
         ]);
         
-        // --- MODIFIED: Filter out recommended jobs from the main feed to avoid duplicates ---
         const recommendedIds = new Set(recommendedData.map(j => j.id));
         setJobs(feedData.filter(job => !recommendedIds.has(job.id)));
         setRecommendedJobs(recommendedData);
@@ -37,10 +40,11 @@ const JobsPage: React.FC = () => {
       }
     };
     fetchJobs();
-  }, []);
+    // --- FIX: Add currentUser to the dependency array ---
+  }, [currentUser]);
 
-  // --- NEW: Function to calculate matching skills ---
   const calculateMatchingSkills = (job: JobPosting): number => {
+    // The currentUser object is now guaranteed to have skills if they exist
     if (!currentUser?.skills) return 0;
     const userSkillIds = new Set(currentUser.skills.map((s) => s.id));
     return job.skills.filter((s) => userSkillIds.has(s.id)).length;
@@ -48,7 +52,7 @@ const JobsPage: React.FC = () => {
 
   const renderJobList = (jobList: JobPosting[], isRecommendedSection = false) => {
     if (jobList.length === 0) {
-      if(isRecommendedSection) return null; // Don't show a message if there are no recommendations
+      if(isRecommendedSection) return null;
       return <div className="text-center text-gray-500 py-10">No job listings found.</div>;
     }
 
@@ -58,7 +62,6 @@ const JobsPage: React.FC = () => {
           <JobCard
             key={job.id}
             job={job}
-            // --- MODIFIED: Pass skill count to the card ---
             matchingSkillsCount={calculateMatchingSkills(job)}
           />
         ))}
@@ -80,7 +83,6 @@ const JobsPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* --- MODIFIED: Re-enabled the recommendations section --- */}
       {recommendedJobs.length > 0 && (
         <Card className="border-2 border-yellow-300 bg-yellow-50">
           <CardHeader>

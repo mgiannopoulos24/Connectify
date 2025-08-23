@@ -99,6 +99,7 @@ defmodule BackendWeb.Router do
     post "/connections", ConnectionController, :create
     put "/connections/:id/accept", ConnectionController, :accept
     put "/connections/:id/decline", ConnectionController, :decline
+    delete "/connections/user/:user_id", ConnectionController, :delete_by_user
 
     # Chat
     post "/chat", ChatController, :create

@@ -44,7 +44,8 @@ defmodule Backend.Accounts.User do
 
     has_many :job_experiences, JobExperience, on_delete: :delete_all
     has_many :educations, Education, on_delete: :delete_all
-    has_many :skills, Skill, on_delete: :delete_all
+    # --- FIX: Replaced has_many with many_to_many ---
+    many_to_many :skills, Skill, join_through: "users_skills", on_replace: :delete
     has_many :interests, Interest, on_delete: :delete_all
     has_many :posts, Post, on_delete: :delete_all
     has_many :notifications, Notification, on_delete: :delete_all

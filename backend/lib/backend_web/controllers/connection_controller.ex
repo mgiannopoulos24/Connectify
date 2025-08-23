@@ -86,4 +86,20 @@ defmodule BackendWeb.ConnectionController do
       conn |> put_status(:forbidden) |> json(%{errors: %{detail: "Forbidden"}})
     end
   end
+
+  # --- NEW ACTION ---
+  def delete_by_user(conn, %{"user_id" => other_user_id}) do
+    current_user = conn.assigns.current_user
+
+    case Connections.get_connection_between_users(current_user.id, other_user_id) do
+      nil ->
+        # No connection found, which is fine. The end state is what matters.
+        send_resp(conn, :no_content, "")
+
+      connection ->
+        with {:ok, _} <- Connections.delete_connection(connection) do
+          send_resp(conn, :no_content, "")
+        end
+    end
+  end
 end

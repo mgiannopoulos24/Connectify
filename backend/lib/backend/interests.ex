@@ -1,5 +1,5 @@
 defmodule Backend.Interests do
-  @moduledoc """
+  @modledoc """
   The Interests context, repurposed for following users and companies.
   """
   import Ecto.Query, warn: false
@@ -37,13 +37,17 @@ defmodule Backend.Interests do
   Unfollows an entity.
   """
   def unfollow_entity(follower_user_id, followed_id, type) do
-    from(i in Interest,
-      where:
-        i.user_id == ^follower_user_id and
-          i.followed_id == ^followed_id and
-          i.type == ^type
-    )
-    |> Repo.delete_all()
+    # --- FIX: Wrap the result in an :ok tuple ---
+    result =
+      from(i in Interest,
+        where:
+          i.user_id == ^follower_user_id and
+            i.followed_id == ^followed_id and
+            i.type == ^type
+      )
+      |> Repo.delete_all()
+
+    {:ok, result}
   end
 
   @doc """

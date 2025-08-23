@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserCircle, Check, X, Users, UserPlus, Loader2, Send, MessageSquare } from 'lucide-react';
@@ -11,7 +11,8 @@ import {
   sendConnectionRequest,
 } from '@/services/connectionService';
 import { Connection, PendingRequest, UserSummary } from '@/types/connections';
-import { User, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 import { formatDistanceToNow } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -26,21 +27,29 @@ const UserCard = ({
   children?: React.ReactNode;
 }) => (
   <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 flex-grow min-w-0">
       {user.photo_url ? (
-        <img src={user.photo_url} alt="User" className="h-14 w-14 rounded-full object-cover" />
+        <img
+          src={user.photo_url}
+          alt="User"
+          className="h-14 w-14 rounded-full object-cover flex-shrink-0"
+        />
       ) : (
-        <UserCircle className="h-14 w-14 text-gray-400" />
+        <UserCircle className="h-14 w-14 text-gray-400 flex-shrink-0" />
       )}
-      <div>
-        <p className="font-semibold text-lg">
-          {user.name} {user.surname}
-        </p>
-        <p className="text-sm text-gray-600">{user.job_title || 'Professional'}</p>
+      <div className="min-w-0">
+        {/* --- FIX: Link now only wraps the user's name --- */}
+        <Link to={`/profile/${user.id}`} className="underline hover:underline">
+          <p className="font-semibold text-lg text-gray-900 truncate">
+            {user.name} {user.surname}
+          </p>
+        </Link>
+        {/* --- END FIX --- */}
+        <p className="text-sm text-gray-600 truncate">{user.job_title || 'Professional'}</p>
         {date && <p className="text-xs text-gray-400 mt-1">{date}</p>}
       </div>
     </div>
-    <div className="flex gap-2">{children}</div>
+    <div className="flex gap-2 flex-shrink-0 ml-4">{children}</div>
   </div>
 );
 
@@ -168,7 +177,7 @@ const NetworkPage: React.FC = () => {
       <NetworkStats
         connections={connections.length}
         sent={user.sent_connections?.filter((c) => c.status === 'pending').length || 0}
-        following={user.interests?.length || 0}
+        following={user.followed_companies.length + user.followed_users.length}
       />
 
       <Card>
@@ -257,7 +266,7 @@ const NetworkPage: React.FC = () => {
         <CardContent>
           <div className="space-y-4">
             {peopleYouMayKnow.length > 0 ? (
-              peopleYouMayKnow.map((p) => (
+              peopleYouMayKnow.slice(0, 10).map((p) => (
                 <UserCard
                   key={p.id}
                   user={{

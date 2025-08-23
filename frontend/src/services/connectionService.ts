@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Connection, PendingRequest } from '@/types/connections';
-import { User } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 
 export const getConnections = async (): Promise<Connection[]> => {
   const response = await axios.get<{ data: Connection[] }>('/api/connections');
@@ -30,4 +30,8 @@ export const acceptConnectionRequest = async (connectionId: string) => {
 export const declineConnectionRequest = async (connectionId: string) => {
   const response = await axios.put(`/api/connections/${connectionId}/decline`);
   return response.data;
+};
+
+export const removeConnection = async (otherUserId: string): Promise<void> => {
+  await axios.delete(`/api/connections/user/${otherUserId}`);
 };
