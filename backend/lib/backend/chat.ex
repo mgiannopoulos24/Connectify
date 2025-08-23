@@ -1,5 +1,5 @@
 defmodule Backend.Chat do
-  @modledoc """
+  @moduledoc """
   The Chat context.
   """
   import Ecto.Query, warn: false

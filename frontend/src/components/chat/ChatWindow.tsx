@@ -28,6 +28,10 @@ import { EmojiClickData } from 'emoji-picker-react';
 import EmojiPickerPopover from './EmojiPickerPopover';
 import MessageReactions from './MessageReactions';
 import { toast } from 'sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import GiphyPicker from './GiphyPicker';
+import GifIcon from './GifIcon';
+import { IGif } from '@giphy/react-components';
 
 interface ChatWindowProps {
   chatRoomId: string;
@@ -48,6 +52,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [isGiphyPickerOpen, setIsGiphyPickerOpen] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -150,60 +155,78 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     setAttachmentPreview(null);
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((!newMessage.trim() && !attachment) || !channel || !user) return;
+  const sendMessage = async ({
+    text,
+    file,
+    gifUrl,
+  }: {
+    text?: string;
+    file?: File;
+    gifUrl?: string;
+  }) => {
+    if ((!text || !text.trim()) && !file && !gifUrl) return;
 
     setIsSending(true);
-    const textToSend = newMessage.trim();
-    const fileToSend = attachment;
     const tempId = `temp-${Date.now()}`;
 
+    // Create optimistic message
     const optimisticMessage: Message = {
       id: tempId,
-      content: textToSend || null,
-      image_url: fileToSend?.type.startsWith('image/')
-        ? URL.createObjectURL(fileToSend)
-        : undefined,
-      file_url: fileToSend && !fileToSend.type.startsWith('image/') ? '#' : undefined,
-      file_name: fileToSend && !fileToSend.type.startsWith('image/') ? fileToSend.name : undefined,
+      content: text || null,
+      image_url: file?.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      file_url: file && !file.type.startsWith('image/') ? '#' : undefined,
+      file_name: file && !file.type.startsWith('image/') ? file.name : undefined,
+      gif_url: gifUrl,
       inserted_at: new Date().toISOString(),
-      user: { id: user.id, name: user.name, surname: user.surname, photo_url: user.photo_url },
+      user: {
+        id: user!.id,
+        name: user!.name,
+        surname: user!.surname,
+        photo_url: user!.photo_url,
+      },
       reactions: [],
     };
     setMessages((prev) => [...prev, optimisticMessage]);
 
-    setNewMessage('');
-    removeAttachment();
+    // Clear inputs
+    if (text) setNewMessage('');
+    if (file) removeAttachment();
 
     try {
-      const payload: {
-        body: string | null;
-        image_url?: string;
-        file_url?: string;
-        file_name?: string;
-        temp_id: string;
-      } = { body: textToSend || null, temp_id: tempId };
+      const payload: any = { temp_id: tempId };
+      if (text) payload.body = text;
+      if (gifUrl) payload.gif_url = gifUrl;
 
-      if (fileToSend) {
-        if (fileToSend.type.startsWith('image/')) {
-          payload.image_url = await uploadChatImage(fileToSend);
+      if (file) {
+        if (file.type.startsWith('image/')) {
+          payload.image_url = await uploadChatImage(file);
         } else {
-          const { file_url, file_name } = await uploadChatFile(fileToSend);
+          const { file_url, file_name } = await uploadChatFile(file);
           payload.file_url = file_url;
           payload.file_name = file_name;
         }
       }
-
-      channel.push('new_msg', payload);
+      channel!.push('new_msg', payload);
     } catch (error) {
-      console.error('Failed to upload attachment or send message:', error);
+      console.error('Failed to send message:', error);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setNewMessage(textToSend);
+      if (text) setNewMessage(text); // Restore text if sending failed
       toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage({ text: newMessage, file: attachment });
+  };
+
+  const handleGifSelect = (gif: IGif, e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault(); // This is the key change to prevent redirection
+    const gifUrl = gif.images.fixed_height.url;
+    sendMessage({ gifUrl });
+    setIsGiphyPickerOpen(false); // Close the picker after selection
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,6 +314,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
               )}
 
               {msg.post && <PostPreviewCard post={msg.post} isSender={msg.user.id === user?.id} />}
+              {msg.gif_url && (
+                <img
+                  src={msg.gif_url}
+                  alt="GIF from Giphy"
+                  className="rounded-lg max-w-full h-auto cursor-pointer"
+                  style={{ maxWidth: '250px' }}
+                />
+              )}
               {msg.image_url && (
                 <Dialog>
                   <DialogTrigger asChild>
@@ -337,7 +368,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
               {msg.content && (
                 <p
                   className={`text-sm p-1 ${
-                    msg.image_url || msg.post || msg.file_url ? 'mt-2' : ''
+                    msg.image_url || msg.post || msg.file_url || msg.gif_url ? 'mt-2' : ''
                   }`}
                 >
                   {msg.content}
@@ -415,6 +446,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
           >
             <Paperclip className="w-5 h-5" />
           </Button>
+          <Popover open={isGiphyPickerOpen} onOpenChange={setIsGiphyPickerOpen}>
+            <PopoverTrigger asChild>
+              <Button type="button" size="icon" variant="ghost" disabled={isSending}>
+                <GifIcon className="w-5 h-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 border-none" side="top" align="start">
+              <GiphyPicker onGifClick={handleGifSelect} />
+            </PopoverContent>
+          </Popover>
           <Input
             type="text"
             placeholder="Type a message or paste a file..."

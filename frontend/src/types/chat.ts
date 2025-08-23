@@ -22,6 +22,7 @@ export interface Message {
   image_url?: string; // The optional URL for the message's image
   file_url?: string;
   file_name?: string;
+  gif_url?: string;
   inserted_at: string;
   user: {
     id: string;

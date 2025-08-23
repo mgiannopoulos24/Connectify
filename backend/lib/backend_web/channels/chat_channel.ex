@@ -41,7 +41,8 @@ defmodule BackendWeb.ChatChannel do
       "content" => payload["body"],
       "image_url" => payload["image_url"],
       "file_url" => payload["file_url"],
-      "file_name" => payload["file_name"]
+      "file_name" => payload["file_name"],
+      "gif_url" => payload["gif_url"]
     }
 
     case Chat.create_message(chat_room, user, attrs) do

@@ -13,6 +13,7 @@ defmodule Backend.Chat.Message do
     field :image_url, :string
     field :file_url, :string
     field :file_name, :string
+    field :gif_url, :string
     belongs_to :user, User
     belongs_to :chat_room, ChatRoom
     belongs_to :post, Post
@@ -24,7 +25,16 @@ defmodule Backend.Chat.Message do
   @doc false
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:content, :image_url, :user_id, :chat_room_id, :post_id, :file_url, :file_name])
+    |> cast(attrs, [
+      :content,
+      :image_url,
+      :user_id,
+      :chat_room_id,
+      :post_id,
+      :file_url,
+      :file_name,
+      :gif_url
+    ])
     |> validate_required([:user_id, :chat_room_id])
     |> validate_message_has_content()
   end
@@ -34,9 +44,15 @@ defmodule Backend.Chat.Message do
     image_url = get_field(changeset, :image_url)
     post_id = get_field(changeset, :post_id)
     file_url = get_field(changeset, :file_url)
+    gif_url = get_field(changeset, :gif_url)
 
-    if (is_nil(content) || content == "") && is_nil(image_url) && is_nil(post_id) && is_nil(file_url) do
-      add_error(changeset, :base, "Message must have content, an image, a shared post, or a file.")
+    if (is_nil(content) || content == "") && is_nil(image_url) && is_nil(post_id) &&
+         is_nil(file_url) && is_nil(gif_url) do
+      add_error(
+        changeset,
+        :base,
+        "Message must have content, an image, a shared post, a file, or a GIF."
+      )
     else
       changeset
     end
