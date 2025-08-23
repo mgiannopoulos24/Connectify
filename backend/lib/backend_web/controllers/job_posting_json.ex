@@ -28,7 +28,9 @@ defmodule BackendWeb.JobPostingJSON do
         else
           []
         end,
-      application_status: job_posting.application_status
+      application_status: job_posting.application_status,
+      # --- NEW FIELD IN JSON RESPONSE ---
+      relevant_connections: job_posting.relevant_connections
     }
   end
 

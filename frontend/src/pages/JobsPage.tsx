@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getJobFeed } from '@/services/jobService';
-// import { getRecommendedJobs } from '@/services/recommendationService'; // Import recommendation service
+import { getRecommendedJobs } from '@/services/recommendationService'; // Import recommendation service
 import { JobPosting } from '@/types/job';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Star } from 'lucide-react';
@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'; // Import useAuth to access us
 
 const JobsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
-  // const [recommendedJobs, setRecommendedJobs] = useState<JobPosting[]>([]);
+  const [recommendedJobs, setRecommendedJobs] = useState<JobPosting[]>([]);
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +18,17 @@ const JobsPage: React.FC = () => {
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        // const [feedData, recommendedData] = await Promise.all([
-        //   getJobFeed(),
-        //   getRecommendedJobs(),
-        // ]);
-        const feedData = await getJobFeed();
-        setJobs(feedData);
-        // setRecommendedJobs(recommendedData);
+        // --- MODIFIED: Fetch both feeds in parallel ---
+        const [feedData, recommendedData] = await Promise.all([
+          getJobFeed(),
+          getRecommendedJobs(),
+        ]);
+        
+        // --- MODIFIED: Filter out recommended jobs from the main feed to avoid duplicates ---
+        const recommendedIds = new Set(recommendedData.map(j => j.id));
+        setJobs(feedData.filter(job => !recommendedIds.has(job.id)));
+        setRecommendedJobs(recommendedData);
+
       } catch (err) {
         setError('Failed to load job listings. Please try again later.');
         console.error(err);
@@ -35,14 +39,16 @@ const JobsPage: React.FC = () => {
     fetchJobs();
   }, []);
 
-  // const calculateMatchingSkills = (job: JobPosting): number => {
-  //   if (!currentUser?.skills) return 0;
-  //   const userSkillIds = new Set(currentUser.skills.map((s) => s.id));
-  //   return job.skills.filter((s) => userSkillIds.has(s.id)).length;
-  // };
+  // --- NEW: Function to calculate matching skills ---
+  const calculateMatchingSkills = (job: JobPosting): number => {
+    if (!currentUser?.skills) return 0;
+    const userSkillIds = new Set(currentUser.skills.map((s) => s.id));
+    return job.skills.filter((s) => userSkillIds.has(s.id)).length;
+  };
 
-  const renderJobList = (jobList: JobPosting[], isRecommended = false) => {
-    if (jobList.length === 0 && !isRecommended) {
+  const renderJobList = (jobList: JobPosting[], isRecommendedSection = false) => {
+    if (jobList.length === 0) {
+      if(isRecommendedSection) return null; // Don't show a message if there are no recommendations
       return <div className="text-center text-gray-500 py-10">No job listings found.</div>;
     }
 
@@ -52,7 +58,8 @@ const JobsPage: React.FC = () => {
           <JobCard
             key={job.id}
             job={job}
-            // matchingSkillsCount={isRecommended ? calculateMatchingSkills(job) : undefined}
+            // --- MODIFIED: Pass skill count to the card ---
+            matchingSkillsCount={calculateMatchingSkills(job)}
           />
         ))}
       </div>
@@ -73,17 +80,18 @@ const JobsPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* {recommendedJobs.length > 0 && (
-        <Card>
+      {/* --- MODIFIED: Re-enabled the recommendations section --- */}
+      {recommendedJobs.length > 0 && (
+        <Card className="border-2 border-yellow-300 bg-yellow-50">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
+            <CardTitle className="text-2xl font-bold flex items-center gap-2 text-yellow-800">
               <Star className="text-yellow-500" />
               Recommended For You
             </CardTitle>
           </CardHeader>
           <CardContent>{renderJobList(recommendedJobs, true)}</CardContent>
         </Card>
-      )} */}
+      )}
 
       <Card>
         <CardHeader>

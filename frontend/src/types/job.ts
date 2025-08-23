@@ -30,4 +30,6 @@ export interface JobPosting {
   skills: Skill[];
   applications?: JobApplication[]; // Optional, for when viewing applications for a posting
   application_status?: 'submitted' | 'reviewed' | 'accepted' | 'rejected' | null;
+  // --- NEW FIELD TO HOLD RELEVANT CONNECTIONS ---
+  relevant_connections: UserSummary[];
 }

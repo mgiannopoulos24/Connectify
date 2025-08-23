@@ -26,6 +26,8 @@ defmodule Backend.Jobs.JobPosting do
     field :location, :string
     field :job_type, :string
     field :application_status, :string, virtual: true
+    # --- NEW VIRTUAL FIELD ---
+    field :relevant_connections, {:array, :map}, virtual: true, default: []
 
     belongs_to :user, User
     belongs_to :company, Company

@@ -10,7 +10,17 @@ defmodule Backend.Jobs do
   alias Backend.Skills.Skill
   alias Backend.Companies
   alias Backend.Notifications
+  alias Backend.Recommendations
+  alias Backend.Connections
+  alias Backend.Careers.JobExperience
   alias Ecto.Multi
+
+  defp get_application_for_user_and_job(user_id, job_posting_id) do
+    from(ja in JobApplication,
+      where: ja.user_id == ^user_id and ja.job_posting_id == ^job_posting_id
+    )
+    |> Repo.one()
+  end
 
   def get_job_posting!(id) do
     JobPosting
@@ -37,6 +47,12 @@ defmodule Backend.Jobs do
 
     user_skill_ids = Enum.map(user.skills, & &1.id)
 
+    # Get collaborative filtering recommendations
+    recommended_post_ids =
+      Recommendations.get_job_recommendations(user)
+      |> Enum.map(& &1.id)
+      |> MapSet.new()
+
     base_query =
       from(jp in JobPosting,
         order_by: [desc: :inserted_at],
@@ -45,19 +61,64 @@ defmodule Backend.Jobs do
 
     all_postings = Repo.all(base_query)
 
-    # Map the application status to each posting
-    all_postings_with_status =
+    # Find and attach relevant connections
+    user_connections = Connections.list_user_connections(user.id)
+
+    connection_ids =
+      user_connections
+      |> Enum.map(fn conn ->
+        if conn.user_id == user.id, do: conn.connected_user_id, else: conn.user_id
+      end)
+      |> MapSet.new()
+
+    connections_map =
+      user_connections
+      |> Enum.map(fn conn ->
+        other_user = if conn.user_id == user.id, do: conn.connected_user, else: conn.user
+        {other_user.id, other_user}
+      end)
+      |> Map.new()
+
+    company_ids = Enum.map(all_postings, & &1.company_id)
+
+    employees_by_company =
+      from(je in JobExperience, where: je.company_id in ^company_ids)
+      |> select([je], {je.company_id, je.user_id})
+      |> Repo.all()
+      |> Enum.group_by(fn {cid, _uid} -> cid end, fn {_cid, uid} -> uid end)
+      |> Map.new(fn {cid, uids} -> {cid, MapSet.new(uids)} end)
+
+    all_postings_with_details =
       Enum.map(all_postings, fn post ->
         status = Map.get(user_applications, post.id)
-        %{post | application_status: status}
+
+        company_employees = Map.get(employees_by_company, post.company_id, MapSet.new())
+        relevant_connection_ids = MapSet.intersection(connection_ids, company_employees)
+
+        relevant_connections_data =
+          Enum.map(relevant_connection_ids, fn conn_id ->
+            conn_user = connections_map[conn_id]
+
+            %{
+              id: conn_user.id,
+              name: conn_user.name,
+              surname: conn_user.surname,
+              photo_url: conn_user.photo_url
+            }
+          end)
+
+        post
+        |> Map.put(:application_status, status)
+        |> Map.put(:relevant_connections, relevant_connections_data)
       end)
 
-    # Sort by skill relevance and then by date
-    Enum.sort_by(all_postings_with_status, fn post ->
+    # Sort by recommendation, then skill relevance, and then by date
+    Enum.sort_by(all_postings_with_details, fn post ->
+      recommendation_score = if MapSet.member?(recommended_post_ids, post.id), do: -1, else: 0
       post_skill_ids = MapSet.new(Enum.map(post.skills, & &1.id))
       user_skill_ids_set = MapSet.new(user_skill_ids)
-      score = -(MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size())
-      {score, -DateTime.to_unix(post.inserted_at)}
+      skill_score = -(MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size())
+      {recommendation_score, skill_score, -DateTime.to_unix(post.inserted_at)}
     end)
   end
 
@@ -153,29 +214,58 @@ defmodule Backend.Jobs do
     Repo.delete(job_posting)
   end
 
+  # --- MODIFIED: apply_for_job now correctly handles re-application ---
   def apply_for_job(user, job_posting, attrs \\ %{}) do
     if user.id == job_posting.user_id do
       {:error, :cannot_apply_to_own_job}
     else
-      params =
+      # We use the full attrs map, not the 'params' map from the previous version.
+      # This ensures any new cover_letter is passed through.
+      new_application_attrs =
         attrs
         |> Map.put("user_id", user.id)
         |> Map.put("job_posting_id", job_posting.id)
 
-      with {:ok, application} <-
-             %JobApplication{}
-             |> JobApplication.changeset(params)
-             |> Repo.insert() do
-        # Notification logic remains, as this block is only hit if user.id != job_posting.user_id
-        Notifications.create_notification(%{
-          user_id: job_posting.user_id,
-          notifier_id: user.id,
-          type: "new_application",
-          resource_id: job_posting.id,
-          resource_type: "job_posting"
-        })
+      case get_application_for_user_and_job(user.id, job_posting.id) do
+        # Case 1: No previous application exists. Create a new one.
+        nil ->
+          with {:ok, application} <-
+                 %JobApplication{}
+                 |> JobApplication.changeset(new_application_attrs)
+                 |> Repo.insert() do
+            Notifications.create_notification(%{
+              user_id: job_posting.user_id,
+              notifier_id: user.id,
+              type: "new_application",
+              resource_id: job_posting.id,
+              resource_type: "job_posting"
+            })
+            {:ok, application}
+          end
 
-        {:ok, application}
+        # Case 2: An application exists and was rejected. Allow re-application by updating it.
+        %JobApplication{status: "rejected"} = existing_application ->
+          # Reset status to "submitted" and update the cover letter if provided.
+          update_attrs = Map.put(attrs, "status", "submitted")
+
+          with {:ok, updated_application} <-
+                 existing_application
+                 |> JobApplication.changeset(update_attrs)
+                 |> Repo.update() do
+            # Send a notification as if it's a new application
+            Notifications.create_notification(%{
+              user_id: job_posting.user_id,
+              notifier_id: user.id,
+              type: "new_application",
+              resource_id: job_posting.id,
+              resource_type: "job_posting"
+            })
+            {:ok, updated_application}
+          end
+
+        # Case 3: An application exists and is pending or accepted. Deny.
+        _existing_application ->
+          {:error, :already_applied}
       end
     end
   end
@@ -187,9 +277,6 @@ defmodule Backend.Jobs do
     |> Repo.all()
   end
 
-  @doc """
-  Returns a list of all job applications for the admin dashboard.
-  """
   def list_all_job_applications do
     JobApplication
     |> order_by(desc: :inserted_at)
@@ -197,31 +284,20 @@ defmodule Backend.Jobs do
     |> Repo.all()
   end
 
-  @doc """
-  Gets a single job application.
-  """
   def get_job_application!(id) do
     Repo.get!(JobApplication, id)
   end
 
-  @doc """
-  Reviews a job application, updating its status and notifying the user.
-  """
   def review_application(%JobApplication{} = application, status) do
-    # Preload required data for notifications
     application = Repo.preload(application, [:user, job_posting: [:user]])
-
     notification_type =
       case status do
         "accepted" -> "application_accepted"
         "rejected" -> "application_rejected"
-        # We don't send notifications for other statuses like "reviewed"
         _ -> nil
       end
-
     with {:ok, updated_app} <-
            application |> JobApplication.changeset(%{status: status}) |> Repo.update() do
-      # Only send a notification if the status is one that requires it
       if notification_type do
         Notifications.create_notification(%{
           user_id: application.user_id,
@@ -231,7 +307,6 @@ defmodule Backend.Jobs do
           resource_type: "job_posting"
         })
       end
-
       {:ok, updated_app}
     end
   end

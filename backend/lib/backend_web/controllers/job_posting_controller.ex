@@ -75,6 +75,15 @@ defmodule BackendWeb.JobPostingController do
         |> put_status(:forbidden)
         |> json(%{errors: %{detail: "You cannot apply to your own job posting."}})
 
+      # --- THIS IS THE NEW ERROR HANDLING ---
+      {:error, :already_applied} ->
+        conn
+        |> put_status(:conflict)
+        |> json(%{
+          errors: %{detail: "You have an active application for this job already."}
+        })
+      # --- END NEW ERROR HANDLING ---
+
       {:error,
        %Ecto.Changeset{errors: [user_job_posting_unique_application_index: _]} = changeset} ->
         conn
@@ -82,9 +91,6 @@ defmodule BackendWeb.JobPostingController do
         |> put_view(json: BackendWeb.ChangesetJSON)
         |> render("error", changeset: changeset)
 
-      # --- THIS IS THE FIX ---
-      # This block now correctly handles any other validation error
-      # by explicitly rendering it through the ChangesetJSON view.
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)

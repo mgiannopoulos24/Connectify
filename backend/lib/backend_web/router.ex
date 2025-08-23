@@ -121,8 +121,7 @@ defmodule BackendWeb.Router do
     put "/job_applications/:id/review", JobApplicationController, :review
 
     # Recommendations
-    # get "/recommendations/connections", RecommendationController, :connections
-    # get "/recommendations/jobs", RecommendationController, :jobs
+    get "/recommendations/jobs", RecommendationController, :jobs
 
     # Admin routes
     scope "/admin", Admin, as: :admin do
