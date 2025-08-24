@@ -90,6 +90,7 @@ defmodule Backend.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind backend", "esbuild backend"],
       "assets.deploy": [
+        "phx.colocated.gen.hooks",
         "tailwind backend --minify",
         "esbuild backend --minify",
         "phx.digest"
