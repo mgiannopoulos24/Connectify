@@ -34,6 +34,7 @@ The project is composed of a backend REST API built with the **Elixir/Phoenix** 
 - **Database**: PostgreSQL
 - **Authentication**: Joken for JWT authentication
 - **Hashing**: Argon2
+- **Real-time Communication**: Phoenix Channels 
 
 ### Frontend:
 - **Framework**: React
@@ -41,6 +42,8 @@ The project is composed of a backend REST API built with the **Elixir/Phoenix** 
 - **Routing**: React Router
 - **Styling**: Tailwind CSS
 - **UI Components**: Shadcn UI
+- **GIPHY Integration**: Giphy API for GIF support 
+- **HTTP Client**: Axios
 
 ## Project Setup
 ### Prerequisites
@@ -57,6 +60,7 @@ cd backend
 ```bash
 # Example for local development
 JWT_SECRET_KEY=your_super_secret_key_generated_with_mix_phx.gen.secret_64
+DATABASE_URL=ecto://postgres:postgres@localhost:5432/backend_dev
 ```
 3. Install dependencies:
 ```bash
@@ -99,3 +103,23 @@ npm run dev
 ```
 
 The frontend application will be running at `https://localhost:5173` (or another available port). It is pre-configured to proxy API requests to the backend.
+
+## Contributing
+
+Contributions are welcome. To contribute, follow these steps:
+
+- Report issues or request features by opening an issue with a clear title, steps to reproduce, and relevant logs or screenshots.
+- Fork the repository and create a descriptive branch:
+```bash
+git checkout -b feat/short-description
+```
+or 
+```bash
+git checkout -b fix/short-description
+```
+- Keep changes focused and add tests for new behavior where appropriate.
+- Follow project formatting and linting:
+  - Backend: run mix format and existing test suite (mix test).
+  - Frontend: run eslint/prettier and the frontend test commands.
+- Open a pull request with a description of the change, related issue (if any), and testing steps. Maintainers will review and request changes if needed.
+- Ensure CI passes before merge.
