@@ -1,91 +1,91 @@
-name: Create Release
+# name: Create Release
 
-on:
-  push:
-    tags:
-      - 'v*' # Trigger on tags like v1.0, v1.2.3, etc.
+# on:
+#   push:
+#     tags:
+#       - 'v*' # Trigger on tags like v1.0, v1.2.3, etc.
 
-permissions:
-  contents: write # Needed to create the GitHub Release
+# permissions:
+#   contents: write # Needed to create the GitHub Release
 
-# Environment variables available to all jobs and steps
-env:
-  MIX_ENV: prod
-  SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
-  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+# # Environment variables available to all jobs and steps
+# env:
+#   MIX_ENV: prod
+#   SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+#   JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
-jobs:
-  build-and-release:
-    name: Build and Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+# jobs:
+#   build-and-release:
+#     name: Build and Release
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Set up Elixir
-        uses: erlef/setup-elixir@v1
-        with:
-          elixir-version: '1.15'
-          otp-version: '26.0'   
+#       - name: Set up Elixir
+#         uses: erlef/setup-elixir@v1
+#         with:
+#           elixir-version: '1.15'
+#           otp-version: '26.0'   
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json' 
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+#           cache-dependency-path: 'frontend/package-lock.json' 
 
-      # --- 1. Build Frontend ---
-      - name: Install Frontend Dependencies and Build
-        working-directory: ./frontend
-        run: |
-          npm install
-          npm run build
+#       # --- 1. Build Frontend ---
+#       - name: Install Frontend Dependencies and Build
+#         working-directory: ./frontend
+#         run: |
+#           npm install
+#           npm run build
 
-      # --- 2. Build Backend & Release ---
-      - name: Install Backend Dependencies
-        working-directory: ./backend
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-          mix deps.get --only prod
+#       # --- 2. Build Backend & Release ---
+#       - name: Install Backend Dependencies
+#         working-directory: ./backend
+#         run: |
+#           mix local.hex --force
+#           mix local.rebar --force
+#           mix deps.get --only prod
 
-      - name: Prepare Assets for Release
-        working-directory: ./backend
-        run: |
-          # Clear default assets and copy the built frontend into the static directory
-          # This makes the frontend part of the Phoenix application
-          rm -rf priv/static/assets
-          mkdir -p priv/static/assets
-          cp -r ../frontend/dist/* priv/static/assets/
+#       - name: Prepare Assets for Release
+#         working-directory: ./backend
+#         run: |
+#           # Clear default assets and copy the built frontend into the static directory
+#           # This makes the frontend part of the Phoenix application
+#           rm -rf priv/static/assets
+#           mkdir -p priv/static/assets
+#           cp -r ../frontend/dist/* priv/static/assets/
 
-          # Run Phoenix's asset deployment task. This will create a digest manifest
-          # for cache busting, including all the new frontend files.
-          mix assets.deploy
+#           # Run Phoenix's asset deployment task. This will create a digest manifest
+#           # for cache busting, including all the new frontend files.
+#           mix assets.deploy
 
-      - name: Create Phoenix Release
-        working-directory: ./backend
-        run: mix release
+#       - name: Create Phoenix Release
+#         working-directory: ./backend
+#         run: mix release
 
-      # --- 3. Package and Upload ---
-      - name: Package Release Artifact
-        run: |
-          # Get the release name from the tag (e.g., v1.0.0)
-          RELEASE_VERSION="${{ github.ref_name }}"
-          # The release is built in this directory
-          RELEASE_DIR="backend/_build/prod/rel/backend"
-          # Create a compressed tarball
-          tar -czf "connectify-${RELEASE_VERSION}.tar.gz" -C "${RELEASE_DIR}" .
-          # Set the path and name for the next step
-          echo "RELEASE_PATH=connectify-${RELEASE_VERSION}.tar.gz" >> $GITHUB_ENV
-          echo "RELEASE_NAME=Connectify ${RELEASE_VERSION}" >> $GITHUB_ENV
+#       # --- 3. Package and Upload ---
+#       - name: Package Release Artifact
+#         run: |
+#           # Get the release name from the tag (e.g., v1.0.0)
+#           RELEASE_VERSION="${{ github.ref_name }}"
+#           # The release is built in this directory
+#           RELEASE_DIR="backend/_build/prod/rel/backend"
+#           # Create a compressed tarball
+#           tar -czf "connectify-${RELEASE_VERSION}.tar.gz" -C "${RELEASE_DIR}" .
+#           # Set the path and name for the next step
+#           echo "RELEASE_PATH=connectify-${RELEASE_VERSION}.tar.gz" >> $GITHUB_ENV
+#           echo "RELEASE_NAME=Connectify ${RELEASE_VERSION}" >> $GITHUB_ENV
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: ${{ env.RELEASE_NAME }}
-          files: ${{ env.RELEASE_PATH }}
-          generate_release_notes: true
-          # Mark as pre-release if tag contains -rc, -beta, etc.
-          prerelease: contains(github.ref, '-rc') || contains(github.ref, '-beta')
+#       - name: Create GitHub Release
+#         id: create_release
+#         uses: softprops/action-gh-release@v1
+#         with:
+#           name: ${{ env.RELEASE_NAME }}
+#           files: ${{ env.RELEASE_PATH }}
+#           generate_release_notes: true
+#           # Mark as pre-release if tag contains -rc, -beta, etc.
+#           prerelease: contains(github.ref, '-rc') || contains(github.ref, '-beta')
