@@ -31,9 +31,22 @@ defmodule SeedHelper do
     "Network Administrator",
     "Business Analyst"
   ]
-  @school_names ["University of Example", "Tech Institute", "State College", "City University", "Design School"]
+  @school_names [
+    "University of Example",
+    "Tech Institute",
+    "State College",
+    "City University",
+    "Design School"
+  ]
   @degrees ["Bachelor of Science", "Master of Arts", "PhD", "Associate Degree"]
-  @fields_of_study ["Computer Science", "Marketing", "Graphic Design", "Data Analytics", "Business Administration", "Electrical Engineering"]
+  @fields_of_study [
+    "Computer Science",
+    "Marketing",
+    "Graphic Design",
+    "Data Analytics",
+    "Business Administration",
+    "Electrical Engineering"
+  ]
 
   def random_user_data(index) do
     first_name = Enum.at(@first_names, rem(index, length(@first_names)))
@@ -49,7 +62,8 @@ defmodule SeedHelper do
       onboarding_completed: true,
       email_confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
       status: "offline",
-      location: Enum.random(["New York, NY", "London, UK", "Berlin, DE", "Tokyo, JP", "Sydney, AU"])
+      location:
+        Enum.random(["New York, NY", "London, UK", "Berlin, DE", "Tokyo, JP", "Sydney, AU"])
     }
   end
 
@@ -81,9 +95,26 @@ IO.puts("Creating master skills and companies...")
 
 master_skills =
   [
-    "Elixir", "Phoenix", "LiveView", "React", "PostgreSQL", "Docker", "JavaScript",
-    "HTML", "CSS", "Node.js", "TypeScript", "Python", "Data Analysis", "Project Management", "Agile",
-    "Go", "Rust", "AWS", "GCP", "Kubernetes"
+    "Elixir",
+    "Phoenix",
+    "LiveView",
+    "React",
+    "PostgreSQL",
+    "Docker",
+    "JavaScript",
+    "HTML",
+    "CSS",
+    "Node.js",
+    "TypeScript",
+    "Python",
+    "Data Analysis",
+    "Project Management",
+    "Agile",
+    "Go",
+    "Rust",
+    "AWS",
+    "GCP",
+    "Kubernetes"
   ]
   |> Enum.map(fn name ->
     {:ok, skill} = Skills.create_master_skill(%{"name" => name})
@@ -92,9 +123,21 @@ master_skills =
 
 companies =
   [
-    "Tech Solutions Inc.", "Innovate Corp", "Data Systems LLC", "Cloud Services Co.",
-    "Web Wizards LLC", "QuantumLeap AI", "Stellar Cybernetics", "GreenLeaf Tech", "Apex Digital", "Nexus Innovations",
-    "Momentum Dynamics", "Blue Ocean Strategies", "Orion Software", "Helios Energy", "Vertex Ventures"
+    "Tech Solutions Inc.",
+    "Innovate Corp",
+    "Data Systems LLC",
+    "Cloud Services Co.",
+    "Web Wizards LLC",
+    "QuantumLeap AI",
+    "Stellar Cybernetics",
+    "GreenLeaf Tech",
+    "Apex Digital",
+    "Nexus Innovations",
+    "Momentum Dynamics",
+    "Blue Ocean Strategies",
+    "Orion Software",
+    "Helios Energy",
+    "Vertex Ventures"
   ]
   |> Enum.map(fn name ->
     {:ok, company} = Companies.get_or_create_company_by_name(name)
@@ -141,10 +184,12 @@ john_ripper =
         "employment_type" => "Full-time",
         "company_id" => Enum.random(companies).id
       })
+
     # Add Education
     Careers.create_education(Map.put(SeedHelper.random_education_data(), "user_id", user.id))
     # Add Skills
     johns_skills = ["Agile", "LiveView", "Project Management", "TypeScript", "Elixir", "Phoenix"]
+
     Enum.each(johns_skills, fn skill_name ->
       Skills.add_skill_for_user(user, %{"name" => skill_name})
     end)
@@ -152,7 +197,10 @@ john_ripper =
     user
   else
     {:error, changeset} ->
-      IO.puts("Could not create professional user John Ripper. Errors: #{inspect(changeset.errors)}")
+      IO.puts(
+        "Could not create professional user John Ripper. Errors: #{inspect(changeset.errors)}"
+      )
+
       nil
   end
 
@@ -169,6 +217,7 @@ random_users =
           "employment_type" => Enum.random(["Full-time", "Contract"]),
           "company_id" => Enum.random(companies).id
         })
+
       # Add Education
       Careers.create_education(Map.put(SeedHelper.random_education_data(), "user_id", user.id))
       # Add Skills
@@ -192,6 +241,7 @@ IO.puts("#{length(users) + 1} total professional users now exist.")
 
 # --- 3. Create Job Postings ---
 IO.puts("Creating 40 job postings from various users...")
+
 job_postings =
   for _ <- 1..40 do
     author = Enum.random(users)
@@ -200,7 +250,8 @@ job_postings =
 
     job_attrs = %{
       "title" => "#{SeedHelper.random_job_title()}",
-      "description" => "We are looking for a talented and motivated individual to join our dynamic team. This role involves collaborating with cross-functional teams to deliver high-quality products.",
+      "description" =>
+        "We are looking for a talented and motivated individual to join our dynamic team. This role involves collaborating with cross-functional teams to deliver high-quality products.",
       "location" => Enum.random(["Remote", "New York, NY", "San Francisco, CA", "London, UK"]),
       "job_type" => Enum.random(["Full-time", "Contract", "Part-time"]),
       "company_id" => company.id,
@@ -210,15 +261,18 @@ job_postings =
     {:ok, job_posting} = Jobs.create_job_posting(author, job_attrs)
     job_posting
   end
+
 IO.puts("#{length(job_postings)} job postings created.")
 
 # --- 4. Establish Connections & Follows (Interests) ---
 IO.puts("Creating a network of connections and follows...")
+
 Enum.each(users, fn user ->
   others = Enum.reject(users, &(&1.id == user.id))
-  
+
   # Create Connections
   connections_to_make = Enum.take_random(others, Enum.random(5..10))
+
   Enum.each(connections_to_make, fn other_user ->
     existing_conn =
       from(c in Backend.Connections.Connection,
@@ -237,32 +291,36 @@ Enum.each(users, fn user ->
 
   # Follow Users
   users_to_follow = Enum.take_random(others, Enum.random(4..8))
+
   Enum.each(users_to_follow, fn user_to_follow ->
     Interests.follow_entity(user.id, user_to_follow.id, "user")
   end)
 
   # Follow Companies
   companies_to_follow = Enum.take_random(companies, Enum.random(3..6))
+
   Enum.each(companies_to_follow, fn company_to_follow ->
     Interests.follow_entity(user.id, company_to_follow.id, "company")
   end)
-
 end)
-IO.puts("Connections and follows established.")
 
+IO.puts("Connections and follows established.")
 
 # --- 5. Create Posts ---
 IO.puts("Creating 100 random posts for various users...")
+
 all_posts =
   for _ <- 1..100 do
     user = Enum.random(users)
-    content = Enum.random([
-      "Excited to share an update on my latest project! #tech #innovation",
-      "Thinking about the future of AI and its impact on #{SeedHelper.random_job_title()}s.",
-      "Just finished a great book on leadership. Highly recommend it to everyone in my network.",
-      "Looking for recommendations for a good PostgreSQL client. What does everyone use?",
-      "Happy to have connected with so many inspiring people this week. #networking"
-    ])
+
+    content =
+      Enum.random([
+        "Excited to share an update on my latest project! #tech #innovation",
+        "Thinking about the future of AI and its impact on #{SeedHelper.random_job_title()}s.",
+        "Just finished a great book on leadership. Highly recommend it to everyone in my network.",
+        "Looking for recommendations for a good PostgreSQL client. What does everyone use?",
+        "Happy to have connected with so many inspiring people this week. #networking"
+      ])
 
     {:ok, post} = Posts.create_post(user, %{"content" => content})
     post
@@ -295,16 +353,20 @@ Enum.each(users, fn user ->
         # 4. 15% chance for someone else to react to that comment
         if :rand.uniform() < 0.15 do
           other_user = Enum.random(users)
-          if other_user.id != user.id, do: Posts.react_to_comment(other_user, comment, Enum.random(reaction_types))
+
+          if other_user.id != user.id,
+            do: Posts.react_to_comment(other_user, comment, Enum.random(reaction_types))
         end
       end
     end
   end)
 end)
+
 IO.puts("Post interactions simulated.")
 
 # --- 7. Create Job Applications (for Recommender) ---
 IO.puts("Simulating job applications to train recommender...")
+
 Enum.each(users, fn user ->
   applicable_jobs = Enum.reject(job_postings, &(&1.user_id == user.id))
   jobs_to_apply_for = Enum.take_random(applicable_jobs, Enum.random(5..12))
@@ -314,32 +376,43 @@ Enum.each(users, fn user ->
     Jobs.apply_for_job(user, job)
   end)
 end)
+
 IO.puts("Simulated job applications.")
 
 # --- 8. Create Chat Rooms and Messages ---
 IO.puts("Creating chat rooms and simulating conversations...")
 # Take a subset of users to create chats for, to avoid too many messages
 chatty_users = Enum.take_random(users, 25)
+
 Enum.each(chatty_users, fn user ->
   # Find 2-4 accepted connections for this user
   connections = Connections.list_user_connections(user.id)
-  
+
   connections_to_message = Enum.take_random(connections, Enum.random(2..4))
 
   Enum.each(connections_to_message, fn conn ->
     other_user_id = if conn.user_id == user.id, do: conn.connected_user_id, else: conn.user_id
-    
+
     with {:ok, chat_room} <- Chat.get_or_create_chat_room(user.id, other_user_id) do
       # Create 5-10 messages in the room
       for i <- 1..Enum.random(5..10) do
         sender = if rem(i, 2) == 0, do: user, else: %{id: other_user_id}
-        content = Enum.random(["Hey, how's it going?", "Good, thanks! How about you?", "Did you see that post about Elixir?", "Yeah, it was really interesting.", "We should catch up sometime."])
+
+        content =
+          Enum.random([
+            "Hey, how's it going?",
+            "Good, thanks! How about you?",
+            "Did you see that post about Elixir?",
+            "Yeah, it was really interesting.",
+            "We should catch up sometime."
+          ])
+
         Chat.create_message(chat_room, sender, %{"content" => content})
       end
     end
   end)
 end)
-IO.puts("Chat simulations complete.")
 
+IO.puts("Chat simulations complete.")
 
 IO.puts("Database seeding finished successfully!")

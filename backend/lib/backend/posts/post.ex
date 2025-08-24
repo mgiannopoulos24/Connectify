@@ -11,14 +11,12 @@ defmodule Backend.Posts.Post do
     field :image_url, :string
     field :link_url, :string
     field :video_url, :string
-    # --- NEW: Virtual fields for timeline scoring ---
     field :score, :float, virtual: true
     field :views_count, :integer, virtual: true
 
     belongs_to :user, User
     has_many :reactions, Backend.Posts.Reaction, on_delete: :delete_all
     has_many :comments, Backend.Posts.Comment, on_delete: :delete_all
-    # --- NEW: Association for views ---
     has_many :views, Backend.Posts.PostView, on_delete: :delete_all
 
     timestamps(type: :utc_datetime)

@@ -15,12 +15,7 @@ defmodule BackendWeb.StatusChannel do
     current_user_id = socket.assigns.current_user_id
     user = Accounts.get_user!(current_user_id)
 
-    # First, update the user's status in the database.
     {:ok, _user} = Accounts.update_user_status(user, status)
-
-    # --- THIS IS THE FIX ---
-    # After updating the database, we must also update the presence tracker.
-    # This will broadcast the change to all other connected clients.
     Presence.track(socket, current_user_id, %{status: status})
 
     {:noreply, socket}

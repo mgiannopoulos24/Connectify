@@ -9,7 +9,6 @@ defmodule Backend.Recommendations do
   alias Backend.Jobs.JobPosting
   alias Backend.Jobs.JobApplication
   alias Backend.Jobs
-  # --- NEW: Aliases for Post data ---
   alias Backend.Posts.Post
   alias Backend.Posts.Reaction
   alias Backend.Posts.Comment
@@ -43,7 +42,6 @@ defmodule Backend.Recommendations do
     end)
   end
 
-  # --- NEW: Function to get post recommendations ---
   @doc """
   Gets post recommendations for a user.
   """

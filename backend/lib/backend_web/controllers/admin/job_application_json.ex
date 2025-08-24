@@ -16,13 +16,11 @@ defmodule BackendWeb.Admin.JobApplicationJSON do
       status: application.status,
       cover_letter: application.cover_letter,
       inserted_at: application.inserted_at,
-      # --- FIX: Call a local, lightweight function instead of the heavy UserJSON.data/1 ---
       user: user_data(application.user),
       job_posting: job_posting_data(application.job_posting)
     }
   end
 
-  # --- NEW: Lightweight rendering function for user summary ---
   defp user_data(%Ecto.Association.NotLoaded{}), do: nil
   defp user_data(nil), do: nil
 
@@ -35,7 +33,6 @@ defmodule BackendWeb.Admin.JobApplicationJSON do
     }
   end
 
-  # --- NEW: Lightweight rendering function for job posting summary ---
   defp job_posting_data(%Ecto.Association.NotLoaded{}), do: nil
   defp job_posting_data(nil), do: nil
 
@@ -47,7 +44,6 @@ defmodule BackendWeb.Admin.JobApplicationJSON do
     }
   end
 
-  # --- NEW: Lightweight rendering function for company summary ---
   defp company_data(%Ecto.Association.NotLoaded{}), do: nil
   defp company_data(nil), do: nil
 

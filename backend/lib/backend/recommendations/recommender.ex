@@ -108,7 +108,6 @@ defmodule Backend.Recommendations.Recommender do
     end
   end
 
-  # --- FIX: Prefixed unused variable with an underscore ---
   defp train(_ratings, p, q, 0), do: {p, q}
 
   defp train(ratings, p, q, iterations_left) do

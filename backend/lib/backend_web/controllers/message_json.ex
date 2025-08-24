@@ -28,7 +28,6 @@ defmodule BackendWeb.MessageJSON do
       },
       post:
         if Ecto.assoc_loaded?(message.post) and message.post do
-          # MODIFIED: Call the new private function for the post preview.
           post_preview_data(message.post)
         else
           nil
@@ -61,7 +60,6 @@ defmodule BackendWeb.MessageJSON do
     }
   end
 
-  # --- NEW FUNCTION ---
   @doc """
   Renders a lightweight preview of a post for sharing in messages.
   """

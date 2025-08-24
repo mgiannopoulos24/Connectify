@@ -58,16 +58,11 @@ defmodule BackendWeb.ConnectionJSON do
   end
 
   defp pending_request_data(%Connection{} = connection) do
-    # --- FIX STARTS HERE ---
-    # Safely get the job title from the first job experience, or use a default.
     job_title =
       case List.first(connection.user.job_experiences) do
-        # Default value if the user has no job experience
         nil -> "Professional"
         job_experience -> job_experience.job_title
       end
-
-    # --- FIX ENDS HERE ---
 
     %{
       id: connection.id,

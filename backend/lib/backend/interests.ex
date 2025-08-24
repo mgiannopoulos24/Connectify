@@ -37,7 +37,6 @@ defmodule Backend.Interests do
   Unfollows an entity.
   """
   def unfollow_entity(follower_user_id, followed_id, type) do
-    # --- FIX: Wrap the result in an :ok tuple ---
     result =
       from(i in Interest,
         where:

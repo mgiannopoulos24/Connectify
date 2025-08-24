@@ -35,7 +35,6 @@ defmodule Backend.Posts do
       end)
       |> MapSet.new()
 
-    # --- FIX: Moved select_merge inside the `from` macro options ---
     all_posts =
       from(p in Post,
         left_join: pv in assoc(p, :views),

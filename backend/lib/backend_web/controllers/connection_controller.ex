@@ -54,7 +54,6 @@ defmodule BackendWeb.ConnectionController do
     if connection.connected_user_id == current_user.id do
       with {:ok, %Connection{} = updated_connection} <-
              Connections.accept_connection_request(connection) do
-        # PRELOAD THE DATA HERE, after the update is complete.
         preloaded_connection =
           Repo.preload(updated_connection,
             user: [:job_experiences],
@@ -87,7 +86,6 @@ defmodule BackendWeb.ConnectionController do
     end
   end
 
-  # --- NEW ACTION ---
   def delete_by_user(conn, %{"user_id" => other_user_id}) do
     current_user = conn.assigns.current_user
 

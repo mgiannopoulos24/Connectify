@@ -15,7 +15,6 @@ defmodule BackendWeb.SkillJSON do
     %{data: data(skill)}
   end
 
-  # --- FIX: Changed defp to def to make the function public ---
   def data(%Skill{} = skill) do
     %{
       id: skill.id,

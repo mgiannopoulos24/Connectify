@@ -61,7 +61,6 @@ defmodule Backend.Jobs do
 
     all_postings = Repo.all(base_query)
 
-    # --- NEW: Find and attach relevant connections ---
     user_connections = Connections.list_user_connections(user.id)
 
     connection_ids =

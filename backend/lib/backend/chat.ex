@@ -8,7 +8,6 @@ defmodule Backend.Chat do
   alias Backend.Chat.ChatRoom
   alias Backend.Chat.Message
   alias Backend.Chat.MessageReaction
-  # --- FIX: Alias the correct context ---
   alias Backend.Accounts
   alias Backend.Posts.Post
 
@@ -48,7 +47,6 @@ defmodule Backend.Chat do
   Verifies that the sender and recipient are connected.
   """
   def send_post_as_message(sender, recipient_id, %Post{} = post) do
-    # --- FIX: Call are_users_connected? from the Accounts context ---
     if Accounts.are_users_connected?(sender.id, recipient_id) do
       with {:ok, chat_room} <- get_or_create_chat_room(sender.id, recipient_id) do
         create_message(chat_room, sender, %{"post_id" => post.id})

@@ -3,7 +3,6 @@ defmodule Backend.Posts.Reaction do
   import Ecto.Changeset
 
   alias Backend.Accounts.User
-  # No need to alias Post here anymore for the schema definition.
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

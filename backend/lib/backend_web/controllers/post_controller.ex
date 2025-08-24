@@ -88,7 +88,6 @@ defmodule BackendWeb.PostController do
     render(conn, PostJSON, :show, post: post, current_user: current_user)
   end
 
-  # --- NEW: Action to track a post view ---
   def view(conn, %{"id" => id}) do
     current_user = conn.assigns.current_user
     post = Posts.get_post!(id)

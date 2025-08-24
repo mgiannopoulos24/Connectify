@@ -39,7 +39,6 @@ defmodule BackendWeb.UserJSON do
     user_map
   end
 
-  # --- FIX APPLIED HERE: Changed defp to def ---
   def data(%User{} = user) do
     followed_companies = Interests.list_followed_companies(user.id)
     followed_users = Interests.list_followed_users(user.id)
@@ -59,7 +58,6 @@ defmodule BackendWeb.UserJSON do
       email_confirmed_at: user.email_confirmed_at,
       status: user.status,
       last_seen_at: user.last_seen_at,
-      # Add the new visibility field to the response
       profile_visibility: user.profile_visibility,
       job_experiences: Enum.map(user.job_experiences, &job_experience_data/1),
       educations: Enum.map(user.educations, &education_data/1),

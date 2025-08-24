@@ -8,7 +8,6 @@ defmodule Backend.Skills do
   alias Backend.Skills.Skill
   alias Backend.Accounts.User
 
-  # --- FIX: Renamed for clarity ---
   def list_master_skills do
     from(s in Skill, order_by: [asc: s.name])
     |> Repo.all()
@@ -23,7 +22,6 @@ defmodule Backend.Skills do
 
   def get_skill!(id), do: Repo.get!(Skill, id)
 
-  # --- FIX: Renamed for clarity ---
   def create_master_skill(attrs \\ %{}) do
     %Skill{}
     |> Skill.changeset(attrs)
@@ -66,7 +64,6 @@ defmodule Backend.Skills do
     |> Repo.update()
   end
 
-  # --- NEW: Function to remove a skill association from a user ---
   def delete_skill_from_user(%User{} = user, %Skill{} = skill) do
     user
     |> Repo.preload(:skills)
@@ -75,7 +72,6 @@ defmodule Backend.Skills do
     |> Repo.update()
   end
 
-  # --- FIX: Renamed for clarity (Admin use only) ---
   def delete_master_skill(%Skill{} = skill) do
     Repo.delete(skill)
   end
