@@ -55,7 +55,7 @@ config :esbuild,
   version: "0.25.4",
   backend: [
     args:
-      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=. --alias:phoenix-colocated/backend=./js/colocated-hooks.js),
     cd: Path.expand("../assets", __DIR__),
   ]
 
