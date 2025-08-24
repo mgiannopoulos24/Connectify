@@ -6,13 +6,12 @@ import NotificationDropdown from './NotificationDropdown';
 
 const NotificationBell: React.FC = () => {
   const { unreadCount } = useNotifications();
-  const [isOpen, setIsOpen] = useState(false); // Control the popover's open state
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button className="flex flex-col items-center text-gray-600 hover:text-blue-600">
-          {/* Wrapper for the icon and its badge */}
           <div className="relative">
             <Bell className="w-6 h-6" />
             {unreadCount > 0 && (
@@ -25,7 +24,6 @@ const NotificationBell: React.FC = () => {
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-2" align="end">
-        {/* Pass a function to close the popover */}
         <NotificationDropdown onItemClick={() => setIsOpen(false)} />
       </PopoverContent>
     </Popover>

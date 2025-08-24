@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   padding: 10px 14px;
-  background-color: #e5e7eb; /* gray-200 */
+  background-color: #e5e7eb;
   border-radius: 18px;
   width: fit-content;
 }
@@ -11,7 +11,7 @@
   width: 8px;
   height: 8px;
   margin: 0 2px;
-  background-color: #6b7280; /* gray-500 */
+  background-color: #6b7280;
   border-radius: 50%;
   animation: typing-bounce 1.3s infinite ease-in-out;
 }

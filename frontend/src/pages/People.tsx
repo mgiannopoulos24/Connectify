@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { UserCircle, UserPlus, Loader2, Send, MessageSquare } from 'lucide-react';
 import { getAllUsers, sendConnectionRequest } from '@/services/connectionService';
-import { User, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 import { Link, useNavigate } from 'react-router-dom';
 
 const PeoplePage: React.FC = () => {

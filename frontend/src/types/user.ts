@@ -1,7 +1,7 @@
 import { Post } from './post';
 import { CompanySummary } from './company';
 import { UserSummary } from './connections';
-import { Skill } from './skill'; // Import the new Skill type
+import { Skill } from './skill';
 
 export type UserStatus = 'active' | 'idle' | 'offline';
 

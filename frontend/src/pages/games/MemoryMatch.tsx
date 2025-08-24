@@ -8,7 +8,6 @@ import { Flashcard } from 'react-quizlet-flashcard'; // Will add it when he upda
 import { cn } from '@/lib/utils';
 import * as LucideIcons from 'lucide-react';
 
-// --- Game Configuration ---
 const AllIcons = Object.keys(LucideIcons).filter(
   (key) =>
     key !== 'createReactComponent' && key !== 'LucideProvider' && key[0] === key[0].toUpperCase(),
@@ -18,12 +17,11 @@ const NUM_PAIRS = 8; // The number of pairs to create (e.g., 8 pairs = 16 cards)
 interface MemoryCard {
   id: number;
   iconName: string;
-  uniqueId: string; // To differentiate between two cards of the same icon
+  uniqueId: string;
   isFlipped: boolean;
   isMatched: boolean;
 }
 
-// --- Game Component ---
 const MemoryMatch: React.FC = () => {
   const [cards, setCards] = useState<MemoryCard[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
@@ -31,7 +29,6 @@ const MemoryMatch: React.FC = () => {
   const [gameOver, setGameOver] = useState(false);
   const flipRefs = useRef<(null | (() => void))[]>([]);
 
-  // Function to create and shuffle the deck
   const generateDeck = () => {
     const selectedIcons = [...AllIcons].sort(() => 0.5 - Math.random()).slice(0, NUM_PAIRS);
     const gameCards: MemoryCard[] = [];
@@ -53,7 +50,6 @@ const MemoryMatch: React.FC = () => {
       });
     });
 
-    // Shuffle the cards
     gameCards.sort(() => Math.random() - 0.5);
     setCards(gameCards);
   };
@@ -63,7 +59,6 @@ const MemoryMatch: React.FC = () => {
     setFlippedCards([]);
     setMoves(0);
     setGameOver(false);
-    // Reset all cards to their front side
     flipRefs.current.forEach((flipFn, index) => {
       if (flipFn && cards[index]?.isFlipped) {
         flipFn();
@@ -81,21 +76,17 @@ const MemoryMatch: React.FC = () => {
       const firstCard = cards[firstIndex];
       const secondCard = cards[secondIndex];
 
-      // Check for a match
       if (firstCard.iconName === secondCard.iconName) {
-        // It's a match!
         const newCards = [...cards];
         newCards[firstIndex].isMatched = true;
         newCards[secondIndex].isMatched = true;
         setCards(newCards);
         setFlippedCards([]);
 
-        // Check for game over
         if (newCards.every((card) => card.isMatched)) {
           setGameOver(true);
         }
       } else {
-        // Not a match, flip them back after a delay
         setTimeout(() => {
           flipRefs.current[firstIndex]?.();
           flipRefs.current[secondIndex]?.();

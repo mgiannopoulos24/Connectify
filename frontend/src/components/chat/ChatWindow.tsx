@@ -11,15 +11,7 @@ import {
 import { Message } from '@/types/chat';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Send,
-  UserCircle,
-  Loader2,
-  Paperclip,
-  XCircle,
-  Smile,
-  FileText,
-} from 'lucide-react';
+import { Send, UserCircle, Loader2, Paperclip, XCircle, Smile, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import TypingIndicator from './TypingIndicator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -51,11 +43,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const textInputRef = useRef<HTMLInputElement>(null); // NEW: Ref for text input
+  const textInputRef = useRef<HTMLInputElement>(null);
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [isGiphyPickerOpen, setIsGiphyPickerOpen] = useState(false);
-
-  // --- Emoji & Input Logic ---
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     const emoji = emojiData.emoji;
@@ -71,16 +61,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     const newText = newMessage.substring(0, start) + emoji + newMessage.substring(end);
     setNewMessage(newText);
 
-    // After setting the new message, move the cursor to the end of the inserted emoji
-    // Use a small timeout to ensure the state update is reflected before setting selection
     setTimeout(() => {
       const newCursorPos = start + emoji.length;
       input.setSelectionRange(newCursorPos, newCursorPos);
       input.focus();
     }, 0);
   };
-
-  // --- End Emoji & Input Logic ---
 
   useEffect(() => {
     setIsLoading(true);
@@ -197,7 +183,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     setIsSending(true);
     const tempId = `temp-${Date.now()}`;
 
-    // Create optimistic message
     const optimisticMessage: Message = {
       id: tempId,
       content: text || null,
@@ -216,7 +201,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     };
     setMessages((prev) => [...prev, optimisticMessage]);
 
-    // Clear inputs
     if (text) setNewMessage('');
     if (file) removeAttachment();
 
@@ -238,7 +222,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
     } catch (error) {
       console.error('Failed to send message:', error);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      if (text) setNewMessage(text); // Restore text if sending failed
+      if (text) setNewMessage(text);
       toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSending(false);
@@ -247,14 +231,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage({ text: newMessage, file: attachment });
+    sendMessage({ text: newMessage, file: attachment || undefined });
   };
 
   const handleGifSelect = (gif: IGif, e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault(); // This is the key change to prevent redirection
+    e.preventDefault();
     const gifUrl = gif.images.fixed_height.url;
     sendMessage({ gifUrl });
-    setIsGiphyPickerOpen(false); // Close the picker after selection
+    setIsGiphyPickerOpen(false);
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -469,19 +453,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
             size="icon"
             variant="ghost"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isSending || attachment !== null} // Disable file/media when one is attached
+            disabled={isSending || attachment !== null}
             aria-label="Attach file"
           >
             <Paperclip className="w-5 h-5" />
           </Button>
 
-          {/* NEW: Emoji Picker Popover */}
           <EmojiPickerPopover onEmojiSelect={handleEmojiSelect}>
             <Button
               type="button"
               size="icon"
               variant="ghost"
-              disabled={isSending || attachment !== null} // Disable when media is attached
+              disabled={isSending || attachment !== null}
               aria-label="Insert emoji"
             >
               <Smile className="w-5 h-5" />
@@ -500,7 +483,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chatRoomId, otherUser }) => {
           </Popover>
           <Input
             type="text"
-            ref={textInputRef} // NEW: Attach ref here
+            ref={textInputRef}
             placeholder="Type a message or paste a file..."
             value={newMessage}
             onChange={handleTyping}

@@ -20,11 +20,11 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const { getUserStatus } = usePresence();
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col rounded-tr-none">
       <CardHeader>
         <CardTitle>Conversations</CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow overflow-y-auto">
+      <CardContent className="flex-grow overflow-y-auto thin-scrollbar">
         {conversations.length > 0 ? (
           <ul className="space-y-2">
             {conversations.map((convo) => {

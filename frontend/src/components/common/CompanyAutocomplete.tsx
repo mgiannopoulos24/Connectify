@@ -14,7 +14,7 @@ interface CompanyAutocompleteProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onSelect: (company: CompanySummary | null, name: string) => void;
-  results: CompanySummary[];
+  results: CompanySummary[] | null;
   isLoading: boolean;
   placeholder?: string;
 }
@@ -30,8 +30,8 @@ const CompanyAutocomplete: React.FC<CompanyAutocompleteProps> = ({
   return (
     <Command shouldFilter={false} className="overflow-visible">
       <CommandInput placeholder={placeholder} value={searchTerm} onValueChange={onSearchChange} />
-      {searchTerm.length > 0 && (
-        <CommandList className="absolute z-10 top-full mt-2 w-full bg-white border rounded-md shadow-lg">
+      {searchTerm.length > 0 && results !== null && (
+        <CommandList className="absolute z-50 top-full mt-2 w-full bg-white border rounded-md shadow-lg">
           {isLoading && (
             <div className="p-4 flex items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin" />

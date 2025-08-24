@@ -15,7 +15,6 @@ const JobsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // --- FIX: Do not fetch jobs until the current user's data is loaded ---
     if (!currentUser) {
       return;
     }
@@ -23,15 +22,11 @@ const JobsPage: React.FC = () => {
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        const [feedData, recommendedData] = await Promise.all([
-          getJobFeed(),
-          getRecommendedJobs(),
-        ]);
-        
-        const recommendedIds = new Set(recommendedData.map(j => j.id));
-        setJobs(feedData.filter(job => !recommendedIds.has(job.id)));
-        setRecommendedJobs(recommendedData);
+        const [feedData, recommendedData] = await Promise.all([getJobFeed(), getRecommendedJobs()]);
 
+        const recommendedIds = new Set(recommendedData.map((j) => j.id));
+        setJobs(feedData.filter((job) => !recommendedIds.has(job.id)));
+        setRecommendedJobs(recommendedData);
       } catch (err) {
         setError('Failed to load job listings. Please try again later.');
         console.error(err);
@@ -40,11 +35,9 @@ const JobsPage: React.FC = () => {
       }
     };
     fetchJobs();
-    // --- FIX: Add currentUser to the dependency array ---
   }, [currentUser]);
 
   const calculateMatchingSkills = (job: JobPosting): number => {
-    // The currentUser object is now guaranteed to have skills if they exist
     if (!currentUser?.skills) return 0;
     const userSkillIds = new Set(currentUser.skills.map((s) => s.id));
     return job.skills.filter((s) => userSkillIds.has(s.id)).length;
@@ -52,18 +45,14 @@ const JobsPage: React.FC = () => {
 
   const renderJobList = (jobList: JobPosting[], isRecommendedSection = false) => {
     if (jobList.length === 0) {
-      if(isRecommendedSection) return null;
+      if (isRecommendedSection) return null;
       return <div className="text-center text-gray-500 py-10">No job listings found.</div>;
     }
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {jobList.map((job) => (
-          <JobCard
-            key={job.id}
-            job={job}
-            matchingSkillsCount={calculateMatchingSkills(job)}
-          />
+          <JobCard key={job.id} job={job} matchingSkillsCount={calculateMatchingSkills(job)} />
         ))}
       </div>
     );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { Login } from '@/pages/Login';
-import { Register } from '@/pages/Register';
+import { Login } from '@/pages/auth/Login';
+import { Register } from '@/pages/auth/Register';
 import AdminDashboardPage from '@/pages/admin/Dashboard';
 import AdminUsersManagementPage from '@/pages/admin/UsersManagementPage';
 import NotFound from '@/pages/misc/NotFound';
@@ -12,14 +12,14 @@ import UserProfilePage from '@/pages/UserProfile';
 import PeoplePage from '@/pages/People';
 import Games from '@/pages/Games';
 import Zip from '@/pages/games/Zip';
-import Onboarding from '@/pages/Onboarding';
+import Onboarding from '@/pages/auth/Onboarding';
 import SettingsPage from '@/pages/Settings';
 import AppLayout from '@/components/layout/AppLayout';
 import AdminLayout from '@/components/layout/AdminLayout';
 import NetworkPage from '@/pages/Network';
 import MessagingPage from '@/pages/Messaging';
 import Maintenance from '@/pages/misc/Maintenance';
-import MemoryMatch from '@/pages/games/MemoryMatch';
+// import MemoryMatch from '@/pages/games/MemoryMatch';
 import AdminCompaniesPage from '@/pages/admin/CompaniesPage';
 import AdminSkillsPage from '@/pages/admin/SkillsPage';
 import NotificationsPage from '@/pages/Notifications';
@@ -41,7 +41,6 @@ type RouteConfig = {
 };
 
 const routes: RouteConfig[] = [
-  // ... (all existing public routes)
   {
     path: '/',
     element: <Welcome />,
@@ -209,7 +208,7 @@ const routes: RouteConfig[] = [
     roles: ['professional', 'admin'],
   },
   {
-    path: '/create-article', // <-- Add this new route
+    path: '/create-article',
     element: (
       <AppLayout>
         <CreateArticlePage />

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserCircle, Check, X, Users, UserPlus, Loader2, Send, MessageSquare } from 'lucide-react';
@@ -16,7 +16,6 @@ import { User } from '@/types/user';
 import { formatDistanceToNow } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 
-// --- Reusable User Card Component ---
 const UserCard = ({
   user,
   date,
@@ -38,13 +37,12 @@ const UserCard = ({
         <UserCircle className="h-14 w-14 text-gray-400 flex-shrink-0" />
       )}
       <div className="min-w-0">
-        {/* --- FIX: Link now only wraps the user's name --- */}
         <Link to={`/profile/${user.id}`} className="underline hover:underline">
           <p className="font-semibold text-lg text-gray-900 truncate">
             {user.name} {user.surname}
           </p>
         </Link>
-        {/* --- END FIX --- */}
+
         <p className="text-sm text-gray-600 truncate">{user.job_title || 'Professional'}</p>
         {date && <p className="text-xs text-gray-400 mt-1">{date}</p>}
       </div>
@@ -53,7 +51,6 @@ const UserCard = ({
   </div>
 );
 
-// --- Network Statistics Component ---
 const NetworkStats = ({
   connections,
   sent,
@@ -86,7 +83,6 @@ const NetworkStats = ({
   </Card>
 );
 
-// --- Main Network Page Component ---
 const NetworkPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();

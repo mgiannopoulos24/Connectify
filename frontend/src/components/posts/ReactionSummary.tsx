@@ -14,7 +14,6 @@ const ReactionSummary: React.FC<ReactionSummaryProps> = ({ post, onOpenReactions
 
   return (
     <div className="flex items-center justify-between text-sm text-gray-500">
-      {/* --- WRAP REACTION COUNT IN A BUTTON --- */}
       <button
         onClick={onOpenReactionsModal}
         className="flex items-center gap-1 hover:underline"
@@ -29,7 +28,6 @@ const ReactionSummary: React.FC<ReactionSummaryProps> = ({ post, onOpenReactions
         )}
         {post.reactions_count > 0 && <span>{post.reactions_count}</span>}
       </button>
-      {/* --- END WRAP --- */}
 
       <div className="flex items-center gap-4">
         {post.comments_count > 0 && (

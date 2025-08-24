@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 import ReactionIcon from './ReactionIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Re-usable constants from ReactionTray ---
 const Reactions: Reaction['type'][] = [
   'like',
   'support',
@@ -30,7 +29,6 @@ const reactionColors: Record<Reaction['type'], string> = {
   constructive: 'bg-green-100 text-green-700',
 };
 
-// --- Component Props ---
 interface CommentItemProps {
   comment: CommentType;
   postId: string;

@@ -47,7 +47,6 @@ const SendPostModal: React.FC<SendPostModalProps> = ({ isOpen, onClose, post }) 
       };
       fetchConnections();
     } else {
-      // Reset state on close
       setSearchTerm('');
       setSelectedConnectionId(null);
     }
@@ -68,7 +67,6 @@ const SendPostModal: React.FC<SendPostModalProps> = ({ isOpen, onClose, post }) 
       await sendPostToConnection(post.id, selectedConnectionId);
       toast.success('Post sent successfully!');
       onClose();
-      // Redirect to the conversation
       navigate(`/messaging/${selectedConnectionId}`);
     } catch (error) {
       toast.error('Failed to send post. Please try again.');

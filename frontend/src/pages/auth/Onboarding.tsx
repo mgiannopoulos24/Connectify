@@ -38,7 +38,6 @@ const Onboarding = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // --- State for each step ---
   const [location, setLocation] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [employmentType, setEmploymentType] = useState('');
@@ -54,7 +53,6 @@ const Onboarding = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [verificationCode, setVerificationCode] = useState('');
 
-  // --- Handlers ---
   const debouncedSearch = useCallback(
     debounce(async (term: string) => {
       if (term) {

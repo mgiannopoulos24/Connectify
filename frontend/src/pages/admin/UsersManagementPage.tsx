@@ -22,20 +22,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import UserDetailsModal from '@/components/admin/UserDetailsModal';
-import { usePresence } from '@/contexts/PresenceContext'; // Import usePresence
-import { UserStatus } from '@/types/user'; // Import UserStatus type
+import { usePresence } from '@/contexts/PresenceContext';
+import { UserStatus } from '@/types/user';
 
 const AdminUsersManagementPage = () => {
   const { user: currentUser } = useAuth();
-  const { getUserStatus } = usePresence(); // Use the presence hook
+  const { getUserStatus } = usePresence();
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingRoles, setUpdatingRoles] = useState<Record<string, boolean>>({});
 
-  // State for the modal
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedUserStatus, setSelectedUserStatus] = useState<UserStatus>('offline'); // State for the status
+  const [selectedUserStatus, setSelectedUserStatus] = useState<UserStatus>('offline');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
@@ -74,14 +73,14 @@ const AdminUsersManagementPage = () => {
   const handleViewDetails = async (userId: string) => {
     setIsDetailLoading(true);
     setIsModalOpen(true);
-    setSelectedUserStatus(getUserStatus(userId)); // Get and set the current status
+    setSelectedUserStatus(getUserStatus(userId));
 
     try {
       const userDetails = await getUserDetails(userId);
       setSelectedUser(userDetails);
     } catch (err) {
       setError('Failed to fetch user details.');
-      setIsModalOpen(false); // Close modal on error
+      setIsModalOpen(false);
     } finally {
       setIsDetailLoading(false);
     }
@@ -181,7 +180,7 @@ const AdminUsersManagementPage = () => {
         onClose={handleCloseModal}
         user={selectedUser}
         isLoading={isDetailLoading}
-        status={selectedUserStatus} // Pass the status as a prop
+        status={selectedUserStatus}
       />
     </>
   );

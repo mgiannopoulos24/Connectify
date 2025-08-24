@@ -3,21 +3,17 @@ import { Socket, Channel, Presence as PhoenixPresence } from 'phoenix';
 import { useAuth } from './AuthContext';
 import { UserStatus } from '@/types/user';
 
-// --- Types ---
 type PresenceState = Record<string, { metas: { status: UserStatus }[] }>;
 interface PresenceContextType {
   presenceState: PresenceState;
   getUserStatus: (userId: string) => UserStatus;
 }
 
-// --- Constants ---
-const IDLE_TIMEOUT = 1 * 60 * 1000; // 1 minute
+const IDLE_TIMEOUT = 1 * 60 * 1000;
 const CHANNEL_NAME = 'status';
 
-// --- Context ---
 const PresenceContext = createContext<PresenceContextType | undefined>(undefined);
 
-// --- Provider ---
 export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { token, isAuthenticated } = useAuth();
   const [presenceState, setPresenceState] = useState<PresenceState>({});
@@ -50,7 +46,7 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     if (socketRef.current) {
-      return; 
+      return;
     }
 
     const socket = new Socket('/socket', { params: { token } });
@@ -69,7 +65,7 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
       setPresenceState(newState);
     });
-    
+
     const updateUserStatus = (newStatus: UserStatus) => {
       if (userStatusRef.current !== newStatus && channelRef.current?.state === 'joined') {
         userStatusRef.current = newStatus;
@@ -85,7 +81,6 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     const handleActivity = () => {
-      // Only update if not already active to avoid spamming the channel
       if (userStatusRef.current !== 'active') {
         updateUserStatus('active');
       }
@@ -104,7 +99,7 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
     channel
       .join()
       .receive('ok', () => {
-        handleActivity(); // Set initial status to active
+        handleActivity();
         window.addEventListener('mousemove', handleActivity);
         window.addEventListener('keydown', handleActivity);
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -129,8 +124,6 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
   return <PresenceContext.Provider value={value}>{children}</PresenceContext.Provider>;
 };
 
-
-// --- Hook ---
 export const usePresence = () => {
   const context = useContext(PresenceContext);
   if (context === undefined) {

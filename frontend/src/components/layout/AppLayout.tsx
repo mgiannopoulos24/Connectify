@@ -48,11 +48,9 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-[auto_1fr_auto] items-center h-16">
-            {/* Left Section */}
             <div className="flex items-center justify-start">
               <Link
                 to="/homepage"
@@ -63,14 +61,12 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </Link>
             </div>
 
-            {/* Center Section */}
             <div className="flex items-center justify-center">
               <div className="w-full max-w-xl">
                 <UserSearchBar />
               </div>
             </div>
 
-            {/* Right Section */}
             <div className="flex items-center justify-end">
               <nav className="hidden md:flex items-center gap-6">
                 <Link
@@ -111,7 +107,6 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <span className="text-xs">Admin</span>
                   </Link>
                 )}
-                {/* --- UPDATED DROPDOWN MENU --- */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex flex-col items-center text-gray-600 hover:text-blue-600 focus:outline-none">
@@ -194,10 +189,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Conditional Left Sidebar */}
           {!shouldHideSidebar && (
             <aside className="lg:col-span-1">
               <div className="sticky top-20">
@@ -245,7 +238,6 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </aside>
           )}
 
-          {/* Page Content */}
           <div className={shouldHideSidebar ? 'lg:col-span-4' : 'lg:col-span-3'}>{children}</div>
         </div>
       </main>

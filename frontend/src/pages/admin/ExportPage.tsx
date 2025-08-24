@@ -66,7 +66,6 @@ const AdminExportPage = () => {
     setIsLoading(true);
     toast.info('Starting data export... This may take a moment.');
 
-    // If no users are selected, it means "export all"
     const idsToExport = selectedUserIds.size > 0 ? Array.from(selectedUserIds) : null;
 
     try {
@@ -95,7 +94,6 @@ const AdminExportPage = () => {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Export User Data</h1>
 
-      {/* User Selection Card */}
       <Card>
         <CardHeader>
           <CardTitle>Select Users to Export</CardTitle>
@@ -152,7 +150,6 @@ const AdminExportPage = () => {
         </CardFooter>
       </Card>
 
-      {/* Export Options Card */}
       <Card>
         <CardHeader>
           <CardTitle>Export Configuration</CardTitle>

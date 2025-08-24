@@ -120,12 +120,8 @@ const UserProfilePage: React.FC = () => {
         if (!prev) return null;
         return {
           ...prev,
-          sent_connections: prev.sent_connections.filter(
-            (c) => c.connected_user_id !== userId,
-          ),
-          received_connections: prev.received_connections.filter(
-            (c) => c.user_id !== userId,
-          ),
+          sent_connections: prev.sent_connections.filter((c) => c.connected_user_id !== userId),
+          received_connections: prev.received_connections.filter((c) => c.user_id !== userId),
         };
       });
       toast.success('Connection removed.');

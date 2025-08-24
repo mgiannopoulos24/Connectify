@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { JobPosting } from '@/types/job';
-import { Skill } from '@/types/skill';
 import { CompanySummary } from '@/types/company';
 import {
   Dialog,
@@ -39,7 +38,6 @@ import debounce from 'lodash.debounce';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-// --- Validation Schema ---
 const jobFormSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters.'),
   description: z.string().trim().min(10, 'Description must be at least 10 characters.'),
@@ -64,7 +62,6 @@ const jobFormSchema = z.object({
 });
 type JobFormValues = z.infer<typeof jobFormSchema>;
 
-// --- Constants ---
 const jobTypes: JobPosting['job_type'][] = [
   'Full-time',
   'Part-time',
@@ -85,7 +82,6 @@ const steps = [
   { id: 3, name: 'Review & Post' },
 ];
 
-// --- Stepper UI Component ---
 const Stepper = ({ currentStep }: { currentStep: number }) => (
   <nav className="flex items-center justify-center py-4">
     {steps.map((step, index) => (
@@ -116,7 +112,6 @@ const Stepper = ({ currentStep }: { currentStep: number }) => (
   </nav>
 );
 
-// --- Review Step UI Component ---
 const ReviewStep = ({ formData }: { formData: JobFormValues }) => (
   <div className="space-y-6 text-sm">
     <div className="p-4 border rounded-lg bg-gray-50">
@@ -151,7 +146,6 @@ const ReviewStep = ({ formData }: { formData: JobFormValues }) => (
   </div>
 );
 
-// --- Main Modal Component ---
 const JobFormModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -164,13 +158,9 @@ const JobFormModal: React.FC<{
     mode: 'onChange',
   });
 
-  // FIX: Separate state for the autocomplete's VISIBLE input value.
   const [companyInputValue, setCompanyInputValue] = useState('');
-  const [companyResults, setCompanyResults] = useState<CompanySummary[]>([]);
+  const [companyResults, setCompanyResults] = useState<CompanySummary[] | null>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  // Get the actual form value for synchronization.
-  const companyFormValue = form.watch('company');
 
   useEffect(() => {
     if (isOpen) {
@@ -195,14 +185,10 @@ const JobFormModal: React.FC<{
         });
         setCompanyInputValue('');
       }
+      setCompanyResults([]);
       setCurrentStep(1);
     }
   }, [job, isOpen, form]);
-
-  // FIX: Syncs the local input state if the form state changes (e.g., on reset).
-  useEffect(() => {
-    setCompanyInputValue(companyFormValue?.name || '');
-  }, [companyFormValue]);
 
   const debouncedSearch = useCallback(
     debounce(async (term: string) => {
@@ -218,15 +204,19 @@ const JobFormModal: React.FC<{
     [],
   );
 
-  useEffect(() => {
-    debouncedSearch(companyInputValue);
-    return () => debouncedSearch.cancel();
-  }, [companyInputValue, debouncedSearch]);
+  const handleCompanySearchChange = (term: string) => {
+    if (companyResults === null) {
+      setCompanyResults([]);
+    }
+    setCompanyInputValue(term);
+    form.setValue('company', { id: null, name: term }, { shouldValidate: true });
+    debouncedSearch(term);
+  };
 
   const handleCompanySelect = (company: CompanySummary | null, name: string) => {
-    // This is the key: only update the form's official value upon selection.
     form.setValue('company', { id: company?.id ?? null, name: name }, { shouldValidate: true });
-    setCompanyResults([]);
+    setCompanyInputValue(name);
+    setCompanyResults(null);
   };
 
   const handleNextStep = async () => {
@@ -261,8 +251,8 @@ const JobFormModal: React.FC<{
 
         <div className="flex-grow overflow-y-auto px-1 pr-4 custom-scrollbar">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="py-4">
-              <div className={cn('space-y-6', currentStep !== 1 && 'hidden')}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="py-4 min-h-[45vh]">
+              <div className={cn('space-y-6', currentStep !== 1 ? 'hidden' : '')}>
                 <FormField
                   control={form.control}
                   name="title"
@@ -280,13 +270,12 @@ const JobFormModal: React.FC<{
                   control={form.control}
                   name="company"
                   render={() => (
-                    // field is intentionally not used here to allow separate state
                     <FormItem className="relative">
                       <FormLabel>Company</FormLabel>
                       <FormControl>
                         <CompanyAutocomplete
                           searchTerm={companyInputValue}
-                          onSearchChange={setCompanyInputValue}
+                          onSearchChange={handleCompanySearchChange}
                           onSelect={handleCompanySelect}
                           results={companyResults}
                           isLoading={isSearching}
@@ -351,7 +340,7 @@ const JobFormModal: React.FC<{
                 </div>
               </div>
 
-              <div className={cn(currentStep !== 2 && 'hidden')}>
+              <div className={cn(currentStep !== 2 ? 'hidden' : '')}>
                 <FormField
                   control={form.control}
                   name="skills"
@@ -370,7 +359,7 @@ const JobFormModal: React.FC<{
                 />
               </div>
 
-              <div className={cn(currentStep !== 3 && 'hidden')}>
+              <div className={cn(currentStep !== 3 ? 'hidden' : '')}>
                 <ReviewStep formData={form.watch()} />
               </div>
             </form>

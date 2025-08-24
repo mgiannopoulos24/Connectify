@@ -17,7 +17,6 @@ import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
 import GameLobby from '@/components/games/GameLobby';
 
-// --- Type Definitions and Configurations (No Changes) ---
 const GRID_SIZE = 6;
 const CELL_PIXEL_SIZE = 64;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;

@@ -19,7 +19,6 @@ const PostPreviewCard: React.FC<PostPreviewCardProps> = ({ post, isSender }) => 
       to={`/homepage#post-${post.id}`}
       className="block border-l-4 border-blue-500 pl-3 py-2 mb-2 rounded-r-md hover:opacity-90 transition-opacity"
     >
-      {/* --- FIX: Display the actual image or video preview if it exists --- */}
       {post.image_url && (
         <div className="mb-2">
           <img
@@ -34,14 +33,12 @@ const PostPreviewCard: React.FC<PostPreviewCardProps> = ({ post, isSender }) => 
           <video
             src={post.video_url}
             className="w-full h-auto max-h-40 rounded-md"
-            // We don't add 'controls' to keep it a clean preview
             muted
             loop
             playsInline
           />
         </div>
       )}
-      {/* --- END FIX --- */}
 
       <div className="flex items-center gap-2 mb-1">
         {post.user.photo_url ? (

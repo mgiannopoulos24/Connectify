@@ -4,7 +4,6 @@ import { useAuth } from './AuthContext';
 import { getNotifications, markNotificationsAsRead } from '@/services/notificationService';
 import { Notification } from '@/types/notification';
 
-// --- Types ---
 interface NotificationsContextType {
   notifications: Notification[];
   unreadCount: number;
@@ -12,10 +11,8 @@ interface NotificationsContextType {
   markAsRead: (ids: string[]) => Promise<void>;
 }
 
-// --- Context ---
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
-// --- Provider ---
 export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { token, isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -31,25 +28,21 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
     let socket: Socket;
 
     const connectToChannel = () => {
-      // Initialize socket and channel
       socket = new Socket('/socket', { params: { token } });
       socket.connect();
       const channel = socket.channel('notifications', {});
       channelRef.current = channel;
 
-      // Listen for new notifications
       channel.on('new_notification', (payload) => {
         setNotifications((prev) => [payload, ...prev]);
       });
 
-      // Join the channel
       channel
         .join()
         .receive('ok', () => console.log('Joined notifications channel successfully'))
         .receive('error', (resp) => console.error('Unable to join notifications channel', resp));
     };
 
-    // Fetch initial notifications
     const fetchInitialNotifications = async () => {
       try {
         const initialNotifications = await getNotifications();
@@ -75,7 +68,6 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
   const markAsRead = async (ids: string[]) => {
     if (ids.length === 0) return;
 
-    // Optimistically update the UI
     setNotifications((prev) =>
       prev.map((n) => (ids.includes(n.id) ? { ...n, read_at: new Date().toISOString() } : n)),
     );
@@ -84,8 +76,6 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
       await markNotificationsAsRead(ids);
     } catch (error) {
       console.error('Failed to mark notifications as read:', error);
-      // Revert optimistic update on failure if necessary
-      // (For this case, it might not be critical, but it's good practice)
     }
   };
 
@@ -94,7 +84,6 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
   return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;
 };
 
-// --- Hook ---
 export const useNotifications = () => {
   const context = useContext(NotificationsContext);
   if (context === undefined) {

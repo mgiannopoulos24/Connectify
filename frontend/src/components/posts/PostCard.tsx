@@ -138,7 +138,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
 
   return (
     <>
-      {/* --- FIX: Add an ID to the card for hash linking --- */}
       <Card id={`post-${post.id}`}>
         <CardHeader className="flex flex-row items-start gap-4 p-4">
           <Link to={`/profile/${post.user.id}`}>

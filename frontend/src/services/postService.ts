@@ -1,11 +1,6 @@
 import axios from 'axios';
 import { Post, Comment, Reaction, ReactionWithUser } from '@/types/post';
 
-/**
- * --- MODIFIED: Fetches posts for the main feed, allowing for sorting. ---
- * @param sortBy The sorting method ('relevant' or 'recent').
- * @returns A promise that resolves to an array of posts.
- */
 export const getPosts = async (sortBy: 'relevant' | 'recent' = 'relevant'): Promise<Post[]> => {
   const response = await axios.get<{ data: Post[] }>(`/api/posts?sort_by=${sortBy}`);
   return response.data.data;
@@ -113,11 +108,6 @@ export const sendPostToConnection = async (postId: string, recipientId: string):
   await axios.post(`/api/posts/${postId}/send`, { recipient_id: recipientId });
 };
 
-/**
- * --- NEW: Tracks a view for a specific post. ---
- * @param postId The ID of the post that was viewed.
- * @returns A promise that resolves when the request is complete.
- */
 export const trackPostView = async (postId: string): Promise<void> => {
   await axios.post(`/api/posts/${postId}/view`);
 };

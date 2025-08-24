@@ -122,11 +122,13 @@ const Homepage: React.FC = () => {
       <main className="lg:col-span-3">
         <CreatePost onPostCreated={handlePostCreated} />
 
-        {/* --- NEW: Dropdown for sorting --- */}
         <div className="flex justify-end items-center mb-4 border-b pb-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className='border-none'>
-              <Button variant="ghost" className="text-sm text-gray-600 border-none focus-visible:ring-0 focus-visible:ring-ring">
+            <DropdownMenuTrigger asChild className="border-none">
+              <Button
+                variant="ghost"
+                className="text-sm text-gray-600 border-none focus-visible:ring-0 focus-visible:ring-ring"
+              >
                 Sort by:{' '}
                 <span className="font-semibold ml-1">
                   {sortBy === 'relevant' ? 'Most relevant first' : 'Most recent first'}
@@ -163,7 +165,6 @@ const Homepage: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        {/* --- END NEW --- */}
 
         {renderContent()}
       </main>

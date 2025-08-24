@@ -58,7 +58,7 @@ const CompanyPage: React.FC = () => {
 
     setIsFollowLoading(true);
     const originalFollowingState = isFollowing;
-    setIsFollowing(!originalFollowingState); // Optimistic UI update
+    setIsFollowing(!originalFollowingState);
 
     try {
       if (originalFollowingState) {
@@ -151,7 +151,6 @@ const CompanyPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* --- Job Openings Section --- */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

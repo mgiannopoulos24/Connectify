@@ -8,10 +8,8 @@ const NotificationsPage: React.FC = () => {
   const { notifications, isLoading, markAsRead } = useNotifications();
 
   useEffect(() => {
-    // When the component mounts, find all unread notifications and mark them as read.
     const unreadIds = notifications.filter((n) => !n.read_at).map((n) => n.id);
     if (unreadIds.length > 0) {
-      // Add a small delay so the user sees the change
       setTimeout(() => {
         markAsRead(unreadIds);
       }, 1000);

@@ -112,9 +112,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
     if (fileInputRef.current) {
       setUploadType(type);
       const accept =
-        type === 'image'
-          ? 'image/png, image/jpeg, image/gif'
-          : 'video/mp4, video/webm, image/gif';
+        type === 'image' ? 'image/png, image/jpeg, image/gif' : 'video/mp4, video/webm, image/gif';
       fileInputRef.current.accept = accept;
       fileInputRef.current.click();
     }
@@ -122,7 +120,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
 
   return (
     <>
-      <Card className="mb-8">
+      <Card className="mb-2">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             {user?.photo_url ? (

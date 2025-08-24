@@ -30,7 +30,6 @@ const SkillMultiSelect: React.FC<SkillMultiSelectProps> = ({
       if (term) {
         setIsLoading(true);
         const fetchedSkills = await searchSkills(term);
-        // Filter out skills that are already selected
         const selectedIds = new Set(selectedSkills.map((s) => s.id));
         setResults(fetchedSkills.filter((skill) => !selectedIds.has(skill.id)));
         setIsLoading(false);
@@ -65,9 +64,9 @@ const SkillMultiSelect: React.FC<SkillMultiSelectProps> = ({
           onValueChange={handleSearchChange}
         />
         {searchTerm.length > 0 && (
-          <CommandList className="absolute z-10 top-full mt-2 w-full bg-white border rounded-md shadow-lg">
+          <CommandList className="absolute z-50 top-full mt-2 w-full bg-white border rounded-md shadow-lg">
             {isLoading && (
-              <div className="p-4 flex items-center justify-center">
+              <div className="p-4 flex items-center justify-center z-50">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             )}

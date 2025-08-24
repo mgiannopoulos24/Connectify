@@ -31,7 +31,6 @@ const MessagingPage: React.FC = () => {
           }));
           setConversations(convos);
 
-          // If a userId is provided in the URL, start that chat
           if (userId && convos.some((c) => c.id === userId)) {
             handleSelectConversation(userId);
           }
@@ -56,7 +55,7 @@ const MessagingPage: React.FC = () => {
       const roomId = await createOrGetChatRoom(otherUserId);
       setActiveConversationId(otherUserId);
       setActiveChatRoomId(roomId);
-      // Update URL without reloading page
+
       navigate(`/messaging/${otherUserId}`, { replace: true });
     } catch (error) {
       console.error('Failed to create or get chat room:', error);

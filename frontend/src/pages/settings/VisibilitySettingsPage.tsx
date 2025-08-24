@@ -18,16 +18,15 @@ const VisibilitySettingsPage: React.FC = () => {
     if (!user || !setUser) return;
 
     setIsSaving(true);
-    setVisibility(value); // Optimistic UI update
+    setVisibility(value);
 
     try {
       const updatedUser = await updateUser(user.id, { profile_visibility: value });
-      setUser(updatedUser); // Update user in global context
+      setUser(updatedUser);
       toast.success('Visibility settings updated successfully!');
     } catch (error) {
       console.error('Failed to update visibility:', error);
       toast.error('Failed to update settings.');
-      // Revert UI on failure
       setVisibility(user.profile_visibility || 'public');
     } finally {
       setIsSaving(false);

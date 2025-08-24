@@ -42,10 +42,9 @@ const getNotificationDetails = (notification: Notification) => {
             <strong>{notifierName}</strong> reacted to your post.
           </>
         ),
-        // --- FIX: Link directly to the post ---
         link: `/homepage#post-${resource_id}`,
       };
-    case 'new_comment_reaction': // <-- NEW CASE
+    case 'new_comment_reaction':
       return {
         icon: ThumbsUp,
         text: (

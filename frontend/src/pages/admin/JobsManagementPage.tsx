@@ -24,14 +24,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Loader2, PlusCircle, Edit, Trash2 } from 'lucide-react';
-import JobFormModal from '@/components/jobs/JobFormModal'; // Import the new modal
+import JobFormModal from '@/components/jobs/JobFormModal';
 
 const AdminJobsManagementPage: React.FC = () => {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
 
@@ -104,7 +103,6 @@ const AdminJobsManagementPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Job Postings Management</h1>
-          {/* This is the corrected button with the onClick handler */}
           <Button onClick={() => handleOpenModal()}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Create Job

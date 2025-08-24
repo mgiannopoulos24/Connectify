@@ -10,7 +10,7 @@ import CommentItem from './CommentItem';
 interface CommentSectionProps {
   post: Post;
   onCommentAdded: (newComment: CommentType) => void;
-  onPostUpdate: (updatedPost: Post) => void; // <-- ADD THIS PROP
+  onPostUpdate: (updatedPost: Post) => void;
 }
 
 const CommentSection: React.FC<CommentSectionProps> = ({ post, onCommentAdded, onPostUpdate }) => {
@@ -35,7 +35,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post, onCommentAdded, o
 
   return (
     <div className="mt-4 pt-4 border-t space-y-4">
-      {/* ... comment form remains the same ... */}
       <div className="flex items-start gap-3">
         {user?.photo_url ? (
           <img src={user.photo_url} alt="You" className="w-10 h-10 rounded-full object-cover" />
@@ -74,7 +73,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post, onCommentAdded, o
             postId={post.id}
             postAuthorId={post.user.id}
             onReplyAdded={onCommentAdded}
-            onPostUpdate={onPostUpdate} // <-- PASS THE PROP DOWN
+            onPostUpdate={onPostUpdate}
           />
         ))}
       </div>

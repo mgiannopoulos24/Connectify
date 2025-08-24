@@ -13,6 +13,16 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useNavigate } from 'react-router-dom';
 
+import allsafeLogo from '@/assets/logos/allsafe.jpg';
+import forAllSecureLogo from '@/assets/logos/forallsecure.png';
+import fsocietyLogo from '@/assets/logos/fsociety.png';
+import ghostbustersLogo from '@/assets/logos/ghostbusters.jpg';
+import konamiLogo from '@/assets/logos/Konami.png';
+import nintendoLogo from '@/assets/logos/nintendo.png';
+import nordLogo from '@/assets/logos/nord.jpg';
+import sklavenitisLogo from '@/assets/logos/sklavenitis.png';
+import sonyLogo from '@/assets/logos/Sony.png';
+
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
 
@@ -51,30 +61,49 @@ const Welcome: React.FC = () => {
   const testimonials = [
     {
       quote:
-        'Connectify was a game-changer for my career search. I found a role that I love and connected with mentors who have been invaluable.',
-      name: 'Sarah J.',
-      title: 'Senior Product Manager',
+        'Blud, Connectify was a game-changer for my career. I landed my dream job within weeks of joining!',
+      name: 'Themos P.',
+      title: 'eBayish CEO',
     },
     {
       quote:
-        'As a freelancer, building a network is everything. This platform made it effortless to find new clients and collaborators.',
-      name: 'Michael B.',
-      title: 'UX/UI Designer',
+        'With great power comes great responsibility. Connectify helped me build a company that truly makes a difference.',
+      name: 'Thanassis A.',
+      title: 'ForAllSecure CEO',
     },
     {
       quote:
-        'The quality of content and discussion here is unmatched. It’s my daily go-to for staying on top of industry trends.',
-      name: 'Elena R.',
-      title: 'Marketing Director',
+        "Yap Yap Yap Yap! Connectify is cool and all, but there's a small issue. I'm inside your house :D",
+      name: 'Desp P.',
+      title: 'Psaraki (Upcoming CEO), Yap Island Mayor',
+    },
+    {
+      quote: 'Who you gonna call? Connectify! It helped me find top talent for my team in no time.',
+      name: 'Peter V.',
+      title: 'Ghostbusters COO',
+    },
+    {
+      quote: 'Meow meow meow meow meowwwwww',
+      name: 'Balu',
+      title: 'Cat, DIT Mascot',
+    },
+    {
+      quote: "All this shit's gonna be the mystudies premium paywall. Just kidding, it's free :)",
+      name: 'Vaghelis K.',
+      title: 'My Studies VIP',
     },
   ];
 
   const customerLogos = [
-    { src: 'https://logo.clearbit.com/google.com', alt: 'Google' },
-    { src: 'https://logo.clearbit.com/microsoft.com', alt: 'Microsoft' },
-    { src: 'https://logo.clearbit.com/salesforce.com', alt: 'Salesforce' },
-    { src: 'https://logo.clearbit.com/adobe.com', alt: 'Adobe' },
-    { src: 'https://logo.clearbit.com/atlassian.com', alt: 'Atlassian' },
+    { src: allsafeLogo, alt: 'AllSafe' },
+    { src: forAllSecureLogo, alt: 'ForAllSecure' },
+    { src: fsocietyLogo, alt: 'fsociety' },
+    { src: ghostbustersLogo, alt: 'Ghostbusters' },
+    { src: konamiLogo, alt: 'Konami' },
+    { src: nintendoLogo, alt: 'Nintendo' },
+    { src: nordLogo, alt: 'NordVPN' },
+    { src: sklavenitisLogo, alt: 'Sklavenitis' },
+    { src: sonyLogo, alt: 'Sony' },
   ];
 
   return (
@@ -82,13 +111,10 @@ const Welcome: React.FC = () => {
       <Navbar />
 
       <main>
-        {/* --- Hero Section --- */}
         <section className="relative bg-gray-50 overflow-hidden">
-          {/* Responsive padding: smaller on mobile, larger on desktop */}
           <div className="container mx-auto px-6 py-20 md:py-32 relative z-10">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="text-center md:text-left">
-                {/* Responsive font size */}
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 tracking-tight text-gray-900">
                   Your Professional Community Awaits
                 </h1>
@@ -96,7 +122,7 @@ const Welcome: React.FC = () => {
                   Join millions of professionals who are connecting, learning, and finding new
                   opportunities on Connectify.
                 </p>
-                {/* Responsive button layout: stacked on mobile, row on larger screens */}
+
                 <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                   <Button size="lg" className="w-full sm:w-auto" onClick={handleJoinNow}>
                     <UserPlus className="mr-2 h-5 w-5" /> Join Now
@@ -111,7 +137,7 @@ const Welcome: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              {/* Image is hidden on mobile to prioritize content */}
+
               <div className="hidden md:block">
                 <img
                   src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2832&auto=format&fit=crop"
@@ -123,7 +149,6 @@ const Welcome: React.FC = () => {
           </div>
         </section>
 
-        {/* --- Why Connectify? Section --- */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Connectify?</h2>
@@ -131,7 +156,7 @@ const Welcome: React.FC = () => {
               We're more than just a network. We're a community dedicated to helping you achieve
               your professional goals.
             </p>
-            {/* Responsive grid: 1 col on mobile, 2 on tablet, 4 on desktop */}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature) => (
                 <div key={feature.title} className="bg-gray-50 p-6 md:p-8 rounded-xl text-left">
@@ -146,11 +171,10 @@ const Welcome: React.FC = () => {
           </div>
         </section>
 
-        {/* --- How It Works Section --- */}
         <section className="bg-gray-50 py-16 md:py-24">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-12">Get Started in 3 Easy Steps</h2>
-            {/* Responsive grid: Stacks vertically on mobile */}
+
             <div className="grid md:grid-cols-3 gap-12 md:gap-16 items-start">
               <div className="flex flex-col items-center">
                 <div className="text-5xl font-extrabold text-blue-200 mb-2">01</div>
@@ -177,13 +201,12 @@ const Welcome: React.FC = () => {
           </div>
         </section>
 
-        {/* --- Testimonials Section --- */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-6">
             <div className="text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-12">From Our Community</h2>
             </div>
-            {/* Responsive grid: Stacks on mobile, 3 columns on large screens */}
+
             <div className="grid lg:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
                 <div key={index} className="bg-white p-6 md:p-8 rounded-xl border border-gray-200">
@@ -199,30 +222,26 @@ const Welcome: React.FC = () => {
           </div>
         </section>
 
-        {/* --- Logos Section --- */}
         <section className="py-16">
           <div className="container mx-auto px-6 text-center">
-            <h2 className="text-sm font-bold uppercase text-gray-400 tracking-widest mb-8">
-              PROFESSIONALS FROM WORLD-CLASS COMPANIES ARE ON CONNECTIFY
+            <h2 className="text-3xl md:text-4xl font-bold mb-12">
+              Trusted by leading companies to hire top talents
             </h2>
-            {/* Flex-wrap is inherently responsive for the logos */}
-            <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-8 sm:gap-x-12">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 items-center justify-items-center">
               {customerLogos.map((logo) => (
                 <img
                   key={logo.alt}
                   src={logo.src}
                   alt={logo.alt}
-                  className="h-7 sm:h-8 w-auto grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all"
+                  className="h-24 w-auto object-contain grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all"
                 />
               ))}
             </div>
           </div>
         </section>
 
-        {/* --- Final CTA Section --- */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-6">
-            {/* Responsive padding */}
             <div className="bg-blue-600 text-white rounded-xl p-8 md:p-12 text-center shadow-2xl">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Elevate Your Career?</h2>
               <p className="mb-8 max-w-2xl mx-auto">

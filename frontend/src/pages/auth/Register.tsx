@@ -30,7 +30,6 @@ export function Register() {
     e.preventDefault();
     setError(null);
 
-    // --- Client-side validation ---
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long.');
       return;
@@ -39,7 +38,6 @@ export function Register() {
       setError('Passwords do not match.');
       return;
     }
-    // --- End validation ---
 
     try {
       const response = await axios.post('/api/register', {

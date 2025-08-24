@@ -19,7 +19,7 @@ import 'react-quill-new/dist/quill.snow.css';
 const CreateArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState(''); // This will now store HTML
+  const [content, setContent] = useState('');
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -28,7 +28,6 @@ const CreateArticlePage: React.FC = () => {
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      // Clean up previous preview URL to prevent memory leaks
       if (coverImagePreview) {
         URL.revokeObjectURL(coverImagePreview);
       }
@@ -38,7 +37,6 @@ const CreateArticlePage: React.FC = () => {
   };
 
   const handleConfirmPublish = async () => {
-    // Re-run validation in case the user opened the preview with invalid data
     if (!title.trim() || content.replace(/<(.|\n)*?>/g, '').trim().length === 0) {
       toast.error('Title and content are required.');
       return;
@@ -55,7 +53,7 @@ const CreateArticlePage: React.FC = () => {
       await createPost({ content: finalContent, image_url: imageUrl });
 
       toast.success('Article published successfully!');
-      setIsPreviewOpen(false); // Close the preview modal
+      setIsPreviewOpen(false);
       navigate('/homepage');
     } catch (error) {
       console.error('Failed to publish article:', error);

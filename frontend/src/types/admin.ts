@@ -8,7 +8,6 @@ export interface DashboardStats {
   total_posts: number;
 }
 
-// --- NEW TYPE START HERE ---
 export interface AdminJobApplication {
   id: string;
   status: 'submitted' | 'reviewed' | 'accepted' | 'rejected';
@@ -17,4 +16,3 @@ export interface AdminJobApplication {
   user: UserSummary;
   job_posting: JobPosting;
 }
-// --- NEW TYPE END HERE ---

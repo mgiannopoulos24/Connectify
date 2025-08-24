@@ -21,7 +21,6 @@ import { Lock, ArrowLeft, Loader2, Mail, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-// --- Zod Schemas for Validation ---
 const passwordFormSchema = z
   .object({
     current_password: z.string().min(1, 'Current password is required.'),
@@ -38,7 +37,6 @@ const emailFormSchema = z.object({
   email: z.string().email('Invalid email address.'),
 });
 
-// --- Main Component ---
 const SecuritySettingsPage: React.FC = () => {
   const { user, setUser } = useAuth();
   const [passwordVisible, setPasswordVisible] = React.useState(false);
@@ -113,7 +111,6 @@ const SecuritySettingsPage: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="pl-14">
-        {/* --- Change Email Form --- */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
             <Mail className="w-5 h-5 text-gray-600" />
@@ -163,7 +160,6 @@ const SecuritySettingsPage: React.FC = () => {
 
         <Separator />
 
-        {/* --- Change Password Form --- */}
         <div className="mt-8">
           <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
             <Lock className="w-5 h-5 text-gray-600" />

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import packageJson from '../../package.json'; // Import the package.json file
+import packageJson from '../../package.json';
 
 const settingsOptions = [
   {
@@ -30,7 +30,7 @@ const settingsOptions = [
         icon: Lock,
         title: 'Security',
         description: 'Change your password and secure your account.',
-        to: '/settings/security', // --- THIS LINE IS UPDATED ---
+        to: '/settings/security',
       },
       {
         icon: Eye,
@@ -80,7 +80,7 @@ const settingsOptions = [
 ];
 
 const SettingsPage: React.FC = () => {
-  const appVersion = packageJson.version; // Get the version from the imported file
+  const appVersion = packageJson.version;
 
   return (
     <div className="w-full">
@@ -115,7 +115,6 @@ const SettingsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* App Version Display */}
       <div className="mt-12 text-center">
         <p className="text-sm text-gray-500">Connectify Version: {appVersion}</p>
       </div>

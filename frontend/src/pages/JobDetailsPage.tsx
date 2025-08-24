@@ -51,12 +51,10 @@ const JobDetailsPage: React.FC = () => {
         const data = await getJobPostingById(jobId);
         setJob(data);
 
-        // If the current user is the job owner, display applications
         if (currentUser && data.user.id === currentUser.id) {
           setApplications(data.applications || []);
         }
 
-        // Check if the current user has already applied
         if (currentUser && data.applications) {
           const alreadyApplied = data.applications.some((app) => app.user.id === currentUser.id);
           if (alreadyApplied) {
@@ -93,7 +91,6 @@ const JobDetailsPage: React.FC = () => {
 
   const handleReview = async (applicationId: string, status: 'accepted' | 'rejected') => {
     const originalApplications = [...applications];
-    // Optimistic UI update
     setApplications((apps) =>
       apps.map((app) => (app.id === applicationId ? { ...app, status } : app)),
     );
@@ -103,7 +100,7 @@ const JobDetailsPage: React.FC = () => {
       toast.success(`Application has been ${status}.`);
     } catch (error) {
       toast.error('Failed to update application status.');
-      setApplications(originalApplications); // Revert on error
+      setApplications(originalApplications);
     }
   };
 

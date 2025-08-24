@@ -60,7 +60,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-100">
+    <div className="flex h-screen w-full bg-gray-100 overflow-hidden">
       <aside className="hidden w-64 flex-col border-r bg-white p-4 sm:flex">
         <div className="mb-8 flex items-center gap-2 text-2xl font-bold text-blue-600">
           <Network />
@@ -92,7 +92,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </Button>
         </div>
       </aside>
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 overflow-y-auto">
         <div className="mx-auto w-full max-w-7xl">{children}</div>
       </main>
     </div>

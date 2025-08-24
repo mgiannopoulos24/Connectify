@@ -40,11 +40,14 @@ const AdminCompaniesPage: React.FC = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
-  const [formData, setFormData] = useState({ name: '', description: '', logo_url: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    logo_url: '',
+    followers_count: 0,
+  });
 
   useEffect(() => {
     fetchCompanies();
@@ -70,8 +73,9 @@ const AdminCompaniesPage: React.FC = () => {
             name: company.name,
             description: company.description || '',
             logo_url: company.logo_url || '',
+            followers_count: company.followers_count,
           }
-        : { name: '', description: '', logo_url: '' },
+        : { name: '', description: '', logo_url: '', followers_count: 0 },
     );
     setIsModalOpen(true);
   };
@@ -89,7 +93,7 @@ const AdminCompaniesPage: React.FC = () => {
       } else {
         await createCompany(formData);
       }
-      fetchCompanies(); // Refetch the list
+      fetchCompanies();
       handleCloseModal();
     } catch (error) {
       console.error('Failed to save company:', error);

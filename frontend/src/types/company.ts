@@ -6,7 +6,6 @@ export interface CompanySummary {
   logo_url: string | null;
 }
 
-// A lightweight summary of a job for the company page
 export interface JobSummary {
   id: string;
   title: string;

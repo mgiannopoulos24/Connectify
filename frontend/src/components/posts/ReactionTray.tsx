@@ -72,7 +72,6 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({
     try {
       const updatedPost = await reactToPost(post.id, type);
       onUpdate(updatedPost);
-      // hide reactions shortly after reacting
       scheduleHide(300);
     } catch (error) {
       console.error('Failed to react:', error);
@@ -104,7 +103,7 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({
           setShowReactions(true);
         }}
         onMouseLeave={() => {
-          scheduleHide(500); // hide after 2 seconds when leaving
+          scheduleHide(500);
         }}
       >
         <Button

@@ -16,12 +16,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface JobCardProps {
   job: JobPosting;
@@ -119,11 +114,13 @@ const JobCard: React.FC<JobCardProps> = ({ job, matchingSkillsCount }) => {
               )}
             </div>
             <div className="flex-grow" />
-            {/* Only render matching skills when count > 0 (hide when 0 or undefined) */}
+
             {count > 0 && (
               <div className="flex items-center gap-2 text-sm text-blue-600 font-semibold mb-3">
                 <Sparkles className="h-4 w-4" />
-                <span>{count} Matching Skill{count > 1 ? 's' : ''}</span>
+                <span>
+                  {count} Matching Skill{count > 1 ? 's' : ''}
+                </span>
               </div>
             )}
             <p className="text-xs text-gray-400">

@@ -212,7 +212,6 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="container mx-auto max-w-3xl space-y-8 px-4">
-      {/* --- Main Profile Card --- */}
       <Card className="w-full shadow-lg">
         <CardHeader className="text-center">
           <div className="relative mx-auto mb-4 h-24 w-24">
@@ -258,7 +257,6 @@ const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* --- Experience Card --- */}
       <Card className="w-full shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -312,7 +310,6 @@ const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* --- Education Card --- */}
       <Card className="w-full shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -367,7 +364,6 @@ const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* --- Skills Card --- */}
       <Card className="w-full shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -401,7 +397,6 @@ const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* --- Interests (Following) Card --- */}
       <Card className="w-full shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
@@ -416,7 +411,6 @@ const ProfilePage: React.FC = () => {
               <TabsTrigger value="people">People</TabsTrigger>
             </TabsList>
 
-            {/* Companies Tab */}
             <TabsContent value="companies" className="mt-4">
               {user.followed_companies && user.followed_companies.length > 0 ? (
                 <Carousel
@@ -475,7 +469,6 @@ const ProfilePage: React.FC = () => {
               )}
             </TabsContent>
 
-            {/* People Tab */}
             <TabsContent value="people" className="mt-4">
               {user.followed_users && user.followed_users.length > 0 ? (
                 <Carousel
@@ -556,7 +549,6 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-// --- Modal Component ---
 const EditModal = ({
   isOpen,
   onClose,

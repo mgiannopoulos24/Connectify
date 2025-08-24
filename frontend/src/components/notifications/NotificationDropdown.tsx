@@ -7,7 +7,7 @@ import { Loader2, BellRing } from 'lucide-react';
 import NotificationItem from './NotificationItem';
 
 interface NotificationDropdownProps {
-  onItemClick: () => void; // Prop to handle closing the popover
+  onItemClick: () => void;
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onItemClick }) => {
@@ -41,13 +41,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onItemClick
               You're all caught up!
             </div>
           ) : (
-            notifications.slice(0, 10).map((notif) => (
-              <NotificationItem
-                key={notif.id}
-                notification={notif}
-                onItemClick={onItemClick} // Pass the handler down
-              />
-            ))
+            notifications
+              .slice(0, 10)
+              .map((notif) => (
+                <NotificationItem key={notif.id} notification={notif} onItemClick={onItemClick} />
+              ))
           )}
         </div>
       </ScrollArea>

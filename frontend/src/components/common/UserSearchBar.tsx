@@ -73,7 +73,6 @@ const UserSearchBar: React.FC = () => {
   return (
     <div className="relative w-full max-w-xl" ref={searchRef}>
       <Command shouldFilter={false} className="overflow-visible">
-        {/* single relative container so icon is inside the input */}
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <CommandInput
