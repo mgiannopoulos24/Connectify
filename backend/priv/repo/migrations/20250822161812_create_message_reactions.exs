@@ -6,7 +6,9 @@ defmodule Backend.Repo.Migrations.CreateMessageReactions do
       add :id, :binary_id, primary_key: true
       add :type, :string, null: false
       add :user_id, references(:users, on_delete: :delete_all, type: :binary_id), null: false
-      add :message_id, references(:messages, on_delete: :delete_all, type: :binary_id), null: false
+
+      add :message_id, references(:messages, on_delete: :delete_all, type: :binary_id),
+        null: false
 
       timestamps(type: :utc_datetime)
     end

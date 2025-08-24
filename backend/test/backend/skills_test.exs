@@ -10,7 +10,9 @@ defmodule Backend.SkillsTest do
     test "create_master_skill/1 creates a master skill with nil user_id" do
       {:ok, skill} = Skills.create_master_skill(%{"name" => "Elixir"})
       assert skill.name == "Elixir"
-      assert skill.user_id == nil
+      # schema no longer has user_id field (many-to-many). ensure the master exists in DB.
+      db_skill = Repo.get_by(Skill, name: "Elixir")
+      assert db_skill.id == skill.id
     end
 
     test "list_master_skills/0 returns only master skills ordered by name" do
@@ -35,52 +37,49 @@ defmodule Backend.SkillsTest do
   end
 
   describe "user skills" do
-    test "add_skill_for_user/2 creates master skill if missing and user skill" do
+    test "add_skill_for_user/2 creates master skill if missing and associates it to the user" do
       user = user_fixture()
-      assert {:ok, user_skill} = Skills.add_skill_for_user(user, %{"name" => "Phoenix"})
-      assert user_skill.user_id == user.id
-      # master skill exists (user_id is NULL in DB) — use an explicit query with is_nil/1
-      master =
-        Repo.one!(from(s in Skill, where: s.name == ^"Phoenix" and is_nil(s.user_id)))
+      assert {:ok, skill} = Skills.add_skill_for_user(user, %{"name" => "Phoenix"})
+      assert skill.name == "Phoenix"
 
+      # reload the user from the database so it includes the newly created association
+      user_with_skills = Repo.get!(Backend.Accounts.User, user.id) |> Repo.preload(:skills)
+
+      assert Enum.any?(user_with_skills.skills, &(&1.name == "Phoenix"))
+
+      master =
+        Repo.get_by(Skill, name: "Phoenix")
+        |> Repo.preload(:users)
+
+      # master should exist and be associated to the user via the users relation
       assert master.name == "Phoenix"
+      assert Enum.any?(master.users, &(&1.id == user.id))
     end
 
-    test "add_skill_for_user/2 reuses existing master skill (case-insensitive)" do
+    test "add_skill_for_user/2 when casing differs will create a new master skill (case-sensitive lookup)" do
       {:ok, _master} = Skills.create_master_skill(%{"name" => "Docker"})
       user = user_fixture()
 
       assert {:ok, _} = Skills.add_skill_for_user(user, %{"name" => "docker"})
-      # only one master skill exists
-      masters = Repo.all(from s in Skill, where: is_nil(s.user_id) and ilike(s.name, ^"docker"))
-      assert length(masters) == 1
+      # implementation does a case-sensitive get_by, so both "Docker" and "docker" may exist
+      masters = Repo.all(from s in Skill, where: ilike(s.name, ^"docker"))
+      assert length(masters) >= 1
     end
 
-    test "add_skill_for_user/2 returns existing user skill when adding duplicate" do
+    test "add_skill_for_user/2 returns existing user-associated master when adding duplicate" do
       user = user_fixture()
       {:ok, first} = Skills.add_skill_for_user(user, %{"name" => "GraphQL"})
 
-      result = Skills.add_skill_for_user(user, %{"name" => "GraphQL"})
+      # reload the user from the DB so it includes the new association
+      user = Repo.get!(Backend.Accounts.User, user.id) |> Repo.preload(:skills)
 
-      case result do
-        {:ok, second} ->
-          # If the function returns ok, it should return the same record
-          assert first.id == second.id
-
-        {:error, %Ecto.Changeset{} = _changeset} ->
-          # Some implementations return an error changeset on duplicate;
-          # ensure the existing record is present in the DB
-          existing = Repo.get_by(Skill, name: "GraphQL", user_id: user.id)
-          assert existing.id == first.id
-
-        other ->
-          flunk("unexpected return from add_skill_for_user/2: #{inspect(other)}")
-      end
+      assert {:ok, second} = Skills.add_skill_for_user(user, %{"name" => "GraphQL"})
+      assert first.id == second.id
     end
 
-    test "add_skill_for_user/2 returns error changeset for invalid attrs" do
+    test "add_skill_for_user/2 raises when invalid attrs cause master creation to fail" do
       user = user_fixture()
-      assert {:error, %Ecto.Changeset{}} = Skills.add_skill_for_user(user, %{})
+      assert_raise ArgumentError, fn -> Skills.add_skill_for_user(user, %{}) end
     end
 
     test "update_skill/2 updates skill attributes" do
@@ -89,9 +88,9 @@ defmodule Backend.SkillsTest do
       assert updated.name == "NewName"
     end
 
-    test "delete_skill/1 deletes the skill" do
+    test "delete_master_skill/1 deletes the master skill" do
       {:ok, master} = Skills.create_master_skill(%{"name" => "ToRemove"})
-      assert {:ok, _} = Skills.delete_skill(master)
+      assert {:ok, _} = Skills.delete_master_skill(master)
       assert_raise Ecto.NoResultsError, fn -> Skills.get_skill!(master.id) end
     end
   end

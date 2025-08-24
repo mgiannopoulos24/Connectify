@@ -40,7 +40,7 @@ defmodule Backend.InterestsTest do
       {:ok, _} = Interests.follow_entity(follower.id, followed.id, "user")
       assert Interests.following?(follower.id, followed.id, "user")
 
-      assert {1, _} = Interests.unfollow_entity(follower.id, followed.id, "user")
+      assert {:ok, {1, _}} = Interests.unfollow_entity(follower.id, followed.id, "user")
       refute Interests.following?(follower.id, followed.id, "user")
     end
 
@@ -93,7 +93,7 @@ defmodule Backend.InterestsTest do
       follower = user_fixture()
       followed = user_fixture()
 
-      assert {0, _} = Interests.unfollow_entity(follower.id, followed.id, "user")
+      assert {:ok, {0, _}} = Interests.unfollow_entity(follower.id, followed.id, "user")
     end
 
     test "count_followers_for_entity/2 returns 0 for entity with no followers" do

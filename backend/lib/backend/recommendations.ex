@@ -22,7 +22,8 @@ defmodule Backend.Recommendations do
     all_job_postings = Jobs.list_all_job_postings()
     all_applications = Repo.all(JobApplication)
 
-    recommended_jobs = Recommender.recommend_jobs(user, all_job_postings, all_users, all_applications)
+    recommended_jobs =
+      Recommender.recommend_jobs(user, all_job_postings, all_users, all_applications)
 
     user_applications_map =
       from(ja in JobApplication,

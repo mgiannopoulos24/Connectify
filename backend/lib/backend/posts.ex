@@ -35,8 +35,8 @@ defmodule Backend.Posts do
       end)
       |> MapSet.new()
 
+    # --- FIX: Moved select_merge inside the `from` macro options ---
     all_posts =
-      # --- FIX: Moved select_merge inside the `from` macro options ---
       from(p in Post,
         left_join: pv in assoc(p, :views),
         group_by: p.id,
@@ -52,36 +52,32 @@ defmodule Backend.Posts do
         score = calculate_post_score(post, user, recommended_post_ids, connection_ids)
         Map.put(post, :score, score)
       end)
-      |> Enum.sort_by(
-        fn post ->
-          case sort_by do
-            "recent" ->
-              {-DateTime.to_unix(post.inserted_at), -post.score}
+      |> Enum.sort_by(fn post ->
+        case sort_by do
+          "recent" ->
+            {-DateTime.to_unix(post.inserted_at), -post.score}
 
-            _ ->
-              {-post.score, -DateTime.to_unix(post.inserted_at)}
-          end
+          _ ->
+            {-post.score, -DateTime.to_unix(post.inserted_at)}
         end
-      )
+      end)
 
     post_ids = Enum.map(sorted_posts, & &1.id)
 
     from(p in Post, where: p.id in ^post_ids)
     |> preload_all_for_post()
     |> Repo.all()
-    |> Enum.sort_by(
-      fn post ->
-        original_post = Enum.find(sorted_posts, &(&1.id == post.id))
+    |> Enum.sort_by(fn post ->
+      original_post = Enum.find(sorted_posts, &(&1.id == post.id))
 
-        case sort_by do
-          "recent" ->
-            {-DateTime.to_unix(post.inserted_at), -original_post.score}
+      case sort_by do
+        "recent" ->
+          {-DateTime.to_unix(post.inserted_at), -original_post.score}
 
-          _ ->
-            {-original_post.score, -DateTime.to_unix(post.inserted_at)}
-        end
+        _ ->
+          {-original_post.score, -DateTime.to_unix(post.inserted_at)}
       end
-    )
+    end)
   end
 
   defp calculate_post_score(post, _user, recommended_post_ids, connection_ids) do

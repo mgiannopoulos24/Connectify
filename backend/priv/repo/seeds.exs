@@ -42,7 +42,8 @@ defmodule SeedHelper do
       role: "professional",
       onboarding_completed: true,
       email_confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
-      location: Enum.random(["New York, NY", "London, UK", "Berlin, DE", "Tokyo, JP", "Sydney, AU"])
+      location:
+        Enum.random(["New York, NY", "London, UK", "Berlin, DE", "Tokyo, JP", "Sydney, AU"])
     }
   end
 
@@ -63,8 +64,21 @@ IO.puts("Creating master skills and companies...")
 
 master_skills =
   [
-    "Elixir", "Phoenix", "LiveView", "React", "PostgreSQL", "Docker", "JavaScript",
-    "HTML", "CSS", "Node.js", "TypeScript", "Python", "Data Analysis", "Project Management", "Agile"
+    "Elixir",
+    "Phoenix",
+    "LiveView",
+    "React",
+    "PostgreSQL",
+    "Docker",
+    "JavaScript",
+    "HTML",
+    "CSS",
+    "Node.js",
+    "TypeScript",
+    "Python",
+    "Data Analysis",
+    "Project Management",
+    "Agile"
   ]
   |> Enum.map(fn name ->
     {:ok, skill} = Skills.create_master_skill(%{"name" => name})
@@ -73,8 +87,16 @@ master_skills =
 
 companies =
   [
-    "Tech Solutions Inc.", "Innovate Corp", "Data Systems LLC", "Cloud Services Co.",
-    "Web Wizards LLC", "QuantumLeap AI", "Stellar Cybernetics", "GreenLeaf Tech", "Apex Digital", "Nexus Innovations"
+    "Tech Solutions Inc.",
+    "Innovate Corp",
+    "Data Systems LLC",
+    "Cloud Services Co.",
+    "Web Wizards LLC",
+    "QuantumLeap AI",
+    "Stellar Cybernetics",
+    "GreenLeaf Tech",
+    "Apex Digital",
+    "Nexus Innovations"
   ]
   |> Enum.map(fn name ->
     {:ok, company} = Companies.get_or_create_company_by_name(name)
@@ -112,6 +134,7 @@ john_ripper =
            email_confirmed_at: NaiveDateTime.utc_now()
          }) do
     IO.puts("Professional user created: #{user.email}")
+
     {:ok, _} =
       Backend.Careers.create_job_experience(%{
         "user_id" => user.id,
@@ -121,6 +144,7 @@ john_ripper =
       })
 
     johns_skills = ["Agile", "LiveView", "Project Management", "TypeScript"]
+
     Enum.each(johns_skills, fn skill_name ->
       Skills.add_skill_for_user(user, %{"name" => skill_name})
     end)
@@ -128,7 +152,10 @@ john_ripper =
     user
   else
     {:error, changeset} ->
-      IO.puts("Could not create professional user John Ripper. Errors: #{inspect(changeset.errors)}")
+      IO.puts(
+        "Could not create professional user John Ripper. Errors: #{inspect(changeset.errors)}"
+      )
+
       nil
   end
 
@@ -165,6 +192,7 @@ IO.puts("#{length(users)} professional users now exist.")
 
 # --- 3. Create Job Postings ---
 IO.puts("Creating 20 job postings from various users...")
+
 job_postings =
   for _ <- 1..20 do
     author = Enum.random(users)
@@ -183,10 +211,12 @@ job_postings =
     {:ok, job_posting} = Jobs.create_job_posting(author, job_attrs)
     job_posting
   end
+
 IO.puts("#{length(job_postings)} job postings created.")
 
 # --- 4. Establish Connections ---
 IO.puts("Creating a network of connections...")
+
 Enum.each(users, fn user ->
   others = Enum.reject(users, &(&1.id == user.id))
   connections_to_make = Enum.take_random(others, Enum.random(2..5))
@@ -206,10 +236,12 @@ Enum.each(users, fn user ->
     end
   end)
 end)
+
 IO.puts("Connections established.")
 
 # --- 5. Create Posts ---
 IO.puts("Creating 50 random posts for various users...")
+
 all_posts =
   for _ <- 1..50 do
     user = Enum.random(users)
@@ -251,10 +283,12 @@ Enum.each(users, fn user ->
     end
   end)
 end)
+
 IO.puts("Post interactions simulated.")
 
 # --- 7. Create Job Applications (for Recommender) ---
 IO.puts("Simulating job applications to train recommender...")
+
 Enum.each(users, fn user ->
   applicable_jobs = Enum.reject(job_postings, &(&1.user_id == user.id))
   jobs_to_apply_for = Enum.take_random(applicable_jobs, Enum.random(3..8))
@@ -266,6 +300,7 @@ Enum.each(users, fn user ->
     end
   end)
 end)
+
 IO.puts("Simulated job applications.")
 
 IO.puts("Database seeding finished successfully!")

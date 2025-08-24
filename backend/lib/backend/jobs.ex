@@ -110,7 +110,9 @@ defmodule Backend.Jobs do
         # compute matching skills count and attach it
         post_skill_ids = MapSet.new(Enum.map(post.skills, & &1.id))
         user_skill_ids_set = MapSet.new(user_skill_ids)
-        matching_skills_count = MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size()
+
+        matching_skills_count =
+          MapSet.intersection(post_skill_ids, user_skill_ids_set) |> MapSet.size()
 
         post
         |> Map.put(:application_status, status)
@@ -246,6 +248,7 @@ defmodule Backend.Jobs do
               resource_id: job_posting.id,
               resource_type: "job_posting"
             })
+
             {:ok, application}
           end
 
@@ -266,6 +269,7 @@ defmodule Backend.Jobs do
               resource_id: job_posting.id,
               resource_type: "job_posting"
             })
+
             {:ok, updated_application}
           end
 
@@ -296,12 +300,14 @@ defmodule Backend.Jobs do
 
   def review_application(%JobApplication{} = application, status) do
     application = Repo.preload(application, [:user, job_posting: [:user]])
+
     notification_type =
       case status do
         "accepted" -> "application_accepted"
         "rejected" -> "application_rejected"
         _ -> nil
       end
+
     with {:ok, updated_app} <-
            application |> JobApplication.changeset(%{status: status}) |> Repo.update() do
       if notification_type do
@@ -313,6 +319,7 @@ defmodule Backend.Jobs do
           resource_type: "job_posting"
         })
       end
+
       {:ok, updated_app}
     end
   end

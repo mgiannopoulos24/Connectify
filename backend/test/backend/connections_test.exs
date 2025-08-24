@@ -69,6 +69,39 @@ defmodule Backend.ConnectionsTest do
     end
   end
 
+  describe "delete_connection/1" do
+    test "deletes an existing connection record" do
+      requester = user_fixture()
+      recipient = user_fixture()
+      {:ok, connection} = Connections.send_connection_request(requester.id, recipient.id)
+
+      # delete should remove the record regardless of status
+      assert {:ok, _} = Connections.delete_connection(connection)
+      assert Repo.get(Connections.Connection, connection.id) == nil
+    end
+  end
+
+  describe "get_connection_between_users/2" do
+    test "returns an accepted connection regardless of user order" do
+      user_a = user_fixture()
+      user_b = user_fixture()
+
+      {:ok, conn} = Connections.send_connection_request(user_a.id, user_b.id)
+      Connections.accept_connection_request(conn)
+
+      # lookup in both orders
+      assert Connections.get_connection_between_users(user_a.id, user_b.id).id == conn.id
+      assert Connections.get_connection_between_users(user_b.id, user_a.id).id == conn.id
+    end
+
+    test "returns nil when no accepted connection exists" do
+      u1 = user_fixture()
+      u2 = user_fixture()
+
+      assert Connections.get_connection_between_users(u1.id, u2.id) == nil
+    end
+  end
+
   describe "list_pending_requests/1" do
     test "returns only pending requests for the given user with preloaded data" do
       recipient = user_fixture()

@@ -82,6 +82,7 @@ defmodule BackendWeb.JobPostingController do
         |> json(%{
           errors: %{detail: "You have an active application for this job already."}
         })
+
       # --- END NEW ERROR HANDLING ---
 
       {:error,

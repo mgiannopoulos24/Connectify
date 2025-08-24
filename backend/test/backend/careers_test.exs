@@ -4,6 +4,7 @@ defmodule Backend.CareersTest do
   alias Backend.Careers
   alias Backend.Careers.{JobExperience, Education}
   alias Backend.Companies
+  alias Backend.Repo
 
   import Backend.AccountsFixtures
 
@@ -19,6 +20,7 @@ defmodule Backend.CareersTest do
       }
 
       assert {:ok, %JobExperience{} = je} = Careers.create_job_experience(attrs)
+      je = Repo.preload(je, :company)
       assert not is_nil(je.company)
       assert je.company.name == "TestCo"
     end
@@ -35,6 +37,7 @@ defmodule Backend.CareersTest do
       }
 
       assert {:ok, %JobExperience{} = je} = Careers.create_job_experience(attrs)
+      je = Repo.preload(je, :company)
       assert je.company.id == company.id
     end
 
@@ -66,6 +69,7 @@ defmodule Backend.CareersTest do
       assert {:ok, %JobExperience{} = updated} =
                Careers.update_job_experience(je, %{"job_title" => "Updated"})
 
+      updated = Repo.preload(updated, :company)
       assert updated.job_title == "Updated"
       # company should still be present
       assert not is_nil(updated.company)
@@ -116,6 +120,7 @@ defmodule Backend.CareersTest do
       assert {:ok, %JobExperience{} = updated} =
                Careers.update_job_experience(je, %{"company_name" => "NewCo"})
 
+      updated = Repo.preload(updated, :company)
       assert not is_nil(updated.company)
       assert updated.company.name == "NewCo"
     end

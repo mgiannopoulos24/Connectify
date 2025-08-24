@@ -143,14 +143,8 @@ defmodule Backend.JobsTest do
       assert app.job_posting_id == posting.id
 
       # duplicate application rejected
-      assert {:error, %Ecto.Changeset{} = changeset} =
+      assert {:error, :already_applied} =
                Jobs.apply_for_job(other, posting, %{"cover_letter" => "Again"})
-
-      errors = errors_on(changeset)
-
-      assert Enum.any?(Map.values(errors), fn vals ->
-               Enum.any?(vals, &String.contains?(&1, "already applied"))
-             end)
     end
 
     test "review_application/2 updates status and returns updated application" do

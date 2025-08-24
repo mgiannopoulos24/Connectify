@@ -27,7 +27,7 @@ defmodule Backend.Recommendations.Recommender do
         Enum.map(all_applications, fn app ->
           {user_id_to_index[app.user_id], job_id_to_index[app.job_posting_id], 1.0}
         end)
-        |> Enum.reject(&is_nil(elem(&1, 0)) or is_nil(elem(&1, 1)))
+        |> Enum.reject(&(is_nil(elem(&1, 0)) or is_nil(elem(&1, 1))))
 
       num_users = length(all_users)
       num_jobs = length(all_job_postings)
@@ -97,7 +97,7 @@ defmodule Backend.Recommendations.Recommender do
     |> Enum.map(fn {{user_id, post_id}, weights} ->
       {user_id_to_index[user_id], post_id_to_index[post_id], Enum.max(weights)}
     end)
-    |> Enum.reject(&is_nil(elem(&1, 0)) or is_nil(elem(&1, 1)))
+    |> Enum.reject(&(is_nil(elem(&1, 0)) or is_nil(elem(&1, 1))))
   end
 
   defp initialize_matrix(rows, cols) do
@@ -114,7 +114,7 @@ defmodule Backend.Recommendations.Recommender do
   defp train(ratings, p, q, iterations_left) do
     {new_p, new_q} =
       Enum.reduce(Enum.shuffle(ratings), {p, q}, fn {user_index, item_index, rating},
-                                                     {current_p, current_q} ->
+                                                    {current_p, current_q} ->
         update(user_index, item_index, rating, current_p, current_q)
       end)
 

@@ -14,9 +14,12 @@ defmodule Backend.CompaniesFixtures do
       })
 
     case apply(Backend.Companies, :create_company, [attrs]) do
-      {:ok, company} -> company
+      {:ok, company} ->
+        company
+
       {:error, %Ecto.Changeset{} = changeset} ->
         raise "Could not create company fixture: #{inspect(changeset.errors)}"
+
       other ->
         raise "Backend.Companies.create_company/1 returned unexpected value: #{inspect(other)}"
     end
