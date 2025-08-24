@@ -1,15 +1,3 @@
-# Script for populating the database. You can run it as:
-#
-#     mix run priv/repo/seeds.exs
-#
-# Inside the script, you can read and write to any of your
-# repositories directly:
-#
-#     Backend.Repo.insert!(%Backend.SomeSchema{})
-#
-# We recommend using the bang functions (`insert!`, `update!`
-# and so on) as they will fail if something goes wrong.
-
 alias Backend.Accounts
 alias Backend.Companies
 alias Backend.Skills
@@ -79,7 +67,7 @@ master_skills =
     "HTML", "CSS", "Node.js", "TypeScript", "Python", "Data Analysis", "Project Management", "Agile"
   ]
   |> Enum.map(fn name ->
-    {:ok, skill} = Skills.create_skill(%{"name" => name})
+    {:ok, skill} = Skills.create_master_skill(%{"name" => name})
     skill
   end)
 
@@ -124,7 +112,6 @@ john_ripper =
            email_confirmed_at: NaiveDateTime.utc_now()
          }) do
     IO.puts("Professional user created: #{user.email}")
-    # Give John some initial data
     {:ok, _} =
       Backend.Careers.create_job_experience(%{
         "user_id" => user.id,
@@ -133,7 +120,6 @@ john_ripper =
         "company_id" => Enum.random(companies).id
       })
 
-    # --- FIX: Use the corrected context function ---
     johns_skills = ["Agile", "LiveView", "Project Management", "TypeScript"]
     Enum.each(johns_skills, fn skill_name ->
       Skills.add_skill_for_user(user, %{"name" => skill_name})
@@ -146,7 +132,6 @@ john_ripper =
       nil
   end
 
-# Create 15 Additional Professional Users
 random_users =
   for i <- 1..15 do
     user_attrs = SeedHelper.random_user_data(i)
@@ -160,7 +145,6 @@ random_users =
           "company_id" => Enum.random(companies).id
         })
 
-      # --- FIX: Use the corrected context function ---
       Enum.take_random(master_skills, Enum.random(2..5))
       |> Enum.each(fn skill ->
         Skills.add_skill_for_user(user, %{"name" => skill.name})
@@ -175,12 +159,9 @@ random_users =
   end
   |> Enum.reject(&is_nil/1)
 
-# Combine John Ripper with the other random users for interactions
 users = [john_ripper | random_users] |> Enum.reject(&is_nil/1)
 
 IO.puts("#{length(users)} professional users now exist.")
-
-# ... (rest of the seeds file remains the same) ...
 
 # --- 3. Create Job Postings ---
 IO.puts("Creating 20 job postings from various users...")
@@ -206,14 +187,11 @@ IO.puts("#{length(job_postings)} job postings created.")
 
 # --- 4. Establish Connections ---
 IO.puts("Creating a network of connections...")
-# For each user, create 2 to 5 connections
 Enum.each(users, fn user ->
-  # Select other users to connect with, excluding self
   others = Enum.reject(users, &(&1.id == user.id))
   connections_to_make = Enum.take_random(others, Enum.random(2..5))
 
   Enum.each(connections_to_make, fn other_user ->
-    # To avoid duplicate requests, only create if an inverse request doesn't exist
     existing_conn =
       from(c in Backend.Connections.Connection,
         where:
@@ -224,7 +202,6 @@ Enum.each(users, fn user ->
 
     if is_nil(existing_conn) do
       {:ok, request} = Connections.send_connection_request(user.id, other_user.id)
-      # Immediately accept for simplicity in seeding
       Connections.accept_connection_request(request)
     end
   end)
@@ -232,28 +209,60 @@ end)
 IO.puts("Connections established.")
 
 # --- 5. Create Posts ---
-IO.puts("Creating random posts for each user...")
-Enum.each(users, fn user ->
-  for _ <- 1..Enum.random(0..5) do
-    Posts.create_post(user, %{
-      "content" => "Sharing some thoughts on my industry. It's an exciting time for #{SeedHelper.random_job_title()}s!"
-    })
-  end
-end)
-IO.puts("Posts created.")
+IO.puts("Creating 50 random posts for various users...")
+all_posts =
+  for _ <- 1..50 do
+    user = Enum.random(users)
 
-# --- 6. Create Job Applications (FOR RECOMMENDER TRAINING) ---
-IO.puts("Simulating job applications to train recommender...")
-# Each user will apply to 3-8 random jobs
+    {:ok, post} =
+      Posts.create_post(user, %{
+        "content" =>
+          "Sharing some thoughts on my industry. It's an exciting time for #{SeedHelper.random_job_title()}s!"
+      })
+
+    post
+  end
+
+IO.puts("#{length(all_posts)} posts created.")
+
+# --- 6. Create Post Interactions (for Recommender) ---
+IO.puts("Simulating post interactions (views, reactions, comments)...")
+reaction_types = ~w(like support congrats awesome funny constructive)
+
 Enum.each(users, fn user ->
-  # Filter out jobs posted by the current user
+  # Each user interacts with 10 to 25 random posts
+  posts_to_interact_with = Enum.take_random(all_posts, Enum.random(10..25))
+
+  Enum.each(posts_to_interact_with, fn post ->
+    # Don't interact with own posts
+    if post.user_id != user.id do
+      # 1. Always track a view
+      Posts.track_post_view(user, post)
+
+      # 2. 60% chance to also react
+      if :rand.uniform() < 0.6 do
+        Posts.react_to_post(user, post, Enum.random(reaction_types))
+      end
+
+      # 3. 20% chance to also comment
+      if :rand.uniform() < 0.2 do
+        Posts.create_comment(user, post, %{"content" => "Great point!"})
+      end
+    end
+  end)
+end)
+IO.puts("Post interactions simulated.")
+
+# --- 7. Create Job Applications (for Recommender) ---
+IO.puts("Simulating job applications to train recommender...")
+Enum.each(users, fn user ->
   applicable_jobs = Enum.reject(job_postings, &(&1.user_id == user.id))
   jobs_to_apply_for = Enum.take_random(applicable_jobs, Enum.random(3..8))
 
   Enum.each(jobs_to_apply_for, fn job ->
     case Jobs.apply_for_job(user, job) do
       {:ok, _} -> :ok
-      _ -> :error # Ignore if they already "applied" somehow
+      _ -> :error
     end
   end)
 end)

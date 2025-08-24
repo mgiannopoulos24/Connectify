@@ -30,79 +30,97 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
   const getUserStatus = (userId: string): UserStatus => {
     const userPresence = presenceState[userId];
 
-    // 1. If there's no presence entry at all, or no sessions are listed, the user is offline.
     if (!userPresence || userPresence.metas.length === 0) {
       return 'offline';
     }
-
-    // 2. If ANY of their sessions are 'active', their overall status is 'active'.
-    // This takes top priority.
     if (userPresence.metas.some((meta) => meta.status === 'active')) {
       return 'active';
     }
-
-    // 3. If they have presence but none are 'active', they must be 'idle'.
-    // This is the crucial logic that correctly identifies the idle state.
     return 'idle';
   };
 
-  const updateUserStatus = (newStatus: UserStatus) => {
-    if (userStatusRef.current !== newStatus && channelRef.current?.state === 'joined') {
-      userStatusRef.current = newStatus;
-      channelRef.current.push('status:update', { status: newStatus });
-    }
-  };
-
-  const handleActivity = () => {
-    updateUserStatus('active');
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      updateUserStatus('idle');
-    }, IDLE_TIMEOUT);
-  };
-
   useEffect(() => {
-    if (isAuthenticated && token && !socketRef.current) {
-      const socket = new Socket('/socket', { params: { token } });
-      socketRef.current = socket;
-      socket.connect();
-
-      const channel = socket.channel(CHANNEL_NAME, {});
-      channelRef.current = channel;
-
-      const presence = new PhoenixPresence(channel);
-
-      presence.onSync(() => {
-        const newState: PresenceState = {};
-        presence.list((id, { metas }) => {
-          newState[id] = { metas: metas as { status: UserStatus }[] };
-        });
-        setPresenceState(newState);
-      });
-
-      channel
-        .join()
-        .receive('ok', () => {
-          handleActivity(); // Set initial status to active
-          window.addEventListener('mousemove', handleActivity);
-          window.addEventListener('keydown', handleActivity);
-          document.addEventListener('visibilitychange', handleActivity);
-        })
-        .receive('error', (resp) => console.error('Unable to join status channel', resp));
-    } else if (!isAuthenticated && socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-      channelRef.current = null;
-    }
-
-    return () => {
+    if (!isAuthenticated || !token) {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        socketRef.current = null;
+        channelRef.current = null;
       }
+      return;
+    }
+
+    if (socketRef.current) {
+      return; 
+    }
+
+    const socket = new Socket('/socket', { params: { token } });
+    socketRef.current = socket;
+    socket.connect();
+
+    const channel = socket.channel(CHANNEL_NAME, {});
+    channelRef.current = channel;
+
+    const presence = new PhoenixPresence(channel);
+
+    presence.onSync(() => {
+      const newState: PresenceState = {};
+      presence.list((id, { metas }) => {
+        newState[id] = { metas: metas as { status: UserStatus }[] };
+      });
+      setPresenceState(newState);
+    });
+    
+    const updateUserStatus = (newStatus: UserStatus) => {
+      if (userStatusRef.current !== newStatus && channelRef.current?.state === 'joined') {
+        userStatusRef.current = newStatus;
+        channelRef.current.push('status:update', { status: newStatus });
+      }
+    };
+
+    const resetIdleTimer = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(() => {
+        updateUserStatus('idle');
+      }, IDLE_TIMEOUT);
+    };
+
+    const handleActivity = () => {
+      // Only update if not already active to avoid spamming the channel
+      if (userStatusRef.current !== 'active') {
+        updateUserStatus('active');
+      }
+      resetIdleTimer();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        updateUserStatus('idle');
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      } else {
+        handleActivity();
+      }
+    };
+
+    channel
+      .join()
+      .receive('ok', () => {
+        handleActivity(); // Set initial status to active
+        window.addEventListener('mousemove', handleActivity);
+        window.addEventListener('keydown', handleActivity);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+      })
+      .receive('error', (resp) => console.error('Unable to join status channel', resp));
+
+    return () => {
       window.removeEventListener('mousemove', handleActivity);
       window.removeEventListener('keydown', handleActivity);
-      document.removeEventListener('visibilitychange', handleActivity);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        channelRef.current = null;
+      }
     };
   }, [isAuthenticated, token]);
 
@@ -110,6 +128,7 @@ export const PresenceProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   return <PresenceContext.Provider value={value}>{children}</PresenceContext.Provider>;
 };
+
 
 // --- Hook ---
 export const usePresence = () => {

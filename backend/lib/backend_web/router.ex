@@ -3,13 +3,11 @@ defmodule BackendWeb.Router do
 
   defmodule Plugs.EnsureConfirmed do
     import Plug.Conn
-    # import Phoenix.Controller, only: [json: 2, halt: 1]
 
     def init(opts), do: opts
 
     def call(conn, _opts) do
       case conn.assigns[:current_user] do
-        # This plug only acts if a user is assigned
         %Backend.Accounts.User{status: "pending_confirmation"} ->
           conn
           |> put_status(:forbidden)
@@ -67,12 +65,10 @@ defmodule BackendWeb.Router do
       delete "/follow", UserController, :unfollow
     end
 
-    # Other resources
     resources "/job_experiences", JobExperienceController, except: [:new, :edit]
     resources "/educations", EducationController, except: [:new, :edit]
     resources "/skills", SkillController, except: [:new, :edit]
     resources "/interests", InterestController, only: [:create], as: :interest
-    # Company search for autocomplete
     resources "/companies", CompanyController, only: [:index, :show], as: :company
     post "/companies/:id/follow", CompanyController, :follow
     delete "/companies/:id/follow", CompanyController, :unfollow
@@ -81,6 +77,7 @@ defmodule BackendWeb.Router do
     resources "/posts", PostController, except: [:new, :edit]
     post "/posts/upload_image", PostController, :upload_image
     post "/posts/upload_video", PostController, :upload_video
+    post "/posts/:id/view", PostController, :view
     post "/posts/:id/react", PostController, :react
     delete "/posts/:id/react", PostController, :remove_reaction
     get "/posts/:id/reactions", PostController, :reactions
@@ -105,9 +102,11 @@ defmodule BackendWeb.Router do
     post "/chat", ChatController, :create
     get "/chat/:chat_room_id/messages", ChatController, :index
     post "/chat/:chat_room_id/messages/:message_id/react", ChatController, :react_to_message
+
     delete "/chat/:chat_room_id/messages/:message_id/react",
            ChatController,
            :remove_reaction_from_message
+
     post "/chat/upload_image", ChatController, :upload_image
     post "/chat/upload_file", ChatController, :upload_file
 

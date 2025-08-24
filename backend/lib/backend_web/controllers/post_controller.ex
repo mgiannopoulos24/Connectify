@@ -15,9 +15,11 @@ defmodule BackendWeb.PostController do
   @image_upload_dir "priv/static/uploads/post_images"
   @video_upload_dir "priv/static/uploads/post_videos"
 
-  def index(conn, _params) do
+  def index(conn, params) do
     current_user = conn.assigns.current_user
-    posts = Posts.list_posts(current_user)
+    # --- MODIFIED: Pass sort_by param to the context ---
+    sort_by = Map.get(params, "sort_by", "relevant")
+    posts = Posts.list_posts(current_user, sort_by)
     render(conn, PostJSON, :index, posts: posts, current_user: current_user)
   end
 
@@ -25,7 +27,6 @@ defmodule BackendWeb.PostController do
     current_user = conn.assigns.current_user
 
     with {:ok, %Post{} = post} <- Posts.create_post(current_user, post_params) do
-      # After creation, immediately fetch the fully preloaded version for the response.
       preloaded_post = Posts.get_post!(post.id)
 
       conn
@@ -85,6 +86,16 @@ defmodule BackendWeb.PostController do
     current_user = conn.assigns.current_user
     post = Posts.get_post!(id)
     render(conn, PostJSON, :show, post: post, current_user: current_user)
+  end
+
+  # --- NEW: Action to track a post view ---
+  def view(conn, %{"id" => id}) do
+    current_user = conn.assigns.current_user
+    post = Posts.get_post!(id)
+
+    with {:ok, _} <- Posts.track_post_view(current_user, post) do
+      send_resp(conn, :no_content, "")
+    end
   end
 
   def update(conn, %{"id" => id, "post" => post_params}) do
@@ -150,7 +161,6 @@ defmodule BackendWeb.PostController do
     post = Posts.get_post!(id)
 
     with {:ok, comment} <- Posts.create_comment(current_user, post, comment_params) do
-      # Preload all associations needed for the JSON response
       preloaded_comment = Repo.preload(comment, [:user, :reactions, :replies])
 
       conn
@@ -159,19 +169,16 @@ defmodule BackendWeb.PostController do
     end
   end
 
-  # --- MODIFIED: Renamed from like_comment and now accepts a type ---
   def react_to_comment(conn, %{"post_id" => post_id, "comment_id" => comment_id, "type" => type}) do
     current_user = conn.assigns.current_user
     comment = Repo.get!(Comment, comment_id)
 
     with {:ok, _} <- Posts.react_to_comment(current_user, comment, type) do
-      # Refetch the entire post to return a consistent, updated state
       updated_post = Posts.get_post!(post_id)
       render(conn, PostJSON, :show, post: updated_post, current_user: current_user)
     end
   end
 
-  # --- MODIFIED: Renamed from unlike_comment ---
   def remove_reaction_from_comment(conn, %{"post_id" => post_id, "comment_id" => comment_id}) do
     current_user = conn.assigns.current_user
     comment = Repo.get!(Comment, comment_id)

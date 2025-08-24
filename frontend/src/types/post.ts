@@ -42,6 +42,9 @@ export interface Post {
   latest_comment: Comment | null;
   top_reactions: Reaction['type'][];
   last_connection_reaction: Reaction | null;
+  // --- NEW: Add virtual fields from the backend ---
+  views_count?: number;
+  score?: number;
 }
 
 export interface PostPreview {
