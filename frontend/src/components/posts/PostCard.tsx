@@ -22,6 +22,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import ReactionsModal from './ReactionsModal';
 import SendPostModal from './SendPostModal';
+import DOMPurify from 'dompurify';
 
 interface PostCardProps {
   post: Post;
@@ -217,7 +218,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onUpdate, onDelete }) => {
               {post.content && (
                 <div
                   className="prose max-w-none mb-4"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
                 />
               )}
               {post.image_url && (
