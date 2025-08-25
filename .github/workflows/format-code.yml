@@ -38,7 +38,6 @@ jobs:
         run: npm run format
 
       - name: Check for changes
-        if: steps.format-check.outcome == 'failure'
         id: git-check
         run: |
           if git diff --exit-code; then
@@ -46,15 +45,6 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-
-      - name: Commit formatted code
-        if: steps.format-check.outcome == 'failure' && steps.git-check.outputs.changed == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "style: Prettier formatted the code."
-          git push
 
   format-backend:
     runs-on: ubuntu-latest
@@ -94,7 +84,6 @@ jobs:
         run: mix format
 
       - name: Check for changes
-        if: steps.format-check.outcome == 'failure'
         id: git-check
         run: |
           if git diff --exit-code; then
@@ -103,12 +92,25 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit formatted code
-        if: steps.format-check.outcome == 'failure' && steps.git-check.outputs.changed == 'true'
+  commit-formatted-code:
+    runs-on: ubuntu-latest
+    needs: [format-frontend, format-backend]
+    if: |
+      needs.format-frontend.outputs.git-check_changed == 'true' ||
+      needs.format-backend.outputs.git-check_changed == 'true'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push formatted code
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -m "style: Mix formatted the code."
+          git commit -m "style: Auto formatted code (frontend/backend)."
           git push
 
