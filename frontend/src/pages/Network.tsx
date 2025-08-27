@@ -204,7 +204,8 @@ const NetworkPage: React.FC = () => {
               connections.map((conn) => (
                 <UserCard key={conn.id} user={conn.connected_user}>
                   <Button variant="outline" onClick={() => handleMessage(conn.connected_user.id)}>
-                    <MessageSquare className="w-4 h-4 mr-2" /> Message
+                    <MessageSquare className="w-4 h-4 sm:mr-2 align-center" />
+                    <span className="hidden sm:inline">Message</span>
                   </Button>
                 </UserCard>
               ))
@@ -280,7 +281,8 @@ const NetworkPage: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <UserPlus className="w-4 h-4 mr-2" /> Connect
+                        <UserPlus className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Connect</span>
                       </>
                     )}
                   </Button>

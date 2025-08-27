@@ -20,7 +20,7 @@ const NotificationBell: React.FC = () => {
               </div>
             )}
           </div>
-          <span className="text-xs">Notifications</span>
+          <span className="hidden sm:text-xs">Notifications</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-2" align="end">

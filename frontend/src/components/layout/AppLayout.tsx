@@ -68,7 +68,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               className="flex items-center gap-2 text-2xl font-bold text-blue-600"
             >
               <NetworkIcon />
-              <span className="hidden lg:inline">Connectify</span>
+              <span className="hidden md:inline">Connectify</span>
             </Link>
 
             <div className="hidden lg:flex flex-grow justify-center px-8">

@@ -95,7 +95,7 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({
   };
 
   return (
-    <div className="flex justify-around items-center mt-2 pt-2 border-t">
+    <div className="flex justify-evenly sm:justify-around items-center mt-2 pt-2 border-t">
       <div
         className="relative"
         onMouseEnter={() => {
@@ -124,7 +124,7 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({
           ) : (
             <ThumbsUp className="w-5 h-5" />
           )}
-          <span className="capitalize">{currentUserReaction || 'React'}</span>
+          <span className="capitalize hidden sm:inline">{currentUserReaction || 'React'}</span>
         </Button>
 
         <AnimatePresence>
@@ -169,15 +169,15 @@ const ReactionTray: React.FC<ReactionTrayProps> = ({
 
       <Button variant="ghost" className="flex items-center gap-2 w-full" onClick={onCommentClick}>
         <MessageCircle className="w-5 h-5" />
-        Comment
+        <span className="hidden sm:inline">Comment</span>
       </Button>
       <Button variant="ghost" className="flex items-center gap-2 w-full">
         <Share2 className="w-5 h-5" />
-        Share
+        <span className="hidden sm:inline">Share</span>
       </Button>
       <Button variant="ghost" className="flex items-center gap-2 w-full" onClick={onSendClick}>
         <Send className="w-5 h-5" />
-        Send
+        <span className="hidden sm:inline">Send</span>
       </Button>
     </div>
   );

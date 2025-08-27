@@ -47,7 +47,7 @@ const ReactionsModal: React.FC<ReactionsModalProps> = ({ isOpen, onClose, post }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-w-[350px] rounded-md">
         <DialogHeader>
           <DialogTitle>Reactions</DialogTitle>
           <DialogDescription>People who reacted to {post.user.name}'s post.</DialogDescription>

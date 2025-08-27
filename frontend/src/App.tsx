@@ -13,35 +13,35 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    let isMounted = true;
-    const healthCheck = async () => {
-      if (location.pathname === '/maintenance') return;
-      try {
-        await axios.get('/api/health');
-        if (isBackendDown) {
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('Backend health check failed:', error);
-        if (isMounted) {
-          setIsBackendDown(true);
-        }
-      }
-    };
+  // useEffect(() => {
+  //   let isMounted = true;
+  //   const healthCheck = async () => {
+  //     if (location.pathname === '/maintenance') return;
+  //     try {
+  //       await axios.get('/api/health');
+  //       if (isBackendDown) {
+  //         navigate('/');
+  //       }
+  //     } catch (error) {
+  //       console.error('Backend health check failed:', error);
+  //       if (isMounted) {
+  //         setIsBackendDown(true);
+  //       }
+  //     }
+  //   };
 
-    healthCheck();
+  //   healthCheck();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [location.pathname]);
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, [location.pathname]);
 
-  useEffect(() => {
-    if (isBackendDown) {
-      navigate('/maintenance', { replace: true });
-    }
-  }, [isBackendDown, navigate]);
+  // useEffect(() => {
+  //   if (isBackendDown) {
+  //     navigate('/maintenance', { replace: true });
+  //   }
+  // }, [isBackendDown, navigate]);
 
   return (
     <Routes>
