@@ -77,7 +77,7 @@ const SendPostModal: React.FC<SendPostModalProps> = ({ isOpen, onClose, post }) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-w-[350px]  rounded-md">
         <DialogHeader>
           <DialogTitle>Send Post</DialogTitle>
           <DialogDescription>Send this post as a private message.</DialogDescription>
@@ -132,7 +132,7 @@ const SendPostModal: React.FC<SendPostModalProps> = ({ isOpen, onClose, post }) 
           </ScrollArea>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={isSending}>
             Cancel
           </Button>

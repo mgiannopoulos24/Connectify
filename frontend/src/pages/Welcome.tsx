@@ -113,8 +113,8 @@ const Welcome: React.FC = () => {
       <main>
         <section className="relative bg-gray-50 overflow-hidden">
           <div className="container mx-auto px-6 py-20 md:py-32 relative z-10">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="text-center md:text-left">
+            <div className="grid grid-cols-1 [&>*:first-child]:order-2 [&>*:last-child]:order-1 xl:grid-cols-2 gap-12 items-center">
+              <div className="text-center lg:text-left">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 tracking-tight text-gray-900">
                   Your Professional Community Awaits
                 </h1>
@@ -123,7 +123,7 @@ const Welcome: React.FC = () => {
                   opportunities on Connectify.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Button size="lg" className="w-full sm:w-auto" onClick={handleJoinNow}>
                     <UserPlus className="mr-2 h-5 w-5" /> Join Now
                   </Button>
@@ -138,7 +138,7 @@ const Welcome: React.FC = () => {
                 </div>
               </div>
 
-              <div className="hidden md:block">
+              <div className="block md:block">
                 <img
                   src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2832&auto=format&fit=crop"
                   alt="Professionals collaborating"
@@ -157,7 +157,7 @@ const Welcome: React.FC = () => {
               your professional goals.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
               {features.map((feature) => (
                 <div key={feature.title} className="bg-gray-50 p-6 md:p-8 rounded-xl text-left">
                   <div className="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mb-4">

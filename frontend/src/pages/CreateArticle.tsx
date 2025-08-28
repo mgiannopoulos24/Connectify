@@ -146,7 +146,7 @@ const CreateArticlePage: React.FC = () => {
       </div>
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogContent className="w-[350px] md:max-w-[450px] h-[90vh] flex flex-col rounded-md">
           <DialogHeader>
             <DialogTitle>Article Preview</DialogTitle>
             <DialogDescription>This is how your article will appear on the feed.</DialogDescription>
@@ -166,7 +166,7 @@ const CreateArticlePage: React.FC = () => {
               />
             </div>
           </div>
-          <DialogFooter className="mt-auto pt-4 border-t">
+          <DialogFooter className="mt-auto pt-4 border-t gap-2">
             <Button
               variant="outline"
               onClick={() => setIsPreviewOpen(false)}

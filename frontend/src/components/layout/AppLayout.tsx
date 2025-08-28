@@ -42,12 +42,14 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isMobileSearchOpen) {
-      setTimeout(() => {
-        const input = mobileSearchRef.current?.querySelector('input');
-        input?.focus();
-      }, 100);
+    if (!isMobileSearchOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setIsMobileSearchOpen(false);
+      }
     }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileSearchOpen]);
 
   const userStatus = user ? getUserStatus(user.id) : 'offline';
@@ -205,8 +207,23 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         {isMobileSearchOpen && (
-          <div className="p-2 border-t lg:hidden" ref={mobileSearchRef}>
-            <UserSearchBar />
+          <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 lg:hidden">
+            <div
+              ref={mobileSearchRef}
+              className="w-full max-w-md mt-24 bg-white rounded-xl shadow-lg p-4 mx-2"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold text-lg">Search</span>
+                <button
+                  onClick={() => setIsMobileSearchOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                  aria-label="Close search"
+                >
+                  &times;
+                </button>
+              </div>
+              <UserSearchBar />
+            </div>
           </div>
         )}
       </header>

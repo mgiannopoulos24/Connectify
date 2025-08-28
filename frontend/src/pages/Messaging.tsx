@@ -76,9 +76,10 @@ const MessagingPage: React.FC = () => {
   }
 
   return (
-    <Card className="h-[calc(100vh-150px)] w-full">
+    <Card className="md:h-[calc(100vh-150px)] w-full">
       <CardContent className="p-0 h-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 h-full">
+        <div className="flex flex-col md:grid md:grid-cols-3 h-full">
+          {/* Conversation List */}
           <div className="md:col-span-1 h-full overflow-y-auto border-r">
             <ConversationList
               conversations={conversations}
@@ -86,6 +87,7 @@ const MessagingPage: React.FC = () => {
               onSelectConversation={handleSelectConversation}
             />
           </div>
+          {/* Chat Window for md+ */}
           <div className="md:col-span-2 h-full hidden md:block overflow-hidden">
             {activeChatRoomId && activeUser ? (
               <ChatWindow
@@ -98,6 +100,14 @@ const MessagingPage: React.FC = () => {
                 <h2 className="text-xl font-semibold">Select a conversation</h2>
                 <p>Choose a person from the list to start chatting.</p>
               </div>
+            )}
+          </div>
+          <div className="block md:hidden h-[calc(100vh-200px)] overflow-y-auto">
+            {activeChatRoomId && activeUser && (
+              <ChatWindow
+                chatRoomId={activeChatRoomId}
+                otherUser={{ name: activeUser.name, surname: activeUser.surname }}
+              />
             )}
           </div>
         </div>

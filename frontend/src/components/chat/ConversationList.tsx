@@ -20,21 +20,24 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const { getUserStatus } = usePresence();
 
   return (
-    <Card className="h-full flex flex-col rounded-tr-none">
+    <Card
+      className={cn('h-full flex flex-col rounded-tr-none border-none rounded-none md:rounded-xl')}
+    >
       <CardHeader>
         <CardTitle>Conversations</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow overflow-y-auto thin-scrollbar">
         {conversations.length > 0 ? (
-          <ul className="space-y-2">
+          <ul className="flex flex-row md:block gap-2 md:gap-2 overflow-x-auto md:overflow-x-visible thin-scrollbar">
             {conversations.map((convo) => {
               const status = getUserStatus(convo.id);
               return (
-                <li key={convo.id}>
+                <li key={convo.id} className="flex-shrink-0">
                   <button
                     onClick={() => onSelectConversation(convo.id)}
                     className={cn(
-                      'w-full text-left p-3 rounded-lg flex items-center gap-4 transition-colors',
+                      // Compact on mobile, full on md+
+                      'flex flex-col md:flex-row items-center md:items-center gap-1 md:gap-4 p-2 md:p-3 rounded-lg transition-colors w-16 md:w-full',
                       activeConversationId === convo.id ? 'bg-blue-100' : 'hover:bg-gray-100',
                     )}
                   >
@@ -43,18 +46,20 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         <img
                           src={convo.photo_url}
                           alt={`${convo.name} ${convo.surname}`}
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <UserCircle className="w-12 h-12 text-gray-400" />
+                        <UserCircle className="w-10 h-10 md:w-12 md:h-12 text-gray-400" />
                       )}
                       <StatusIndicator status={status} />
                     </div>
                     <div>
-                      <p className="font-semibold">
+                      <p className="text-xs md:text-base font-semibold">
                         {convo.name} {convo.surname}
                       </p>
-                      <p className="text-sm text-gray-500">{convo.job_title || 'Professional'}</p>
+                      <p className="hidden md:text-sm text-gray-500">
+                        {convo.job_title || 'Professional'}
+                      </p>
                     </div>
                   </button>
                 </li>

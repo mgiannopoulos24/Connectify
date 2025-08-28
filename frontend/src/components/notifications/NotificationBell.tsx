@@ -20,10 +20,10 @@ const NotificationBell: React.FC = () => {
               </div>
             )}
           </div>
-          <span className="hidden sm:text-xs">Notifications</span>
+          <span className="hidden lg:flex lg:text-xs">Notifications</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-2" align="end">
+      <PopoverContent className="w-100 p-2 translate-x-[35px]" align="end">
         <NotificationDropdown onItemClick={() => setIsOpen(false)} />
       </PopoverContent>
     </Popover>

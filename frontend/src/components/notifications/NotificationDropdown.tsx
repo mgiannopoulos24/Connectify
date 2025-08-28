@@ -29,7 +29,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onItemClick
         )}
       </div>
 
-      <ScrollArea className="h-[300px]">
+      <ScrollArea className="h-[300px] md:h-[400px] ">
         <div className="p-2 space-y-1">
           {isLoading ? (
             <div className="flex justify-center items-center h-24">

@@ -162,7 +162,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onPostCreated }) => {
       </Card>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[525px]">
+        <DialogContent className="w-[350px] sm:max-w-[425px] rounded-md">
           <DialogHeader>
             <DialogTitle>Create a post</DialogTitle>
           </DialogHeader>

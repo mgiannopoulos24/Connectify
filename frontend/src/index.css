@@ -134,6 +134,12 @@
   .thin-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: #64748b;
   }
+
+  @media screen and (max-width: 640px) {
+    .thin-scrollbar::-webkit-scrollbar {
+      height: 8px;
+    }
+  }
 }
 
 /* Custom styles for react quill */
@@ -151,7 +157,7 @@
 
 @keyframes highlight-post {
   0% {
-    background-color: #e0f2fe; /* light-blue-100 */
+    background-color: #e0f2fe;
   }
   100% {
     background-color: transparent;
@@ -160,4 +166,10 @@
 
 .post-highlight {
   animation: highlight-post 2s ease-out forwards;
+}
+
+@media screen and (max-width: 640px) {
+  data-radix-popper-content-wrapper {
+    left: 50px !important;
+  }
 }

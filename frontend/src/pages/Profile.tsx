@@ -688,7 +688,7 @@ const EditModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] max-w-[350px] rounded-md">
         <DialogHeader>
           <DialogTitle>
             {editingItem ? 'Edit' : 'Add'} {itemType}
@@ -789,7 +789,7 @@ const EditModal = ({
                 </div>
               </div>
             )}
-            <DialogFooter>
+            <DialogFooter className="gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
