@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { getJobFeed } from '@/services/jobService';
+import { getJobFeed, createJobPosting } from '@/services/jobService'; 
 import { getRecommendedJobs } from '@/services/recommendationService';
 import { JobPosting } from '@/types/job';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Star } from 'lucide-react';
+import { Loader2, Star, PlusCircle } from 'lucide-react'; 
 import JobCard from '@/components/jobs/JobCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button'; 
+import JobFormModal from '@/components/jobs/JobFormModal'; 
+import { toast } from 'sonner'; 
 
 const JobsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -13,6 +16,9 @@ const JobsPage: React.FC = () => {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // State for the new job modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -36,6 +42,18 @@ const JobsPage: React.FC = () => {
     };
     fetchJobs();
   }, [currentUser]);
+
+  const handleSave = async (jobData: any) => {
+    try {
+      const newJob = await createJobPosting(jobData);
+      setJobs((prevJobs) => [newJob, ...prevJobs]); 
+      setIsModalOpen(false);
+      toast.success('Job posting created successfully!');
+    } catch (error) {
+      console.error('Failed to create job:', error);
+      toast.error('Failed to create job posting.');
+    }
+  };
 
   const calculateMatchingSkills = (job: JobPosting): number => {
     if (!currentUser?.skills) return 0;
@@ -71,26 +89,41 @@ const JobsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {recommendedJobs.length > 0 && (
-        <Card className="border-2 border-yellow-300 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2 text-yellow-800">
-              <Star className="text-yellow-500" />
-              Recommended For You
-            </CardTitle>
-          </CardHeader>
-          <CardContent>{renderJobList(recommendedJobs, true)}</CardContent>
-        </Card>
-      )}
+    <>
+      <div className="space-y-8">
+        {recommendedJobs.length > 0 && (
+          <Card className="border-2 border-yellow-300 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold flex items-center gap-2 text-yellow-800">
+                <Star className="text-yellow-500" />
+                Recommended For You
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{renderJobList(recommendedJobs, true)}</CardContent>
+          </Card>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">All Job Listings</CardTitle>
-        </CardHeader>
-        <CardContent>{renderJobList(jobs)}</CardContent>
-      </Card>
-    </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold">All Job Listings</CardTitle>
+              <Button onClick={() => setIsModalOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Job Posting
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>{renderJobList(jobs)}</CardContent>
+        </Card>
+      </div>
+
+      <JobFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        job={null} 
+      />
+    </>
   );
 };
 

@@ -241,7 +241,7 @@ const JobFormModal: React.FC<{
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl flex flex-col max-h-[90vh]">
+      <DialogContent className="max-w-[350px] md:max-w-2xl flex flex-col max-h-[90vh] rounded-md">
         <DialogHeader>
           <DialogTitle>{job ? 'Edit' : 'Create'} Job Posting</DialogTitle>
           <DialogDescription>Follow the steps to post a new job opening.</DialogDescription>
@@ -366,23 +366,27 @@ const JobFormModal: React.FC<{
           </Form>
         </div>
 
-        <DialogFooter className="border-t pt-4 mt-4">
+        <DialogFooter
+          className={cn(
+            'flex flex-row items-center border-t pt-4 mt-4',
+            currentStep > 1 ? 'justify-between' : 'justify-end',
+          )}
+        >
           {currentStep > 1 && (
             <Button type="button" variant="outline" onClick={handlePrevStep}>
               Back
             </Button>
           )}
-          {currentStep < 3 && (
-            <Button type="button" onClick={handleNextStep} className="ml-auto">
+
+          {currentStep < 3 ? (
+            <Button type="button" onClick={handleNextStep}>
               Next
             </Button>
-          )}
-          {currentStep === 3 && (
+          ) : (
             <Button
               type="submit"
               onClick={form.handleSubmit(onSubmit)}
               disabled={form.formState.isSubmitting}
-              className="ml-auto"
             >
               {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {form.formState.isSubmitting ? 'Posting...' : 'Post Job'}
