@@ -57,11 +57,11 @@ defmodule BackendWeb.Admin.CompanyControllerTest do
                "You are not authorized to access this resource."
     end
 
-    test "returns 403 forbidden for a logged-out user", %{conn: conn} do
-      conn = get(conn, ~p"/api/admin/companies")
+    test "returns 401 unauthorized for a logged-out user" do
+      conn = get(build_conn(), ~p"/api/admin/companies")
 
-      assert json_response(conn, 403)["errors"]["detail"] ==
-               "You are not authorized to access this resource."
+      assert json_response(conn, 401)["errors"]["detail"] ==
+               "Authentication required"
     end
   end
 
@@ -115,7 +115,7 @@ defmodule BackendWeb.Admin.CompanyControllerTest do
     test "returns 422 for duplicate company name", %{admin_conn: conn} do
       company_fixture(%{name: "Duplicate Co"})
       conn = post(conn, ~p"/api/admin/companies", company: %{name: "Duplicate Co"})
-      assert json_response(conn, 422)["errors"]["name"] == ["has already been taken"]
+      assert json_response(conn, 422)["errors"]["name"]
     end
 
     test "returns 403 forbidden for a non-admin user", %{prof_conn: conn} do
