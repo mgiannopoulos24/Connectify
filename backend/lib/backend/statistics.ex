@@ -1,5 +1,3 @@
-# backend/lib/backend/statistics.ex
-
 defmodule Backend.Statistics do
   @moduledoc """
   The Statistics context.

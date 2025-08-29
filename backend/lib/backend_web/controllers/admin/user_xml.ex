@@ -3,8 +3,12 @@ defmodule BackendWeb.Admin.UserXML do
   alias XmlBuilder
 
   def export(%{users: users}) do
-    doc = XmlBuilder.element(:users, Enum.map(users, &user_element/1))
-    XmlBuilder.generate(doc, format: :pretty)
+    # 1. Generate the XML for the root <users> element and its children.
+    users_element = XmlBuilder.element(:users, Enum.map(users, &user_element/1))
+    xml_body = XmlBuilder.generate(users_element, format: :pretty)
+
+    # 2. Manually prepend the standard XML declaration to the generated string.
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <> xml_body
   end
 
   defp user_element(%User{} = user) do

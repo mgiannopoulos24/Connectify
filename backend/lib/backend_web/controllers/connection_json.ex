@@ -24,58 +24,61 @@ defmodule BackendWeb.ConnectionJSON do
       end
 
     if other_user do
-      # Safely get the job title from the first job experience, or use a default.
       job_title =
-        case List.first(other_user.job_experiences) do
-          # Default value if the user has no job experience
-          nil -> "Professional"
-          job_experience -> job_experience.job_title
+        if Ecto.assoc_loaded?(other_user.job_experiences) do
+          case List.first(other_user.job_experiences) do
+            nil -> "Professional"
+            job_experience -> job_experience.job_title
+          end
+        else
+          "Professional"
         end
 
       %{
-        id: connection.id,
-        status: connection.status,
-        connected_user: %{
-          id: other_user.id,
-          name: other_user.name,
-          surname: other_user.surname,
-          photo_url: other_user.photo_url,
-          # Use the safely extracted job_title
-          job_title: job_title
+        "id" => connection.id,
+        "status" => connection.status,
+        "connected_user" => %{
+          "id" => other_user.id,
+          "name" => other_user.name,
+          "surname" => other_user.surname,
+          "photo_url" => other_user.photo_url,
+          "job_title" => job_title
         },
-        inserted_at: connection.inserted_at,
-        updated_at: connection.updated_at
+        "inserted_at" => connection.inserted_at,
+        "updated_at" => connection.updated_at
       }
     else
-      # Handle cases where the current_user is not part of the connection, though this shouldn't happen in normal flow.
       %{
-        id: connection.id,
-        status: connection.status,
-        inserted_at: connection.inserted_at,
-        updated_at: connection.updated_at
+        "id" => connection.id,
+        "status" => connection.status,
+        "inserted_at" => connection.inserted_at,
+        "updated_at" => connection.updated_at
       }
     end
   end
 
   defp pending_request_data(%Connection{} = connection) do
     job_title =
-      case List.first(connection.user.job_experiences) do
-        nil -> "Professional"
-        job_experience -> job_experience.job_title
+      if Ecto.assoc_loaded?(connection.user.job_experiences) do
+        case List.first(connection.user.job_experiences) do
+          nil -> "Professional"
+          job_experience -> job_experience.job_title
+        end
+      else
+        "Professional"
       end
 
     %{
-      id: connection.id,
-      status: connection.status,
-      requester: %{
-        id: connection.user.id,
-        name: connection.user.name,
-        surname: connection.user.surname,
-        photo_url: connection.user.photo_url,
-        # Use the safely extracted job_title
-        job_title: job_title
+      "id" => connection.id,
+      "status" => connection.status,
+      "requester" => %{
+        "id" => connection.user.id,
+        "name" => connection.user.name,
+        "surname" => connection.user.surname,
+        "photo_url" => connection.user.photo_url,
+        "job_title" => job_title
       },
-      inserted_at: connection.inserted_at
+      "inserted_at" => connection.inserted_at
     }
   end
 end

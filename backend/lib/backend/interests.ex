@@ -1,5 +1,5 @@
 defmodule Backend.Interests do
-  @modledoc """
+  @moduledoc """
   The Interests context, repurposed for following users and companies.
   """
   import Ecto.Query, warn: false

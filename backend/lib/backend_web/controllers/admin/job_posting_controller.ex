@@ -3,6 +3,7 @@ defmodule BackendWeb.Admin.JobPostingController do
 
   alias Backend.Jobs
   alias Backend.Jobs.JobPosting
+  alias Backend.Repo
   alias BackendWeb.JobPostingJSON
 
   action_fallback BackendWeb.FallbackController
@@ -13,8 +14,16 @@ defmodule BackendWeb.Admin.JobPostingController do
   end
 
   def show(conn, %{"id" => id}) do
-    job_posting = Jobs.get_job_posting!(id)
-    render(conn, JobPostingJSON, :show, job_posting: job_posting)
+    case Repo.get(JobPosting, id) do
+      nil ->
+        {:error, :not_found}
+
+      job_posting ->
+        preloaded_posting =
+          Repo.preload(job_posting, [:user, :company, :skills, job_applications: :user])
+
+        render(conn, JobPostingJSON, :show, job_posting: preloaded_posting)
+    end
   end
 
   def create(conn, %{"job_posting" => job_posting_params}) do
@@ -26,19 +35,25 @@ defmodule BackendWeb.Admin.JobPostingController do
   end
 
   def update(conn, %{"id" => id, "job_posting" => job_posting_params}) do
-    job_posting = Jobs.get_job_posting!(id)
-
-    with {:ok, %JobPosting{} = job_posting} <-
-           Jobs.update_job_posting(job_posting, job_posting_params) do
-      render(conn, JobPostingJSON, :show, job_posting: Jobs.get_job_posting!(job_posting.id))
+    with %JobPosting{} = job_posting <- Repo.get(JobPosting, id) do
+      with {:ok, %JobPosting{} = updated_posting} <-
+             Jobs.update_job_posting(job_posting, job_posting_params) do
+        render(conn, JobPostingJSON, :show,
+          job_posting: Jobs.get_job_posting!(updated_posting.id)
+        )
+      end
+    else
+      nil -> {:error, :not_found}
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    job_posting = Jobs.get_job_posting!(id)
-
-    with {:ok, _} <- Jobs.delete_job_posting(job_posting) do
-      send_resp(conn, :no_content, "")
+    with %JobPosting{} = job_posting <- Repo.get(JobPosting, id) do
+      with {:ok, _} <- Jobs.delete_job_posting(job_posting) do
+        send_resp(conn, :no_content, "")
+      end
+    else
+      nil -> {:error, :not_found}
     end
   end
 end

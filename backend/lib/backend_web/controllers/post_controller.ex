@@ -17,7 +17,6 @@ defmodule BackendWeb.PostController do
 
   def index(conn, params) do
     current_user = conn.assigns.current_user
-    # --- MODIFIED: Pass sort_by param to the context ---
     sort_by = Map.get(params, "sort_by", "relevant")
     posts = Posts.list_posts(current_user, sort_by)
     render(conn, PostJSON, :index, posts: posts, current_user: current_user)

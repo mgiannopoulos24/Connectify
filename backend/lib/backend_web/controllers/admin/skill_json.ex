@@ -9,10 +9,10 @@ defmodule BackendWeb.Admin.SkillJSON do
     %{data: data(skill)}
   end
 
-  defp data(%Skill{} = skill) do
+  def data(%Skill{} = skill) do
     %{
-      id: skill.id,
-      name: skill.name
+      "id" => skill.id,
+      "name" => skill.name
     }
   end
 end

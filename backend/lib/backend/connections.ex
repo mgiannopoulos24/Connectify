@@ -10,7 +10,6 @@ defmodule Backend.Connections do
 
   def get_connection!(id), do: Repo.get!(Connection, id)
 
-  # --- NEW: Function to find an existing connection between two users ---
   def get_connection_between_users(user1_id, user2_id) do
     from(c in Connection,
       where:
@@ -49,7 +48,6 @@ defmodule Backend.Connections do
     Repo.delete(connection)
   end
 
-  # --- NEW: Deletes a connection record ---
   def delete_connection(%Connection{} = connection) do
     Repo.delete(connection)
   end

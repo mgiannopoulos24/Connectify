@@ -3,6 +3,7 @@ defmodule BackendWeb.Admin.SkillController do
 
   alias Backend.Skills
   alias Backend.Skills.Skill
+  alias Backend.Repo
   alias BackendWeb.Admin.SkillJSON
 
   action_fallback BackendWeb.FallbackController
@@ -22,23 +23,30 @@ defmodule BackendWeb.Admin.SkillController do
   end
 
   def show(conn, %{"id" => id}) do
-    skill = Skills.get_skill!(id)
-    render(conn, SkillJSON, :show, skill: skill)
+    with %Skill{} = skill <- Repo.get(Skill, id) do
+      render(conn, SkillJSON, :show, skill: skill)
+    else
+      nil -> {:error, :not_found}
+    end
   end
 
   def update(conn, %{"id" => id, "skill" => skill_params}) do
-    skill = Skills.get_skill!(id)
-
-    with {:ok, %Skill{} = skill} <- Skills.update_skill(skill, skill_params) do
-      render(SkillJSON, :show, skill: skill)
+    with %Skill{} = skill <- Repo.get(Skill, id) do
+      with {:ok, %Skill{} = updated_skill} <- Skills.update_skill(skill, skill_params) do
+        render(conn, SkillJSON, :show, skill: updated_skill)
+      end
+    else
+      nil -> {:error, :not_found}
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    skill = Skills.get_skill!(id)
-
-    with {:ok, %Skill{}} <- Skills.delete_master_skill(skill) do
-      send_resp(conn, :no_content, "")
+    with %Skill{} = skill <- Repo.get(Skill, id) do
+      with {:ok, %Skill{}} <- Skills.delete_master_skill(skill) do
+        send_resp(conn, :no_content, "")
+      end
+    else
+      nil -> {:error, :not_found}
     end
   end
 end

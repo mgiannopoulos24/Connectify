@@ -1,5 +1,5 @@
 defmodule Backend.Recommendations do
-  @modledoc """
+  @moduledoc """
   The Recommendations context.
   Provides an API for generating job and connection recommendations.
   """

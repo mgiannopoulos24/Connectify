@@ -146,7 +146,8 @@ defmodule Backend.Jobs do
   end
 
   def update_job_posting(%JobPosting{} = job_posting, attrs) do
-    handle_job_posting_transaction(job_posting.user, job_posting, attrs)
+    job_posting_with_assocs = Repo.preload(job_posting, [:user, :skills])
+    handle_job_posting_transaction(job_posting_with_assocs.user, job_posting_with_assocs, attrs)
   end
 
   defp handle_job_posting_transaction(user, job_posting_struct, attrs) do
@@ -221,7 +222,6 @@ defmodule Backend.Jobs do
     Repo.delete(job_posting)
   end
 
-  # --- MODIFIED: apply_for_job now correctly handles re-application ---
   def apply_for_job(user, job_posting, attrs \\ %{}) do
     if user.id == job_posting.user_id do
       {:error, :cannot_apply_to_own_job}

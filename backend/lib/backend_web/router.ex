@@ -3,17 +3,26 @@ defmodule BackendWeb.Router do
 
   defmodule Plugs.EnsureConfirmed do
     import Plug.Conn
+    import Phoenix.Controller, only: [json: 2]
 
     def init(opts), do: opts
 
     def call(conn, _opts) do
       case conn.assigns[:current_user] do
+        # Case 1: User is logged in, but their email is not yet confirmed.
         %Backend.Accounts.User{status: "pending_confirmation"} ->
           conn
           |> put_status(:forbidden)
           |> json(%{errors: %{detail: "Please confirm your email to continue."}})
           |> halt()
 
+        nil ->
+          conn
+          |> put_status(:unauthorized)
+          |> json(%{errors: %{detail: "Authentication required"}})
+          |> halt()
+
+        # Case 2: User is authenticated and confirmed, so the request can proceed.
         _ ->
           conn
       end

@@ -185,6 +185,15 @@ defmodule Backend.Accounts do
   end
 
   @doc """
+  Gets a single user with all related data for the admin panel, returning nil if not found.
+  """
+  def get_user_for_admin(id) do
+    User
+    |> Repo.get(id)
+    |> preload_for_admin()
+  end
+
+  @doc """
   Gets a single user with all related data for the admin panel.
 
   Raises `Ecto.NoResultsError` if the User does not exist.

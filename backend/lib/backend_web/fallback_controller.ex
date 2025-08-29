@@ -5,7 +5,7 @@ defmodule BackendWeb.FallbackController do
     conn
     |> put_status(:unprocessable_entity)
     |> put_view(json: BackendWeb.ChangesetJSON)
-    |> render("error", changeset: changeset)
+    |> render(:error, changeset: changeset)
   end
 
   def call(conn, {:error, :not_found}) do

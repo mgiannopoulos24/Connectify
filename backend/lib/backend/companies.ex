@@ -1,5 +1,5 @@
 defmodule Backend.Companies do
-  @modledoc """
+  @moduledoc """
   The Companies context.
   """
   import Ecto.Query, warn: false

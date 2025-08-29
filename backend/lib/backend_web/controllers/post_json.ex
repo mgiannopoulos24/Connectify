@@ -144,7 +144,6 @@ defmodule BackendWeb.PostJSON do
     }
   end
 
-  # --- MODIFIED: This function now renders reaction data instead of like data ---
   def comment_data(comment, current_user \\ nil) do
     replies_to_render =
       case Map.get(comment, :replies) do

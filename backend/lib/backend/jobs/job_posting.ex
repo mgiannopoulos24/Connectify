@@ -45,6 +45,5 @@ defmodule Backend.Jobs.JobPosting do
     |> cast(attrs, [:title, :description, :location, :job_type, :user_id, :company_id])
     |> validate_required([:title, :description, :job_type, :user_id, :company_id])
     |> validate_inclusion(:job_type, @job_types)
-    |> cast_assoc(:skills)
   end
 end
