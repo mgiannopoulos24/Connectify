@@ -100,11 +100,11 @@ defmodule BackendWeb.Admin.DashboardControllerTest do
                "You are not authorized to access this resource."
     end
 
-    test "returns 403 forbidden for a logged-out user", %{conn: conn} do
+    test "returns 401 unauthorized for a logged-out user", %{conn: conn} do
       conn = get(conn, ~p"/api/admin/statistics")
 
-      assert json_response(conn, 403)["errors"]["detail"] ==
-               "You are not authorized to access this resource."
+      assert json_response(conn, 401)["errors"]["detail"] ==
+               "Authentication required"
     end
   end
 end
