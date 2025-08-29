@@ -2,7 +2,8 @@ defmodule Backend.CareersTest do
   use Backend.DataCase, async: true
 
   alias Backend.Careers
-  alias Backend.Careers.{JobExperience, Education}
+  alias Backend.Careers.Education
+  alias Backend.Careers.JobExperience
   alias Backend.Companies
   alias Backend.Repo
 

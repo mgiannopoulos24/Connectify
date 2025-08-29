@@ -3,8 +3,8 @@ defmodule Backend.AccountsTest do
 
   alias Backend.Accounts
   alias Backend.Accounts.User
-  alias Backend.Repo
   alias Backend.Connections.Connection
+  alias Backend.Repo
 
   import Backend.AccountsFixtures
 

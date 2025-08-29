@@ -1,8 +1,8 @@
 defmodule BackendWeb.UserSocket do
   use Phoenix.Socket
 
-  alias Backend.Auth
   alias Backend.Accounts
+  alias Backend.Auth
   require Logger
 
   channel "chat:*", BackendWeb.ChatChannel

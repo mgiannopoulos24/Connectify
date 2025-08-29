@@ -3,8 +3,9 @@ defmodule Backend.Notifications do
   The Notifications context.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
+
   alias Backend.Notifications.Notification
+  alias Backend.Repo
 
   def list_user_notifications(user_id) do
     Notification

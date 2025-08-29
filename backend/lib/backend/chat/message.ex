@@ -3,8 +3,8 @@ defmodule Backend.Chat.Message do
   import Ecto.Changeset
   alias Backend.Accounts.User
   alias Backend.Chat.ChatRoom
-  alias Backend.Posts.Post
   alias Backend.Chat.MessageReaction
+  alias Backend.Posts.Post
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

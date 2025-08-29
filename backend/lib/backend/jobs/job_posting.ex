@@ -4,8 +4,8 @@ defmodule Backend.Jobs.JobPosting do
 
   alias Backend.Accounts.User
   alias Backend.Companies.Company
-  alias Backend.Skills.Skill
   alias Backend.Jobs.JobApplication
+  alias Backend.Skills.Skill
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

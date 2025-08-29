@@ -3,7 +3,8 @@ defmodule Backend.ChatTest do
 
   alias Backend.Chat
   alias Backend.Repo
-  alias Backend.Chat.{MessageReaction, Message}
+  alias Backend.Chat.Message
+  alias Backend.Chat.MessageReaction
 
   import Backend.AccountsFixtures
   import Ecto.Query

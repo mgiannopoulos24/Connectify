@@ -3,8 +3,9 @@ defmodule BackendWeb.Plugs.AuthPlug do
   A plug to verify JWT cookies and assign the current user to the connection.
   """
   import Plug.Conn
-  alias Backend.Auth
+
   alias Backend.Accounts
+  alias Backend.Auth
 
   def init(opts), do: opts
 

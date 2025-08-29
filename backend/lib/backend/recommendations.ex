@@ -3,16 +3,17 @@ defmodule Backend.Recommendations do
   The Recommendations context.
   Provides an API for generating job and connection recommendations.
   """
+
+  alias Backend.Accounts.User
+  alias Backend.Jobs
+  alias Backend.Jobs.JobApplication
+  alias Backend.Jobs.JobPosting
+  alias Backend.Posts.Comment
+  alias Backend.Posts.Post
+  alias Backend.Posts.PostView
+  alias Backend.Posts.Reaction
   alias Backend.Recommendations.Recommender
   alias Backend.Repo
-  alias Backend.Accounts.User
-  alias Backend.Jobs.JobPosting
-  alias Backend.Jobs.JobApplication
-  alias Backend.Jobs
-  alias Backend.Posts.Post
-  alias Backend.Posts.Reaction
-  alias Backend.Posts.Comment
-  alias Backend.Posts.PostView
 
   import Ecto.Query, warn: false
 
