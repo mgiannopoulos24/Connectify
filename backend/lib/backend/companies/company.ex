@@ -20,6 +20,6 @@ defmodule Backend.Companies.Company do
     company
     |> cast(attrs, [:name, :logo_url, :description])
     |> validate_required([:name])
-    |> unique_constraint(:name, name: :companies_name_case_insensitive_index)
+    |> unique_constraint(:name, name: :companies_name_index)
   end
 end
