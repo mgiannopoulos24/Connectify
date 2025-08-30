@@ -32,23 +32,9 @@ jobs:
       - name: Update dependencies
         run: npm update
 
-      - name: Check for changes
-        id: git-check
-        run: |
-          if git diff --exit-code package-lock.json; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
+      - name: Save updated lockfile
+        run: cp package-lock.json $GITHUB_WORKSPACE/frontend-package-lock.json
 
-      - name: Commit changes
-        if: steps.git-check.outputs.changed == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add package-lock.json
-          git commit -m "chore: Update frontend dependencies"
-          git push
   update-backend:
     runs-on: ubuntu-latest
     defaults:
@@ -88,21 +74,40 @@ jobs:
         
       - name: Update dependencies
         run: mix deps.update --all
-        
+
+      - name: Save updated lockfile
+        run: cp mix.lock $GITHUB_WORKSPACE/backend-mix.lock
+
+  commit-updated-deps:
+    runs-on: ubuntu-latest
+    needs: [update-frontend, update-backend]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore updated lockfiles
+        run: |
+          cp $GITHUB_WORKSPACE/frontend-package-lock.json frontend/package-lock.json || true
+          cp $GITHUB_WORKSPACE/backend-mix.lock backend/mix.lock || true
+
       - name: Check for changes
         id: git-check
         run: |
-          if git diff --exit-code mix.lock; then
+          if git diff --exit-code; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-          
-      - name: Commit changes
+
+      - name: Commit and push updated dependencies
         if: steps.git-check.outputs.changed == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add mix.lock
-          git commit -m "chore: Update backend dependencies"
+          git add frontend/package-lock.json backend/mix.lock
+          git commit -m "chore: Update project dependencies"
           git push
