@@ -3,8 +3,9 @@ defmodule Backend.CareersFixtures do
   This module defines test helpers for creating
   entities via the `Backend.Careers` and related contexts.
   """
-  alias Backend.Companies
+
   alias Backend.Careers
+  alias Backend.Companies
 
   @doc """
   Generate a company.

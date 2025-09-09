@@ -2,9 +2,9 @@ defmodule Backend.ChatTest do
   use Backend.DataCase, async: true
 
   alias Backend.Chat
-  alias Backend.Repo
   alias Backend.Chat.Message
   alias Backend.Chat.MessageReaction
+  alias Backend.Repo
 
   import Backend.AccountsFixtures
   import Ecto.Query

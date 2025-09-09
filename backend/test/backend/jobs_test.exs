@@ -1,9 +1,10 @@
 defmodule Backend.JobsTest do
   use Backend.DataCase, async: true
 
-  alias Backend.Jobs
-  alias Backend.Jobs.{JobPosting, JobApplication}
   alias Backend.Companies
+  alias Backend.Jobs
+  alias Backend.Jobs.JobApplication
+  alias Backend.Jobs.JobPosting
 
   import Backend.AccountsFixtures
 

@@ -1,8 +1,8 @@
 defmodule Backend.RecommendationsTest do
   use Backend.DataCase, async: true
 
-  alias Backend.Recommendations
   alias Backend.Posts
+  alias Backend.Recommendations
   alias Backend.Repo
 
   import Backend.AccountsFixtures

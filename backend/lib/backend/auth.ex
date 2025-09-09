@@ -36,24 +36,21 @@ defmodule Backend.Auth do
   def verify_token(token) when not is_binary(token), do: :error
 
   def verify_token(token) do
-    case Joken.verify(token, get_signer()) do
-      {:ok, claims} when is_map(claims) ->
-        case Map.get(claims, "exp") do
-          exp when is_integer(exp) ->
-            if exp > Joken.current_time() do
-              {:ok, Map.get(claims, "sub")}
-            else
-              Logger.error("JWT verification failed: expired token")
-              :error
-            end
-
-          _ ->
-            Logger.error("JWT verification failed: exp claim missing or invalid")
-            :error
-        end
-
+    with {:ok, claims} <- Joken.verify(token, get_signer()),
+         exp when is_integer(exp) <- Map.get(claims, "exp") do
+      if exp > Joken.current_time() do
+        {:ok, Map.get(claims, "sub")}
+      else
+        Logger.error("JWT verification failed: expired token")
+        :error
+      end
+    else
       {:error, reason} ->
         Logger.error("JWT verification failed: #{inspect(reason)}")
+        :error
+
+      _ ->
+        Logger.error("JWT verification failed: exp claim missing or invalid")
         :error
     end
   end

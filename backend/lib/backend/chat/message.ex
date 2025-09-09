@@ -1,4 +1,10 @@
 defmodule Backend.Chat.Message do
+  @moduledoc """
+  The Message schema represents a message sent by a user in a chat room.
+  It can contain text content, an image, a file, a GIF, or a shared
+  post.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   alias Backend.Accounts.User

@@ -1,4 +1,8 @@
 defmodule Backend.Careers.JobExperience do
+  @moduledoc """
+  The JobExperience schema represents a professional job experience
+  associated with a user in the careers context.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

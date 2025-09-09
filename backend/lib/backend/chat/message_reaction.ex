@@ -1,4 +1,9 @@
 defmodule Backend.Chat.MessageReaction do
+  @moduledoc """
+  The MessageReaction schema represents a reaction (like, love, etc.)
+  made by a user to a message in a chat room.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

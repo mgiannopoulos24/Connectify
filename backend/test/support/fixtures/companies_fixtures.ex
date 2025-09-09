@@ -13,7 +13,7 @@ defmodule Backend.CompaniesFixtures do
         description: "A test company"
       })
 
-    case apply(Backend.Companies, :create_company, [attrs]) do
+    case Backend.Companies.create_company(attrs) do
       {:ok, company} ->
         company
 

@@ -9,10 +9,10 @@ defmodule Backend.MailerTest do
     # ensure test adapter mailbox is empty before each test
     cond do
       function_exported?(Swoosh.Test, :reset, 0) ->
-        apply(Swoosh.Test, :reset, [])
+        Swoosh.Test.reset()
 
       function_exported?(Swoosh.Adapters.Test, :deliveries_reset, 0) ->
-        apply(Swoosh.Adapters.Test, :deliveries_reset, [])
+        Swoosh.Adapters.Test.deliveries_reset()
 
       true ->
         :ok

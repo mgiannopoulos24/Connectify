@@ -1,8 +1,8 @@
 defmodule BackendWeb.Admin.SkillControllerTest do
   use BackendWeb.ConnCase, async: true
 
-  alias Backend.Skills
   alias Backend.Repo
+  alias Backend.Skills
   import Backend.AccountsFixtures
 
   defp login_user(conn, user) do

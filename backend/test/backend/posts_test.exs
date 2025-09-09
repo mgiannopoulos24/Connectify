@@ -1,9 +1,12 @@
 defmodule Backend.PostsTest do
   use Backend.DataCase, async: true
 
-  alias Backend.Posts
-  alias Backend.Posts.{Post, Reaction, Comment, PostView}
   alias Backend.Notifications
+  alias Backend.Posts
+  alias Backend.Posts.Comment
+  alias Backend.Posts.Post
+  alias Backend.Posts.PostView
+  alias Backend.Posts.Reaction
   alias Backend.Repo
 
   import Backend.AccountsFixtures

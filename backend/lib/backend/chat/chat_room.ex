@@ -1,4 +1,7 @@
 defmodule Backend.Chat.ChatRoom do
+  @moduledoc """
+  The ChatRoom schema represents a chat room where users can communicate.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

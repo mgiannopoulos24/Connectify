@@ -1,8 +1,8 @@
 defmodule BackendWeb.UserSocketTest do
   use Backend.DataCase, async: true
 
-  alias BackendWeb.UserSocket
   alias Backend.Accounts
+  alias BackendWeb.UserSocket
   import Backend.AccountsFixtures
 
   @moduletag :user_socket

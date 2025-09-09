@@ -1,4 +1,8 @@
 defmodule Backend.Careers.Education do
+  @moduledoc """
+  The Education schema represents an educational qualification or experience
+  associated with a user in the careers context.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

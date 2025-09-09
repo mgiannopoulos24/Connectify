@@ -4,8 +4,9 @@ defmodule Backend.Accounts do
   """
 
   import Ecto.Query, warn: false
-  alias Backend.Repo
+
   alias Backend.Mailer
+  alias Backend.Repo
   alias BackendWeb.Emails
   require Logger
 
