@@ -59,36 +59,40 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
-  port = String.to_integer(System.get_env("PORT") || "4000")
+  host = System.get_env("PHX_HOST")
+  port = String.to_integer(System.get_env("PORT"))
 
-  config :backend, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  # config :backend, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  config :backend, BackendWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
-    http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
-      ip: {0, 0, 0, 0, 0, 0, 0, 0},
-      port: port
-    ],
-    secret_key_base: secret_key_base
+  # config :backend, BackendWeb.Endpoint,
+  #   url: [host: host, port: 443, scheme: "https"],
+  #   http: [
+  #     # Enable IPv6 and bind on all interfaces.
+  #     # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
+  #     # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
+  #     # for details about using IPv6 vs IPv4 and loopback vs public addresses.
+  #     ip: {0, 0, 0, 0, 0, 0, 0, 0},
+  #     port: port
+  #   ],
+  #   secret_key_base: secret_key_base
 
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
   # to your endpoint configuration:
-  #
-  #     config :backend, BackendWeb.Endpoint,
-  #       https: [
-  #         ...,
-  #         port: 443,
-  #         cipher_suite: :strong,
-  #         keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
-  #         certfile: System.get_env("SOME_APP_SSL_CERT_PATH")
-  #       ]
+  priv_dir = Application.app_dir(:backend, "priv")
+
+  config :backend, BackendWeb.Endpoint,
+    url: [host: host, port: port, scheme: "https"],
+    secret_key_base: secret_key_base,
+    https: [
+      ip: {0, 0, 0, 0, 0, 0, 0, 0},
+      port: 4000,
+      cipher_suite: :strong,
+      keyfile: Path.join(priv_dir, "cert/selfsigned_key.pem"),
+      certfile: Path.join(priv_dir, "cert/selfsigned.pem")
+    ]
+
   #
   # The `cipher_suite` is set to `:strong` to support only the
   # latest and more secure SSL ciphers. This means old browsers
