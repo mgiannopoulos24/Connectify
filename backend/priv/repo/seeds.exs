@@ -10,6 +10,18 @@ alias Backend.Interests
 alias Backend.Chat
 import Ecto.Query, warn: false
 
+# Script for populating the database. You can run it as:
+#
+#     mix run priv/repo/seeds.exs
+#
+# Inside the script, you can read and write to any of your
+# repositories directly:
+#
+#     Backend.Repo.insert!(%Backend.SomeSchema{})
+#
+# We recommend using the bang functions (`insert!`, `update!`
+# and so on) as they will fail if something goes wrong.
+
 # --- Data Generation Helpers ---
 defmodule SeedHelper do
   @first_names ~w(Alice Bob Carol David Eve Frank Grace Heidi Ivan Judy Mallory Oscar Peggy Trent Walter Wendy Emma Liam Olivia Noah Ava Isabella Sophia Mia Charlotte Amelia)
