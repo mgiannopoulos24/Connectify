@@ -110,12 +110,13 @@ You can also run the application using Docker and Docker Compose. This setup inc
 
 1. Ensure you have Docker and Docker Compose installed on your machine.
 2. Create a `.env` file in the root directory with the necessary environment variables as described in the `.env.example`.
-3. Build and start the services:
+3. Copy both the self-signed certificate and key files generated in the backend setup step to the `frontend/cert` directory. These files are required for HTTPS in the frontend service.
+4. Build and start the services:
 ```bash
 # This should take about 30-40 minutes cause of the manual tailwind installation
 docker-compose up --build
 ```
-4. The backend will be available at `https://localhost:4000` and the frontend at `https://localhost:8080`.
+5. The backend will be available at `https://localhost:4000` and the frontend at `https://localhost:8443`.
 
 ## Contributing
 
