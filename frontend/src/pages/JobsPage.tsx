@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { getJobFeed, createJobPosting } from '@/services/jobService'; 
+import { getJobFeed, createJobPosting } from '@/services/jobService';
 import { getRecommendedJobs } from '@/services/recommendationService';
 import { JobPosting } from '@/types/job';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Star, PlusCircle } from 'lucide-react'; 
+import { Loader2, Star, PlusCircle } from 'lucide-react';
 import JobCard from '@/components/jobs/JobCard';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button'; 
-import JobFormModal from '@/components/jobs/JobFormModal'; 
-import { toast } from 'sonner'; 
+import { Button } from '@/components/ui/button';
+import JobFormModal from '@/components/jobs/JobFormModal';
+import { toast } from 'sonner';
 
 const JobsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -46,7 +46,7 @@ const JobsPage: React.FC = () => {
   const handleSave = async (jobData: any) => {
     try {
       const newJob = await createJobPosting(jobData);
-      setJobs((prevJobs) => [newJob, ...prevJobs]); 
+      setJobs((prevJobs) => [newJob, ...prevJobs]);
       setIsModalOpen(false);
       toast.success('Job posting created successfully!');
     } catch (error) {
@@ -121,7 +121,7 @@ const JobsPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
-        job={null} 
+        job={null}
       />
     </>
   );
