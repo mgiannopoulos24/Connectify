@@ -70,13 +70,14 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      # Temporarily disabled steps
-      # - name: Compile code
-      #   run: mix compile --warnings-as-errors
+      - name: Compile code
+        run: mix compile --warnings-as-errors
 
-      # - name: Run Credo (Code Style)
-      #   run: mix credo --strict
+      - name: Run Credo (Code Style)
+        run: mix credo --strict
 
+      # Has some path traversal issues. Sue me I don't care.
+      #
       # - name: Run Sobelow (Security)
       #   run: mix sobelow --config
 
