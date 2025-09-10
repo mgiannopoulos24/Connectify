@@ -2,10 +2,10 @@ defmodule BackendWeb.UserJSON do
   alias Backend.Accounts.User
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
-  alias Backend.Skills.Skill
-  alias Backend.Interests
-  alias Backend.Connections.Connection
   alias Backend.Companies.Company
+  alias Backend.Connections.Connection
+  alias Backend.Interests
+  alias Backend.Skills.Skill
   alias BackendWeb.PostJSON
 
   @doc """

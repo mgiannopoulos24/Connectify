@@ -3,13 +3,13 @@ defmodule Backend.Chat do
   The Chat context.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
 
+  alias Backend.Accounts
   alias Backend.Chat.ChatRoom
   alias Backend.Chat.Message
   alias Backend.Chat.MessageReaction
-  alias Backend.Accounts
   alias Backend.Posts.Post
+  alias Backend.Repo
 
   def get_or_create_chat_room(user1_id, user2_id) do
     # Ensure user1_id < user2_id to avoid duplicate rooms

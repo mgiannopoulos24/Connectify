@@ -1,4 +1,7 @@
 defmodule Backend.Interests.Interest do
+  @moduledoc """
+  The Interest schema, representing a user following another user or a company.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

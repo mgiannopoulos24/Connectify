@@ -1,4 +1,7 @@
 defmodule BackendWeb.Admin.UserXML do
+  @moduledoc """
+  Module for exporting user data to XML format.
+  """
   alias Backend.Accounts.User
   alias XmlBuilder
 
@@ -8,7 +11,7 @@ defmodule BackendWeb.Admin.UserXML do
     xml_body = XmlBuilder.generate(users_element, format: :pretty)
 
     # 2. Manually prepend the standard XML declaration to the generated string.
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <> xml_body
+    ~s(<?xml version="1.0" encoding="UTF-8"?>\n) <> xml_body
   end
 
   defp user_element(%User{} = user) do

@@ -1,4 +1,7 @@
 defmodule BackendWeb.NotificationsChannel do
+  @moduledoc """
+  Channel for real-time user notifications.
+  """
   use BackendWeb, :channel
   require Logger
 

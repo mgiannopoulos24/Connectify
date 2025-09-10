@@ -1,4 +1,7 @@
 defmodule Backend.Release do
+  @moduledoc """
+  Module for handling database migrations during releases.
+  """
   @app :backend
 
   def migrate do

@@ -1,6 +1,9 @@
 defmodule BackendWeb.ConnectionJSON do
-  alias Backend.Connections.Connection
+  @moduledoc """
+  Conveniences for rendering data to JSON.
+  """
   alias Backend.Accounts.User
+  alias Backend.Connections.Connection
 
   def index(%{connections: connections, current_user: current_user}) do
     %{data: Enum.map(connections, &connection_data(&1, current_user))}

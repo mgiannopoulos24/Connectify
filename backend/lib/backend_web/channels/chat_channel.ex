@@ -1,4 +1,8 @@
 defmodule BackendWeb.ChatChannel do
+  @moduledoc """
+  The ChatChannel handles real-time chat functionalities using Phoenix Channels.
+  It allows users to join chat rooms, send messages, and broadcast typing events.
+  """
   use BackendWeb, :channel
   alias Backend.Chat
   require Logger

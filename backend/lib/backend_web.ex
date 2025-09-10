@@ -79,17 +79,12 @@ defmodule BackendWeb do
 
   defp html_helpers do
     quote do
-      # Translation
       use Gettext, backend: BackendWeb.Gettext
-
-      # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
       import BackendWeb.CoreComponents
 
-      # Common modules used in templates
-      alias Phoenix.LiveView.JS
       alias BackendWeb.Layouts
+      alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

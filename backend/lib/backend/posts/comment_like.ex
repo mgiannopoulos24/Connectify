@@ -1,4 +1,7 @@
 defmodule Backend.Posts.CommentLike do
+  @moduledoc """
+  The CommentLike schema, representing a like on a comment by a user.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,9 +1,9 @@
 defmodule BackendWeb.ConnectionController do
   use BackendWeb, :controller
 
-  alias Backend.Repo
   alias Backend.Connections
   alias Backend.Connections.Connection
+  alias Backend.Repo
   alias BackendWeb.ConnectionJSON
 
   action_fallback BackendWeb.FallbackController

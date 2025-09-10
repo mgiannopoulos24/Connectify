@@ -1,4 +1,7 @@
 defmodule Backend.Skills.Skill do
+  @moduledoc """
+  The Skill schema.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

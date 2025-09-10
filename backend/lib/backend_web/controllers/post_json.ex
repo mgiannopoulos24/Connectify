@@ -1,7 +1,7 @@
 defmodule BackendWeb.PostJSON do
+  alias Backend.Accounts.User
   alias Backend.Posts.Post
   alias Backend.Posts.Reaction
-  alias Backend.Accounts.User
 
   def index(%{posts: posts, current_user: current_user}) do
     %{data: Enum.map(posts, &data(&1, current_user))}

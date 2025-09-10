@@ -1,4 +1,7 @@
 defmodule Backend.Connections.Connection do
+  @moduledoc """
+  The Connection schema, representing a connection between two users.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,6 +1,6 @@
 defmodule BackendWeb.NotificationJSON do
-  alias Backend.Notifications.Notification
   alias Backend.Accounts.User
+  alias Backend.Notifications.Notification
 
   def index(%{notifications: notifications}) do
     %{data: Enum.map(notifications, &data/1)}

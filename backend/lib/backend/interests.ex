@@ -3,11 +3,11 @@ defmodule Backend.Interests do
   The Interests context, repurposed for following users and companies.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
 
-  alias Backend.Interests.Interest
   alias Backend.Accounts.User
   alias Backend.Companies.Company
+  alias Backend.Interests.Interest
+  alias Backend.Repo
 
   @doc """
   Counts the number of followers for a given entity (user or company).

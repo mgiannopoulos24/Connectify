@@ -1,7 +1,10 @@
 defmodule BackendWeb.CompanyJSON do
+  @moduledoc """
+  Conveniences for rendering data to JSON.
+  """
   alias Backend.Companies.Company
-  alias Backend.Jobs.JobPosting
   alias Backend.Interests
+  alias Backend.Jobs.JobPosting
 
   def search(%{companies: companies}) do
     %{data: Enum.map(companies, &search_data/1)}

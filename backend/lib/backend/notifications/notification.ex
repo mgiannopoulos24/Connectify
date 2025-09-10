@@ -1,4 +1,7 @@
 defmodule Backend.Notifications.Notification do
+  @moduledoc """
+  The Notification schema.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

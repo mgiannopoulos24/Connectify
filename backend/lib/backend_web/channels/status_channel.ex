@@ -1,4 +1,8 @@
 defmodule BackendWeb.StatusChannel do
+  @moduledoc """
+  The StatusChannel manages real-time user status updates using Phoenix Channels.
+  It allows users to join the status channel, update their status, and tracks presence.
+  """
   use BackendWeb, :channel
   alias Backend.Accounts
   alias BackendWeb.Presence

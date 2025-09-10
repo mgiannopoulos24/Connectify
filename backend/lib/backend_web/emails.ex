@@ -1,4 +1,7 @@
 defmodule BackendWeb.Emails do
+  @moduledoc """
+  Module for constructing and sending emails using Swoosh.
+  """
   import Swoosh.Email
 
   alias Backend.Accounts.User

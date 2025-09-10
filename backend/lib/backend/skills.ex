@@ -3,10 +3,10 @@ defmodule Backend.Skills do
   The Skills context.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
 
-  alias Backend.Skills.Skill
   alias Backend.Accounts.User
+  alias Backend.Repo
+  alias Backend.Skills.Skill
 
   def list_master_skills do
     from(s in Skill, order_by: [asc: s.name])

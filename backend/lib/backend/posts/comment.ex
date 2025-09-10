@@ -1,4 +1,7 @@
 defmodule Backend.Posts.Comment do
+  @moduledoc """
+  The Comment schema, representing comments on posts and replies to comments.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

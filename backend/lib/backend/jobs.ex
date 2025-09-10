@@ -3,16 +3,16 @@ defmodule Backend.Jobs do
   The Jobs context.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
 
-  alias Backend.Jobs.JobPosting
-  alias Backend.Jobs.JobApplication
-  alias Backend.Skills.Skill
+  alias Backend.Careers.JobExperience
   alias Backend.Companies
+  alias Backend.Connections
+  alias Backend.Jobs.JobApplication
+  alias Backend.Jobs.JobPosting
   alias Backend.Notifications
   alias Backend.Recommendations
-  alias Backend.Connections
-  alias Backend.Careers.JobExperience
+  alias Backend.Repo
+  alias Backend.Skills.Skill
   alias Ecto.Multi
 
   defp get_application_for_user_and_job(user_id, job_posting_id) do

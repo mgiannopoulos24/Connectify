@@ -1,9 +1,9 @@
 defmodule BackendWeb.Admin.SkillController do
   use BackendWeb, :controller
 
+  alias Backend.Repo
   alias Backend.Skills
   alias Backend.Skills.Skill
-  alias Backend.Repo
   alias BackendWeb.Admin.SkillJSON
 
   action_fallback BackendWeb.FallbackController

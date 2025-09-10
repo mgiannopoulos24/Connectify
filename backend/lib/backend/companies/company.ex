@@ -1,4 +1,7 @@
 defmodule Backend.Companies.Company do
+  @moduledoc """
+  The Company schema, representing a company entity.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

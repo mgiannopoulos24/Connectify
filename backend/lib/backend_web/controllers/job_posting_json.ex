@@ -1,6 +1,6 @@
 defmodule BackendWeb.JobPostingJSON do
-  alias Backend.Jobs.JobPosting
   alias Backend.Jobs.JobApplication
+  alias Backend.Jobs.JobPosting
   alias BackendWeb.SkillJSON
 
   def index(%{job_postings: job_postings}) do

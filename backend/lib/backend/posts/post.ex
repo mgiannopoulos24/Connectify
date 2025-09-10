@@ -1,4 +1,7 @@
 defmodule Backend.Posts.Post do
+  @moduledoc """
+  The Post schema, representing user posts with content, images, links, or videos.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

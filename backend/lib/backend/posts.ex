@@ -3,16 +3,16 @@ defmodule Backend.Posts do
   The Posts context.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
 
-  alias Backend.Posts.Post
-  alias Backend.Posts.Reaction
+  alias Backend.Connections
+  alias Backend.Notifications
   alias Backend.Posts.Comment
   alias Backend.Posts.CommentReaction
+  alias Backend.Posts.Post
   alias Backend.Posts.PostView
-  alias Backend.Notifications
-  alias Backend.Connections
+  alias Backend.Posts.Reaction
   alias Backend.Recommendations
+  alias Backend.Repo
 
   defp preload_all_for_post(query) do
     preload(query, [

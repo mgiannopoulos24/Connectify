@@ -1,15 +1,18 @@
 defmodule Backend.Accounts.User do
+  @moduledoc """
+  The User schema and associated changesets.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 
   alias Backend.Careers.Education
   alias Backend.Careers.JobExperience
-  alias Backend.Skills.Skill
-  alias Backend.Interests.Interest
-  alias Backend.Connections.Connection
   alias Backend.Chat.ChatRoom
-  alias Backend.Posts.Post
+  alias Backend.Connections.Connection
+  alias Backend.Interests.Interest
   alias Backend.Notifications.Notification
+  alias Backend.Posts.Post
+  alias Backend.Skills.Skill
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

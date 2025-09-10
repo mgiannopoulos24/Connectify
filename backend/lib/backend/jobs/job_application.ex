@@ -1,4 +1,7 @@
 defmodule Backend.Jobs.JobApplication do
+  @moduledoc """
+  The JobApplication schema, representing a user's application to a job posting.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,7 +1,7 @@
 defmodule BackendWeb.MessageJSON do
   alias Backend.Chat.Message
-  alias Backend.Posts.Post
   alias Backend.Chat.MessageReaction
+  alias Backend.Posts.Post
 
   def index(%{messages: messages}) do
     %{data: Enum.map(messages, &data/1)}

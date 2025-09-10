@@ -3,11 +3,12 @@ defmodule Backend.Statistics do
   The Statistics context.
   """
   import Ecto.Query, warn: false
-  alias Backend.Repo
+
   alias Backend.Accounts.User
   alias Backend.Connections.Connection
   alias Backend.Jobs.JobPosting
   alias Backend.Posts.Post
+  alias Backend.Repo
 
   @doc """
   Gets all dashboard statistics.

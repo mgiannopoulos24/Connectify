@@ -1,4 +1,7 @@
 defmodule Backend.Posts.Reaction do
+  @moduledoc """
+  The Reaction schema, representing a reaction on a post by a user.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

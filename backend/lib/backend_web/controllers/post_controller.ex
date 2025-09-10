@@ -1,13 +1,14 @@
 defmodule BackendWeb.PostController do
   use BackendWeb, :controller
 
-  alias Backend.Posts
-  alias Backend.Posts.Post
-  alias Backend.Posts.Comment
-  alias Backend.Repo
-  alias BackendWeb.PostJSON
   alias Backend.Chat
+  alias Backend.Posts
+  alias Backend.Posts.Comment
+  alias Backend.Posts.Post
+  alias Backend.Repo
   alias BackendWeb.MessageJSON
+  alias BackendWeb.PostJSON
+
   require Logger
 
   action_fallback BackendWeb.FallbackController
