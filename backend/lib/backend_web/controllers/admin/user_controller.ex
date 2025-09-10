@@ -12,7 +12,6 @@ defmodule BackendWeb.Admin.UserController do
   end
 
   def show(conn, %{"id" => id}) do
-    # --- FIX: Use the new safe function and handle the nil case ---
     case Accounts.get_user_for_admin(id) do
       nil ->
         {:error, :not_found}
@@ -23,12 +22,12 @@ defmodule BackendWeb.Admin.UserController do
   end
 
   def update_role(conn, %{"id" => id, "user" => %{"role" => role}}) do
-    # --- FIX: Use the existing safe get_user function and handle the nil case ---
-    with %Backend.Accounts.User{} = user <- Accounts.get_user(id) do
-      with {:ok, updated_user} <- Accounts.update_user_role(user, role) do
-        render(conn, UserJSON, :show, user: updated_user)
-      end
-    else
+    case Accounts.get_user(id) do
+      %Backend.Accounts.User{} = user ->
+        with {:ok, updated_user} <- Accounts.update_user_role(user, role) do
+          render(conn, UserJSON, :show, user: updated_user)
+        end
+
       nil ->
         {:error, :not_found}
     end

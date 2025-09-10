@@ -265,7 +265,7 @@ const Zip: React.FC = () => {
         undoLastMove();
         return;
       }
-      let newPos = { ...currentPos };
+      const newPos = { ...currentPos };
       switch (e.key) {
         case 'ArrowUp':
           newPos.row--;

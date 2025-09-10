@@ -6,6 +6,8 @@ defmodule BackendWeb.ChannelCase do
 
   use ExUnit.CaseTemplate
 
+  alias Ecto.Adapters.SQL.Sandbox
+
   using do
     quote do
       # Import conveniences for testing with channels
@@ -18,7 +20,7 @@ defmodule BackendWeb.ChannelCase do
 
   setup tags do
     # Start the SQL sandbox for tests (ensure Backend.Repo is configured)
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Backend.Repo, shared: not tags[:async])
+    pid = Sandbox.start_owner!(Backend.Repo, shared: not tags[:async])
 
     # Temporarily quiet Logger for the test process (restore on exit)
     original_level = Logger.level()
@@ -26,7 +28,7 @@ defmodule BackendWeb.ChannelCase do
 
     on_exit(fn ->
       Logger.configure(level: original_level)
-      Ecto.Adapters.SQL.Sandbox.stop_owner(pid)
+      Sandbox.stop_owner(pid)
     end)
 
     :ok

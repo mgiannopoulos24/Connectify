@@ -27,16 +27,6 @@ defmodule BackendWeb.ConnectionJSON do
       end
 
     if other_user do
-      job_title =
-        if Ecto.assoc_loaded?(other_user.job_experiences) do
-          case List.first(other_user.job_experiences) do
-            nil -> "Professional"
-            job_experience -> job_experience.job_title
-          end
-        else
-          "Professional"
-        end
-
       %{
         "id" => connection.id,
         "status" => connection.status,
@@ -45,7 +35,7 @@ defmodule BackendWeb.ConnectionJSON do
           "name" => other_user.name,
           "surname" => other_user.surname,
           "photo_url" => other_user.photo_url,
-          "job_title" => job_title
+          "job_title" => get_user_job_title(other_user)
         },
         "inserted_at" => connection.inserted_at,
         "updated_at" => connection.updated_at
@@ -61,16 +51,6 @@ defmodule BackendWeb.ConnectionJSON do
   end
 
   defp pending_request_data(%Connection{} = connection) do
-    job_title =
-      if Ecto.assoc_loaded?(connection.user.job_experiences) do
-        case List.first(connection.user.job_experiences) do
-          nil -> "Professional"
-          job_experience -> job_experience.job_title
-        end
-      else
-        "Professional"
-      end
-
     %{
       "id" => connection.id,
       "status" => connection.status,
@@ -79,9 +59,20 @@ defmodule BackendWeb.ConnectionJSON do
         "name" => connection.user.name,
         "surname" => connection.user.surname,
         "photo_url" => connection.user.photo_url,
-        "job_title" => job_title
+        "job_title" => get_user_job_title(connection.user)
       },
       "inserted_at" => connection.inserted_at
     }
+  end
+
+  defp get_user_job_title(user) do
+    if Ecto.assoc_loaded?(user.job_experiences) do
+      case List.first(user.job_experiences) do
+        nil -> "Professional"
+        job_experience -> job_experience.job_title
+      end
+    else
+      "Professional"
+    end
   end
 end

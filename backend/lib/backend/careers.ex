@@ -42,47 +42,24 @@ defmodule Backend.Careers do
   end
 
   defp handle_job_experience_transaction(attrs, job_experience_struct) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:company, fn _repo, _changes ->
-      company_id = attrs["company_id"]
-      company_name = attrs["company_name"]
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:company, fn _repo, _changes ->
+        get_or_create_company_for_multi(attrs, job_experience_struct)
+      end)
 
-      cond do
-        !is_nil(company_id) and company_id != "" ->
-          {:ok, Companies.get_company!(company_id)}
+    job_changeset_fun = fn %{company: company} ->
+      build_job_experience_changeset(job_experience_struct, attrs, company)
+    end
 
-        !is_nil(company_name) and company_name != "" ->
-          Companies.get_or_create_company_by_name(company_name)
-
-        true ->
-          # This allows updating a job experience without changing the company
-          # For creation, a company must be provided.
-          if job_experience_struct.id,
-            do: {:ok, nil},
-            else: {:error, "company_id or company_name must be provided"}
+    multi =
+      if job_experience_struct.id do
+        Ecto.Multi.update(multi, :job_experience, job_changeset_fun)
+      else
+        Ecto.Multi.insert(multi, :job_experience, job_changeset_fun)
       end
-    end)
-    |> (fn multi ->
-          job_changeset_fun = fn %{company: company} ->
-            job_attrs = Map.drop(attrs, ["company_name"])
-            # If a company was found or created, include its ID in the changeset
-            # Otherwise, leave it out to allow updates without changing the company
-            job_attrs =
-              if company do
-                Map.put(job_attrs, "company_id", company.id)
-              else
-                job_attrs
-              end
 
-            JobExperience.changeset(job_experience_struct, job_attrs)
-          end
-
-          if job_experience_struct.id do
-            Ecto.Multi.update(multi, :job_experience, job_changeset_fun)
-          else
-            Ecto.Multi.insert(multi, :job_experience, job_changeset_fun)
-          end
-        end).()
+    multi
     |> Repo.transaction()
     |> case do
       {:ok, %{job_experience: job_experience}} ->
@@ -99,6 +76,38 @@ defmodule Backend.Careers do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp get_or_create_company_for_multi(attrs, job_experience_struct) do
+    company_id = attrs["company_id"]
+    company_name = attrs["company_name"]
+
+    cond do
+      !is_nil(company_id) and company_id != "" ->
+        {:ok, Companies.get_company!(company_id)}
+
+      !is_nil(company_name) and company_name != "" ->
+        Companies.get_or_create_company_by_name(company_name)
+
+      job_experience_struct.id ->
+        {:ok, nil}
+
+      true ->
+        {:error, "company_id or company_name must be provided"}
+    end
+  end
+
+  defp build_job_experience_changeset(job_experience_struct, attrs, company) do
+    job_attrs = Map.drop(attrs, ["company_name"])
+
+    job_attrs =
+      if company do
+        Map.put(job_attrs, "company_id", company.id)
+      else
+        job_attrs
+      end
+
+    JobExperience.changeset(job_experience_struct, job_attrs)
   end
 
   def delete_job_experience(%JobExperience{} = job_experience) do

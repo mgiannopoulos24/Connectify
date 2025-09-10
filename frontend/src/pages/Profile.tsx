@@ -670,7 +670,7 @@ const EditModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let submissionData = { ...formData };
+    const submissionData = { ...formData };
 
     if (itemType === 'experience') {
       submissionData.company_id = selectedCompany?.id || undefined;

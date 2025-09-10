@@ -3,7 +3,9 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
 
   alias Backend.Accounts
   alias Backend.Accounts.StaleUserJanitor
+  alias Backend.Accounts.User
   alias Backend.Repo
+  alias Ecto.Adapters.SQL.Sandbox
 
   describe "StaleUserJanitor" do
     setup do
@@ -11,7 +13,7 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
       {:ok, janitor_pid} = GenServer.start_link(StaleUserJanitor, %{}, name: :test_janitor)
 
       # Allow the janitor process to use the SQL sandbox connection owned by the test process
-      Ecto.Adapters.SQL.Sandbox.allow(Repo, self(), janitor_pid)
+      Sandbox.allow(Repo, self(), janitor_pid)
 
       # Ensure the process is terminated after the test
       on_exit(fn ->
@@ -42,7 +44,7 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
       )
       |> Repo.update!()
 
-      assert Repo.get(Accounts.User, stale_user.id) != nil
+      assert Repo.get(User, stale_user.id) != nil
 
       # 2. Manually send the :cleanup message to the janitor process
       send(:test_janitor, :cleanup)
@@ -51,7 +53,7 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
       Process.sleep(100)
 
       # 3. Assert that the stale user has been deleted
-      assert Repo.get(Accounts.User, stale_user.id) == nil
+      assert Repo.get(User, stale_user.id) == nil
     end
 
     test "cleanup task does NOT delete recently created pending users" do
@@ -66,14 +68,14 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
       }
 
       {:ok, fresh_user} = Accounts.create_user(fresh_user_attrs)
-      assert Repo.get(Accounts.User, fresh_user.id) != nil
+      assert Repo.get(User, fresh_user.id) != nil
 
       # 2. Trigger the cleanup
       send(:test_janitor, :cleanup)
       Process.sleep(100)
 
       # 3. Assert that the fresh user still exists
-      assert Repo.get(Accounts.User, fresh_user.id) != nil
+      assert Repo.get(User, fresh_user.id) != nil
     end
 
     test "cleanup task does NOT delete confirmed users, even if they are old" do
@@ -95,14 +97,14 @@ defmodule Backend.Accounts.StaleUserJanitorTest do
       )
       |> Repo.update!()
 
-      assert Repo.get(Accounts.User, confirmed_user.id) != nil
+      assert Repo.get(User, confirmed_user.id) != nil
 
       # 2. Trigger the cleanup
       send(:test_janitor, :cleanup)
       Process.sleep(100)
 
       # 3. Assert that the confirmed user still exists
-      assert Repo.get(Accounts.User, confirmed_user.id) != nil
+      assert Repo.get(User, confirmed_user.id) != nil
     end
   end
 end

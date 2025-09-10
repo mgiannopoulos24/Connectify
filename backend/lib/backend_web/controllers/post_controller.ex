@@ -56,11 +56,51 @@ defmodule BackendWeb.PostController do
   end
 
   defp handle_upload(file, dir, url_segment) do
+    # Whitelist allowed directories to prevent traversal
+    allowed_dirs = ["priv/static/uploads/post_images", "priv/static/uploads/post_videos"]
+
+    unless dir in allowed_dirs do
+      {:error, "Invalid directory."}
+    end
+
+    # Ensure dir is within the project root
+    project_root = Path.expand(".")
+    expanded_dir = Path.expand(dir)
+
+    unless String.starts_with?(expanded_dir, project_root) do
+      {:error, "Directory outside project root."}
+    end
+
     File.mkdir_p!(dir)
 
-    extension = Path.extname(file.filename)
+    sanitized_filename = Path.basename(file.filename)
+    extension = Path.extname(sanitized_filename)
+
+    # Whitelist allowed extensions to prevent traversal
+    # Adjust as needed
+    allowed_extensions = [".jpg", ".jpeg", ".png", ".gif", ".mp4", ".avi", ".mov"]
+
+    unless extension in allowed_extensions do
+      {:error, "Invalid file type."}
+    end
+
     unique_filename = "#{Ecto.UUID.generate()}#{extension}"
     upload_path = Path.join(dir, unique_filename)
+
+    # Ensure upload_path is within the intended directory
+    expanded_path = Path.expand(upload_path)
+
+    unless String.starts_with?(expanded_path, expanded_dir) do
+      {:error, "Invalid upload path."}
+    end
+
+    # Ensure file.path is within the system's temp directory
+    expanded_file_path = Path.expand(file.path)
+    expanded_temp_dir = Path.expand(System.tmp_dir())
+
+    unless String.starts_with?(expanded_file_path, expanded_temp_dir) do
+      {:error, "Invalid file source."}
+    end
 
     case File.cp(file.path, upload_path) do
       :ok ->
@@ -192,17 +232,18 @@ defmodule BackendWeb.PostController do
     current_user = conn.assigns.current_user
     post = Posts.get_post!(post_id)
 
-    with {:ok, message} <- Chat.send_post_as_message(current_user, recipient_id, post) do
-      Phoenix.PubSub.broadcast(
-        Backend.PubSub,
-        "chat:#{message.chat_room_id}",
-        {"new_msg", %{message: MessageJSON.data(message)}}
-      )
+    case Chat.send_post_as_message(current_user, recipient_id, post) do
+      {:ok, message} ->
+        Phoenix.PubSub.broadcast(
+          Backend.PubSub,
+          "chat:#{message.chat_room_id}",
+          {"new_msg", %{message: MessageJSON.data(message)}}
+        )
 
-      conn
-      |> put_status(:created)
-      |> render(MessageJSON, :show, message: message)
-    else
+        conn
+        |> put_status(:created)
+        |> render(MessageJSON, :show, message: message)
+
       {:error, :not_connected} ->
         conn
         |> put_status(:forbidden)

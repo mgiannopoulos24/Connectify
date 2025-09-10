@@ -1,17 +1,17 @@
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import routes from './routes/routes';
-import React, { useState, useEffect } from 'react';
-import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+// import axios from 'axios';
 import { PresenceProvider } from './contexts/PresenceContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 import { Toaster } from 'sonner';
 
 const AppContent: React.FC = () => {
-  const [isBackendDown, setIsBackendDown] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  // const [isBackendDown, setIsBackendDown] = useState(false);
+  // const navigate = useNavigate();
+  // const location = useLocation();
 
   // useEffect(() => {
   //   let isMounted = true;

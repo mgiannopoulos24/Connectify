@@ -27,36 +27,42 @@ defmodule BackendWeb.Admin.CompanyController do
   end
 
   def show(conn, %{"id" => id}) do
-    with %Company{} = company <- Repo.get(Company, id) do
-      company = Repo.preload(company, :job_postings)
+    case Repo.get(Company, id) do
+      %Company{} = company ->
+        company = Repo.preload(company, :job_postings)
 
-      conn
-      |> put_view(CompanyJSON)
-      |> render("show.json", company: company)
-    else
-      nil -> {:error, :not_found}
+        conn
+        |> put_view(CompanyJSON)
+        |> render("show.json", company: company)
+
+      nil ->
+        {:error, :not_found}
     end
   end
 
   def update(conn, %{"id" => id, "company" => company_params}) do
-    with %Company{} = company <- Repo.get(Company, id) do
-      with {:ok, %Company{} = company} <- Companies.update_company(company, company_params) do
-        conn
-        |> put_view(CompanyJSON)
-        |> render("show.json", company: company)
-      end
-    else
-      nil -> {:error, :not_found}
+    case Repo.get(Company, id) do
+      %Company{} = company ->
+        with {:ok, %Company{} = company} <- Companies.update_company(company, company_params) do
+          conn
+          |> put_view(CompanyJSON)
+          |> render("show.json", company: company)
+        end
+
+      nil ->
+        {:error, :not_found}
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    with %Company{} = company <- Repo.get(Company, id) do
-      with {:ok, %Company{}} <- Companies.delete_company(company) do
-        send_resp(conn, :no_content, "")
-      end
-    else
-      nil -> {:error, :not_found}
+    case Repo.get(Company, id) do
+      %Company{} = company ->
+        with {:ok, %Company{}} <- Companies.delete_company(company) do
+          send_resp(conn, :no_content, "")
+        end
+
+      nil ->
+        {:error, :not_found}
     end
   end
 end

@@ -151,71 +151,99 @@ defmodule Backend.Jobs do
   end
 
   defp handle_job_posting_transaction(user, job_posting_struct, attrs) do
-    Multi.new()
-    |> Multi.run(:company, fn _repo, _changes ->
-      company_id = attrs["company_id"]
-      company_name = attrs["company_name"]
+    multi =
+      Multi.new()
+      |> Multi.run(:company, fn _, _ -> resolve_company_for_multi(attrs, job_posting_struct) end)
+      |> Multi.run(:skills, fn _, _ -> resolve_skills_for_multi(attrs) end)
 
-      cond do
-        !is_nil(company_id) and company_id != "" ->
-          {:ok, Companies.get_company!(company_id)}
-
-        !is_nil(company_name) and company_name != "" ->
-          Companies.get_or_create_company_by_name(company_name)
-
-        true ->
-          if job_posting_struct.id,
-            do: {:ok, nil},
-            else: {:error, "company_id or company_name must be provided"}
-      end
-    end)
-    |> Multi.run(:skills, fn _repo, _changes ->
-      skill_ids = attrs["skill_ids"]
-
-      if is_nil(skill_ids),
-        do: {:ok, nil},
-        else: {:ok, Repo.all(from s in Skill, where: s.id in ^skill_ids)}
-    end)
-    |> (fn multi ->
-          job_changeset_fun = fn %{company: company, skills: skills} ->
-            job_attrs =
-              Map.drop(attrs, ["company_name", "skill_ids"])
-              |> Map.put("user_id", user.id)
-
-            job_attrs =
-              if company,
-                do: Map.put(job_attrs, "company_id", company.id),
-                else: job_attrs
-
-            changeset = JobPosting.changeset(job_posting_struct, job_attrs)
-
-            if skills,
-              do: Ecto.Changeset.put_assoc(changeset, :skills, skills),
-              else: changeset
-          end
-
-          if job_posting_struct.id do
-            Ecto.Multi.update(multi, :job_posting, job_changeset_fun)
-          else
-            Ecto.Multi.insert(multi, :job_posting, job_changeset_fun)
-          end
-        end).()
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{job_posting: job_posting}} ->
-        {:ok, get_job_posting!(job_posting.id)}
-
-      {:error, :job_posting, changeset, _} ->
-        {:error, changeset}
-
-      {:error, :company, error_msg, _} ->
-        {:error,
-         Ecto.Changeset.change(%JobPosting{})
-         |> Ecto.Changeset.add_error(:company, to_string(error_msg))}
-
-      {:error, _, reason, _} ->
-        {:error, reason}
+    job_changeset_fun = fn multi_results ->
+      build_job_posting_changeset(user, job_posting_struct, attrs, multi_results)
     end
+
+    multi =
+      if job_posting_struct.id do
+        Multi.update(multi, :job_posting, job_changeset_fun)
+      else
+        Multi.insert(multi, :job_posting, job_changeset_fun)
+      end
+
+    multi
+    |> Repo.transaction()
+    |> handle_transaction_result()
+  end
+
+  defp resolve_company_for_multi(attrs, job_posting_struct) do
+    company_id = attrs["company_id"]
+    company_name = attrs["company_name"]
+
+    cond do
+      !is_nil(company_id) and company_id != "" ->
+        {:ok, Companies.get_company!(company_id)}
+
+      !is_nil(company_name) and company_name != "" ->
+        Companies.get_or_create_company_by_name(company_name)
+
+      job_posting_struct.id ->
+        {:ok, nil}
+
+      true ->
+        {:error, "company_id or company_name must be provided"}
+    end
+  end
+
+  defp resolve_skills_for_multi(attrs) do
+    skill_ids = attrs["skill_ids"]
+
+    if is_nil(skill_ids) do
+      {:ok, nil}
+    else
+      {:ok, Repo.all(from(s in Skill, where: s.id in ^skill_ids))}
+    end
+  end
+
+  defp build_job_posting_changeset(user, job_posting_struct, attrs, multi_results) do
+    %{company: company, skills: skills} = multi_results
+
+    job_attrs =
+      attrs
+      |> Map.drop(["company_name", "skill_ids"])
+      |> Map.put("user_id", user.id)
+
+    job_attrs =
+      if company do
+        Map.put(job_attrs, "company_id", company.id)
+      else
+        job_attrs
+      end
+
+    changeset = JobPosting.changeset(job_posting_struct, job_attrs)
+
+    if skills do
+      Ecto.Changeset.put_assoc(changeset, :skills, skills)
+    else
+      changeset
+    end
+  end
+
+  defp handle_transaction_result({:ok, %{job_posting: job_posting}}) do
+    {:ok, get_job_posting!(job_posting.id)}
+  end
+
+  defp handle_transaction_result({:error, :job_posting, changeset, _}) do
+    {:error, changeset}
+  end
+
+  defp handle_transaction_result({:error, :company, error_msg, _}) do
+    changeset =
+      %JobPosting{}
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.add_error(:company, to_string(error_msg))
+
+    {:error, changeset}
+  end
+
+  defp handle_transaction_result({:error, _, reason, _}) do
+    {:error, reason}
   end
 
   def delete_job_posting(%JobPosting{} = job_posting) do

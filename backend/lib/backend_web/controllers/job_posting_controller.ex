@@ -67,9 +67,10 @@ defmodule BackendWeb.JobPostingController do
     current_user = conn.assigns.current_user
     job_posting = Jobs.get_job_posting!(id)
 
-    with {:ok, _application} <- Jobs.apply_for_job(current_user, job_posting, application_params) do
-      send_resp(conn, :created, "")
-    else
+    case Jobs.apply_for_job(current_user, job_posting, application_params) do
+      {:ok, _application} ->
+        send_resp(conn, :created, "")
+
       {:error, :cannot_apply_to_own_job} ->
         conn
         |> put_status(:forbidden)

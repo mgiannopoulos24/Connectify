@@ -8,19 +8,20 @@ defmodule BackendWeb.SessionController do
   def create(conn, %{"identifier" => identifier, "password" => password}) do
     case Accounts.authenticate_user(identifier, password) do
       {:ok, user} ->
-        with {:ok, token, _claims} <- Auth.sign_token(user) do
-          conn
-          # We will still set the secure cookie for regular HTTP requests
-          |> put_resp_cookie("auth_token", token,
-            http_only: true,
-            secure: true,
-            same_site: "Lax",
-            max_age: Auth.token_lifespan()
-          )
-          # Also return the user and the token in the JSON body
-          |> put_view(UserJSON)
-          |> render("show.json", user: user, token: token)
-        else
+        case Auth.sign_token(user) do
+          {:ok, token, _claims} ->
+            conn
+            # We will still set the secure cookie for regular HTTP requests
+            |> put_resp_cookie("auth_token", token,
+              http_only: true,
+              secure: true,
+              same_site: "Lax",
+              max_age: Auth.token_lifespan()
+            )
+            # Also return the user and the token in the JSON body
+            |> put_view(UserJSON)
+            |> render("show.json", user: user, token: token)
+
           {:error, reason} ->
             conn
             |> put_status(:internal_server_error)

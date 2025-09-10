@@ -455,19 +455,20 @@ defmodule Backend.Accounts do
     token = Integer.to_string(:rand.uniform(899_999) + 100_000)
     changeset = Ecto.Changeset.change(user, email_confirmation_token: token)
 
-    with {:ok, updated_user} <- Repo.update(changeset) do
-      case Mailer.deliver(Emails.confirmation_email(updated_user, token)) do
-        :ok ->
-          {:ok, updated_user}
+    case Repo.update(changeset) do
+      {:ok, updated_user} ->
+        case Mailer.deliver(Emails.confirmation_email(updated_user, token)) do
+          :ok ->
+            {:ok, updated_user}
 
-        {:ok, _email_data} ->
-          {:ok, updated_user}
+          {:ok, _email_data} ->
+            {:ok, updated_user}
 
-        {:error, reason} ->
-          Logger.error("Failed to deliver confirmation email: #{inspect(reason)}")
-          {:error, :email_delivery_failed}
-      end
-    else
+          {:error, reason} ->
+            Logger.error("Failed to deliver confirmation email: #{inspect(reason)}")
+            {:error, :email_delivery_failed}
+        end
+
       {:error, _changeset} = error ->
         error
     end

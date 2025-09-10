@@ -16,9 +16,13 @@ defmodule BackendWeb.ChatControllerTest do
         content = File.read!(path)
         filename = Path.basename(path)
 
+        # Using a sigil for the line with quotes to resolve the linter warning.
+        disposition_header =
+          ~s(Content-Disposition: form-data; name="#{key}"; filename="#{filename}"\r\n)
+
         acc <>
           "--#{boundary}\r\n" <>
-          "Content-Disposition: form-data; name=\"#{key}\"; filename=\"#{filename}\"\r\n" <>
+          disposition_header <>
           "Content-Type: #{content_type}\r\n\r\n" <>
           content <> "\r\n"
       end) <> "--#{boundary}--\r\n"
@@ -96,7 +100,6 @@ defmodule BackendWeb.ChatControllerTest do
 
   describe "file and image uploads" do
     test "POST /api/chat/upload_image uploads an image", %{conn: conn} do
-      # --- FIX: Create and clean up the dummy file within the test ---
       File.write!("test_image.png", "dummy image content")
       image_path = Path.join(File.cwd!(), "test_image.png")
 

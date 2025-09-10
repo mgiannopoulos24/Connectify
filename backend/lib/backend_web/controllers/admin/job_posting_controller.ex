@@ -35,25 +35,29 @@ defmodule BackendWeb.Admin.JobPostingController do
   end
 
   def update(conn, %{"id" => id, "job_posting" => job_posting_params}) do
-    with %JobPosting{} = job_posting <- Repo.get(JobPosting, id) do
-      with {:ok, %JobPosting{} = updated_posting} <-
-             Jobs.update_job_posting(job_posting, job_posting_params) do
-        render(conn, JobPostingJSON, :show,
-          job_posting: Jobs.get_job_posting!(updated_posting.id)
-        )
-      end
-    else
-      nil -> {:error, :not_found}
+    case Repo.get(JobPosting, id) do
+      %JobPosting{} = job_posting ->
+        with {:ok, %JobPosting{} = updated_posting} <-
+               Jobs.update_job_posting(job_posting, job_posting_params) do
+          render(conn, JobPostingJSON, :show,
+            job_posting: Jobs.get_job_posting!(updated_posting.id)
+          )
+        end
+
+      nil ->
+        {:error, :not_found}
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    with %JobPosting{} = job_posting <- Repo.get(JobPosting, id) do
-      with {:ok, _} <- Jobs.delete_job_posting(job_posting) do
-        send_resp(conn, :no_content, "")
-      end
-    else
-      nil -> {:error, :not_found}
+    case Repo.get(JobPosting, id) do
+      %JobPosting{} = job_posting ->
+        with {:ok, _} <- Jobs.delete_job_posting(job_posting) do
+          send_resp(conn, :no_content, "")
+        end
+
+      nil ->
+        {:error, :not_found}
     end
   end
 end
