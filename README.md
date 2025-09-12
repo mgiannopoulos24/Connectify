@@ -114,7 +114,13 @@ You can also run the application using Docker and Docker Compose. This setup inc
 4. Build and start the services:
 ```bash
 # This should take about 30-40 minutes cause of the manual tailwind installation
-docker-compose up --build
+docker-compose build
+# Start the services
+docker-compose up -d
+# Then populate the database (Optional)
+docker-compose run --rm backend mix ecto.setup
+# Ensure the db is migrated
+docker-compose exec db psql -U postgres -d backend_dev -c "SELECT email, role FROM users;"
 ```
 5. The backend will be available at `https://localhost:4000` and the frontend at `https://localhost:8443`.
 

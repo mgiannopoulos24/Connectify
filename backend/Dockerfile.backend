@@ -1,0 +1,68 @@
+# Stage 1: Build the release
+FROM elixir:1.15.7-otp-26 AS build
+ENV MIX_ENV=prod
+RUN apt-get update -y && \
+    apt-get install -y build-essential git curl ca-certificates apt-utils && \
+    apt-get clean && rm -f /var/lib/apt/lists/*_*
+WORKDIR /app
+RUN mix local.hex --force && mix local.rebar --force
+
+COPY mix.exs mix.lock ./
+
+RUN mix deps.get --only prod
+RUN mix deps.compile
+
+COPY config config/
+COPY assets assets/
+COPY priv priv/
+COPY lib lib/
+COPY entrypoint.sh .
+
+RUN mix compile
+
+# Manually download the tailwind executable because HTTP 2 cuts out in Docker build
+RUN mkdir -p _build && \
+    apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl \
+    --http1.1 \
+    --fail \
+    --location \
+    --retry 5 \
+    --retry-connrefused \
+    --retry-all-errors \
+    --retry-delay 2 \
+    --keepalive-time 30 \
+    --output _build/tailwind-linux-x64 \
+    https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.7/tailwindcss-linux-x64 && \
+    chmod +x _build/tailwind-linux-x64
+
+RUN mix assets.deploy
+RUN mix release
+
+# Stage 2: Final production image
+FROM debian:bookworm-slim AS app
+
+RUN apt-get update \
+    # Add wget here
+    && apt-get install -y libssl3 openssl ca-certificates wget \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN addgroup --system app && adduser --system --group app
+USER app
+WORKDIR /app
+
+COPY --from=build --chown=app:app /app/_build/prod/rel/backend .
+COPY --from=build --chown=app:app /app/entrypoint.sh .
+RUN chmod +x ./entrypoint.sh
+
+ENV HOME=/app
+ENV MIX_ENV=prod
+ENV PORT=4000
+ENV PHX_SERVER=true
+
+EXPOSE 4000
+ENTRYPOINT ["./entrypoint.sh"]
