@@ -117,8 +117,7 @@ if config_env() == :prod do
   # In production you need to configure the mailer to use a different adapter.
   # For Docker/production, we'll use the Test adapter to avoid email sending issues
   # You can replace this with a real adapter like Mailgun when needed
-  config :backend, Backend.Mailer,
-    adapter: Swoosh.Adapters.Test
+  config :backend, Backend.Mailer, adapter: Swoosh.Adapters.Test
 
   # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
   # and Finch out-of-the-box. This configuration is typically done at
