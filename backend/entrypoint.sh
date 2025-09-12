@@ -8,8 +8,9 @@ echo "Running database migrations..."
 bin/backend eval "Backend.Release.migrate"
 
 # Run database seeds
-echo "Running database seeds..."
-bin/backend eval "Backend.Release.seed"
+# Uncomment the following lines if you want to run seeds on startup
+# echo "Running database seeds..."
+# bin/backend eval "Backend.Release.seed"
 
 # Start the Phoenix server
 echo "Starting Phoenix server..."
