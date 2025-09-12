@@ -10,7 +10,7 @@ defmodule Backend.Application do
     children = [
       BackendWeb.Telemetry,
       Backend.Repo,
-      {DNSCluster, query: Application.get_env(:backend, :dns_cluster_query) || :ignore},
+      # {DNSCluster, query: Application.get_env(:backend, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Backend.PubSub},
       BackendWeb.Presence,
       # Start a worker by calling: Backend.Worker.start_link(arg)

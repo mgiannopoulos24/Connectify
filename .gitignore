@@ -27,3 +27,17 @@ uploads
 ai.md
 script.py
 cert
+
+# Nix flakes
+flake.nix
+flake.lock
+
+# Claude Code files
+.claude
+CLAUDE.md
+
+# NPM cache
+.npm-cache/
+.npm-global/
+.npmrc
+_update-notifier-last-checked
