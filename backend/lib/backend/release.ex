@@ -14,13 +14,13 @@ defmodule Backend.Release do
 
   def seed do
     load_app()
-    
+
     # Start the application to ensure all modules are loaded
     {:ok, _} = Application.ensure_all_started(@app)
-    
+
     # Load and execute the seeds file
     seeds_file = Path.join([Application.app_dir(@app, "priv"), "repo", "seeds.exs"])
-    
+
     if File.exists?(seeds_file) do
       IO.puts("Running seeds from #{seeds_file}...")
       Code.eval_file(seeds_file)
