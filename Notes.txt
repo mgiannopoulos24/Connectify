@@ -1,0 +1,28 @@
+
+Todo: 
+
+
+
+Make admin pages responsive and add search functionality.
+
+Write tests for both frontend and backend.
+
+Write tests for <file> including edge cases. Also If we have errors we need to modify the relevant files later.
+
+
+Release Workflow Documentation
+=================================
+# GitHub Actions workflow to create a new release.
+#
+# This workflow is triggered when a new tag is pushed to the repository.
+# It then builds the project, creates a GitHub release, and uploads the
+# build artifacts to that release.
+#
+# To use this workflow:
+# 1. Create a file named `release.yml` in the `.github/workflows/` directory.
+# 2. Customize the `build-project` job with your project's build commands.
+# 3. Commit and push this file to your repository.
+# 4. To trigger the workflow, create and push a new tag:
+#    git tag -a v1.0.0 -m "Release version 1.0.0"
+#    git push origin v1.0.0
+
